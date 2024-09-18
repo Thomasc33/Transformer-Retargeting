@@ -1,0 +1,29 @@
+title: DisentangledTMR
+description: Privacy-Preserving Skeleton Motion Retargeting via Factorized Transformers
+url: https://thomasc33.github.io
+baseurl: /Transformer-Retargeting
+
+# Exclude large/sensitive directories from the GitHub Pages build
+exclude:
+  - data/
+  - output/
+  - logs/
+  - results/
+  - src/
+  - scripts/
+  - configs/
+  - archive/
+  - eval/
+  - sbatch_queue/
+  - "*.py"
+  - "*.pt"
+  - "*.pkl"
+  - "*.pth"
+  - "*.npz"
+  - requirements.txt
+  - debug_dataset.py
+  - inspect_data.py
+  - check_sampled_data.py
+  - find_pmr_code.py
+  - PMR.ipynb
+  - analysis_results.txt

@@ -1,0 +1,1631 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DisentangledTMR — Privacy-Preserving Skeleton Motion Retargeting</title>
+    <meta name="description" content="Privacy-preserving skeleton motion retargeting via factorized transformers. Reduces re-identification to ~12% while preserving ~55% action recognition accuracy.">
+    <meta name="keywords" content="skeleton motion, privacy, retargeting, disentanglement, transformer, deep learning, action recognition, ECCV 2026">
+    <meta property="og:title" content="DisentangledTMR">
+    <meta property="og:description" content="Privacy-Preserving Skeleton Motion Retargeting via Factorized Transformers">
+    <meta property="og:type" content="website">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦴</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$'],['\\[','\\]']], processEscapes: true },
+            options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --font-display: 'Instrument Serif', Georgia, serif;
+            --font-body: 'Outfit', system-ui, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            --nav-height: 64px;
+            --max-width: 1200px;
+            --transition-theme: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+        }
+        [data-theme="light"] {
+            --bg: #F5F4F0; --bg-surface: #FFFFFF; --bg-elevated: #FFFFFF; --bg-code: #F0EFEB;
+            --text: #1A1A1A; --text-muted: #6B6B6B; --text-faint: #9A9A9A;
+            --accent: #6366F1; --accent-hover: #4F46E5; --accent-subtle: rgba(99,102,241,0.08); --accent-border: rgba(99,102,241,0.25);
+            --violet: #7C3AED; --violet-subtle: rgba(124,58,237,0.07); --violet-border: rgba(124,58,237,0.25);
+            --rose: #E11D48; --rose-subtle: rgba(225,29,72,0.07);
+            --emerald: #059669; --emerald-subtle: rgba(5,150,105,0.07);
+            --amber: #B45309; --amber-subtle: rgba(180,83,9,0.07);
+            --border: #E5E4E0; --border-strong: #D4D3CF;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.04); --shadow-md: 0 4px 16px rgba(0,0,0,0.06); --shadow-lg: 0 12px 40px rgba(0,0,0,0.08);
+            --nav-bg: rgba(245,244,240,0.85); --grain-opacity: 0.03;
+            --skel-orig: #E11D48; --skel-anon: #6366F1; --hl-row: rgba(99,102,241,0.06);
+            --chart-grid: rgba(0,0,0,0.06); --chart-text: #6B6B6B;
+        }
+        [data-theme="dark"] {
+            --bg: #0B0B0D; --bg-surface: #141416; --bg-elevated: #1C1C1F; --bg-code: #18181B;
+            --text: #ECECEC; --text-muted: #8B8B8B; --text-faint: #555555;
+            --accent: #818CF8; --accent-hover: #A5B4FC; --accent-subtle: rgba(129,140,248,0.08); --accent-border: rgba(129,140,248,0.2);
+            --violet: #A78BFA; --violet-subtle: rgba(167,139,250,0.08); --violet-border: rgba(167,139,250,0.2);
+            --rose: #FB7185; --rose-subtle: rgba(251,113,133,0.08);
+            --emerald: #34D399; --emerald-subtle: rgba(52,211,153,0.08);
+            --amber: #FBBF24; --amber-subtle: rgba(251,191,36,0.08);
+            --border: #27272A; --border-strong: #3F3F46;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.2); --shadow-md: 0 4px 16px rgba(0,0,0,0.3); --shadow-lg: 0 12px 40px rgba(0,0,0,0.4);
+            --nav-bg: rgba(11,11,13,0.85); --grain-opacity: 0.02;
+            --skel-orig: #FB7185; --skel-anon: #818CF8; --hl-row: rgba(129,140,248,0.06);
+            --chart-grid: rgba(255,255,255,0.06); --chart-text: #8B8B8B;
+        }
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+        html{scroll-behavior:smooth;scroll-padding-top:calc(var(--nav-height) + 24px)}
+        body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.65;overflow-x:hidden;transition:var(--transition-theme);-webkit-font-smoothing:antialiased}
+        body::after{content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:var(--grain-opacity);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:180px}
+        a{color:var(--accent);text-decoration:none;transition:color 0.2s}a:hover{color:var(--accent-hover)}
+        img{max-width:100%;height:auto;display:block}
+        code,pre{font-family:var(--font-mono)}
+        ::selection{background:var(--accent);color:#fff}
+
+        /* NAV */
+        nav{position:fixed;top:0;width:100%;height:var(--nav-height);background:var(--nav-bg);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--border);z-index:1000;transition:var(--transition-theme),box-shadow 0.3s}
+        nav.scrolled{box-shadow:var(--shadow-md)}
+        .nav-inner{max-width:var(--max-width);margin:0 auto;padding:0 2rem;height:100%;display:flex;align-items:center;justify-content:space-between}
+        .nav-logo{font-family:var(--font-display);font-size:1.4rem;color:var(--text);letter-spacing:-0.02em;transition:var(--transition-theme)}
+        .nav-logo em{font-style:italic;color:var(--accent)}
+        .nav-links{display:flex;align-items:center;gap:2rem;list-style:none}
+        .nav-links a{color:var(--text-muted);font-size:0.875rem;font-weight:500;letter-spacing:0.01em;transition:color 0.2s}
+        .nav-links a:hover{color:var(--text)}
+        .theme-toggle{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--bg-surface);color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:var(--transition-theme)}
+        .theme-toggle:hover{color:var(--text);border-color:var(--border-strong)}
+        .mobile-toggle{display:none;width:36px;height:36px;border:none;background:none;color:var(--text);cursor:pointer;font-size:1.25rem}
+        .nav-right{display:flex;align-items:center;gap:0.5rem}
+        #mobile-theme{display:none}
+
+        /* HERO */
+        .hero{max-width:var(--max-width);margin:0 auto;padding:calc(var(--nav-height) + 5rem) 2rem 4rem;display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;min-height:85vh}
+        .hero-content{max-width:560px}
+        .hero-badge{display:inline-flex;align-items:center;gap:0.5rem;padding:0.4rem 1rem;background:var(--accent-subtle);border:1px solid var(--accent-border);border-radius:100px;font-size:0.8rem;font-weight:600;color:var(--accent);letter-spacing:0.04em;margin-bottom:1.5rem;transition:var(--transition-theme)}
+        .hero h1{font-family:var(--font-display);font-size:clamp(2.5rem,5vw,3.75rem);line-height:1.1;letter-spacing:-0.02em;color:var(--text);margin-bottom:1.25rem;transition:var(--transition-theme)}
+        .hero-sub{font-size:1.125rem;color:var(--text-muted);line-height:1.7;margin-bottom:2rem;font-weight:300;max-width:480px;transition:var(--transition-theme)}
+        .hero-actions{display:flex;gap:0.75rem;flex-wrap:wrap}
+        .btn{display:inline-flex;align-items:center;gap:0.5rem;padding:0.7rem 1.5rem;border-radius:8px;font-family:var(--font-body);font-size:0.875rem;font-weight:600;border:none;cursor:pointer;transition:all 0.25s ease;text-decoration:none}
+        .btn-primary{background:var(--accent);color:#fff}
+        [data-theme="dark"] .btn-primary{color:#0B0B0D}
+        .btn-primary:hover{background:var(--accent-hover);color:#fff;transform:translateY(-1px);box-shadow:var(--shadow-md)}
+        [data-theme="dark"] .btn-primary:hover{color:#0B0B0D}
+        .btn-outline{background:transparent;color:var(--text);border:1px solid var(--border)}
+        .btn-outline:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-1px)}
+        .hero-visual{display:flex;align-items:center;justify-content:center}
+        .hero-visual svg{width:100%;max-width:440px;height:auto}
+
+        /* Skeleton styling */
+        .skel-joint{transition:var(--transition-theme)}.skel-bone{transition:var(--transition-theme)}
+        .so .skel-joint{fill:var(--skel-orig)}.so .skel-bone{stroke:var(--skel-orig);opacity:0.5}
+        .sa .skel-joint{fill:var(--skel-anon)}.sa .skel-bone{stroke:var(--skel-anon);opacity:0.5}
+        .so{animation:breathe 5s ease-in-out infinite}.sa{animation:breathe 5s ease-in-out infinite 0.5s}
+        @keyframes breathe{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+        .skel-label{font-family:var(--font-body);font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;transition:var(--transition-theme)}
+        .skel-arm{animation:armswing 3.5s ease-in-out infinite}
+        @keyframes armswing{0%,100%{transform:rotate(0deg)}50%{transform:rotate(-8deg)}}
+
+        /* STATS */
+        .stats-bar{max-width:var(--max-width);margin:0 auto;padding:0 2rem 5rem}
+        .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-sm);transition:var(--transition-theme)}
+        .stat-item{background:var(--bg-surface);padding:2rem 1.5rem;text-align:center;transition:var(--transition-theme)}
+        .stat-number{font-family:var(--font-display);font-size:clamp(2rem,3.5vw,2.75rem);line-height:1;margin-bottom:0.4rem;letter-spacing:-0.02em}
+        .stat-number.emerald{color:var(--emerald)}.stat-number.rose{color:var(--rose)}.stat-number.accent{color:var(--accent)}.stat-number.amber{color:var(--amber)}
+        .stat-label{font-size:0.8rem;color:var(--text-muted);font-weight:500;letter-spacing:0.02em;transition:var(--transition-theme)}
+        .stat-sub{font-size:0.7rem;color:var(--text-faint);margin-top:0.2rem}
+
+        /* SECTIONS */
+        .section{max-width:var(--max-width);margin:0 auto;padding:5rem 2rem}
+        .section-label{font-size:0.75rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin-bottom:0.75rem;transition:var(--transition-theme)}
+        .section-title{font-family:var(--font-display);font-size:clamp(2rem,3.5vw,2.75rem);line-height:1.15;letter-spacing:-0.02em;margin-bottom:0.75rem;color:var(--text);transition:var(--transition-theme)}
+        .section-desc{font-size:1.05rem;color:var(--text-muted);max-width:640px;line-height:1.7;margin-bottom:3rem;font-weight:300;transition:var(--transition-theme)}
+        .divider{width:100%;height:1px;background:var(--border);max-width:var(--max-width);margin:0 auto;transition:var(--transition-theme)}
+
+        /* FEATURES GRID */
+        .fg{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-sm);transition:var(--transition-theme)}
+        .fc{background:var(--bg-surface);padding:2rem;transition:var(--transition-theme),transform 0.3s;position:relative}
+        .fc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent);opacity:0;transition:opacity 0.3s}
+        .fc:hover::before{opacity:1}.fc:hover{background:var(--bg-elevated)}
+        .fc h3{font-family:var(--font-body);font-size:1rem;font-weight:600;margin-bottom:0.5rem;color:var(--text);transition:var(--transition-theme)}
+        .fc p{font-size:0.875rem;color:var(--text-muted);line-height:1.6;transition:var(--transition-theme)}
+        .fdot{width:8px;height:8px;border-radius:50%;margin-bottom:1rem;transition:var(--transition-theme)}
+        .fdot.indigo{background:var(--accent)}.fdot.violet{background:var(--violet)}.fdot.rose{background:var(--rose)}.fdot.emerald{background:var(--emerald)}.fdot.amber{background:var(--amber)}
+
+        /* TABS */
+        .tabs-nav{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:2rem;overflow-x:auto;scrollbar-width:none;transition:var(--transition-theme)}
+        .tabs-nav::-webkit-scrollbar{display:none}
+        .tab-btn{padding:0.75rem 1.25rem;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-muted);font-family:var(--font-body);font-size:0.875rem;font-weight:500;cursor:pointer;white-space:nowrap;transition:color 0.2s,border-color 0.2s;margin-bottom:-1px}
+        .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+        .tab-btn:hover:not(.active){color:var(--text)}
+        .tp{display:none;animation:tf 0.35s ease;overflow:hidden}.tp.active{display:block}
+        @keyframes tf{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+        /* INTERACTIVE ARCHITECTURE */
+        .arch-wrap{position:relative;padding:1.5rem 0}
+        .arch-controls{display:flex;align-items:center;gap:1rem;margin-bottom:1rem;flex-wrap:wrap}
+        .arch-play-btn{display:inline-flex;align-items:center;gap:.5rem;padding:.55rem 1.2rem;border-radius:8px;border:1px solid var(--accent-border);background:var(--accent-subtle);color:var(--accent);font-family:var(--font-body);font-size:.82rem;font-weight:600;cursor:pointer;transition:all .25s ease}
+        .arch-play-btn:hover{background:var(--accent);color:#fff;transform:translateY(-1px);box-shadow:var(--shadow-md)}
+        [data-theme="dark"] .arch-play-btn:hover{color:#0B0B0D}
+        .arch-play-btn.playing{background:var(--rose);border-color:var(--rose);color:#fff}
+        .arch-step-label{font-family:var(--font-body);font-size:.82rem;color:var(--text-muted);flex:1;min-width:180px}
+        .arch-speed{display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:var(--text-muted);font-family:var(--font-body)}
+        .arch-speed select{padding:.25rem .45rem;border-radius:5px;border:1px solid var(--border);background:var(--bg-surface);color:var(--text);font-family:var(--font-mono);font-size:.72rem;cursor:pointer}
+        .arch-diagram{width:100%;max-width:1100px;margin:0 auto;overflow-x:auto;-webkit-overflow-scrolling:touch}
+        .arch-svg{width:100%;height:auto;display:block;min-width:740px}
+        .arch-info{margin-top:.8rem;padding:.8rem 1rem;border-radius:8px;background:var(--bg-surface);border:1px solid var(--border);font-family:var(--font-body);font-size:.8rem;color:var(--text-muted);line-height:1.55;min-height:2em}
+        .arch-info .ait{font-weight:700;font-size:.85rem;color:var(--text);margin-bottom:.2rem}
+        .arch-info .ais{font-family:var(--font-mono);font-size:.72rem;color:var(--text-faint);margin-top:.15rem}
+        .arch-legend{display:flex;gap:.8rem;margin-top:1rem;flex-wrap:wrap}
+        .arch-badge{display:inline-flex;align-items:center;gap:.35rem;font-size:.72rem;font-family:var(--font-body);color:var(--text-muted);padding:.25rem .6rem;border-radius:5px;background:var(--bg-surface);border:1px solid var(--border)}
+        .arch-badge .dot{width:7px;height:7px;border-radius:50%}
+        .arch-svg .cb{cursor:pointer}
+        .arch-svg .cb:hover .cbg{filter:brightness(1.08)}
+        .arch-svg .cb.act .cbg{stroke-width:2.5}
+        .arch-svg .ist{transition:opacity .25s}
+        .arch-svg .ist.hl rect{opacity:.3!important}
+        @media(max-width:768px){.arch-controls{flex-direction:column;align-items:stretch}.arch-step-label{text-align:center}}
+
+        /* IMAGE CARDS */
+        .igrid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.5rem;margin:1.5rem 0}
+        .ic{background:var(--bg-surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:var(--transition-theme),transform 0.3s,box-shadow 0.3s}
+        .ic:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+        .ic img{width:100%;height:auto}
+        .ic figcaption{padding:0.875rem 1rem;font-size:0.8rem;color:var(--text-muted);line-height:1.5;transition:var(--transition-theme)}
+        .ic.full{grid-column:1/-1;max-width:720px;margin:0 auto}
+        .igrid-3{grid-template-columns:repeat(3,1fr)}
+        .igrid-4{grid-template-columns:repeat(4,1fr)}
+
+        /* COMPONENT CARDS */
+        .cg{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-sm);transition:var(--transition-theme)}
+        .cc{background:var(--bg-surface);padding:1.75rem;transition:var(--transition-theme)}
+        .ct{display:inline-flex;padding:0.2rem 0.6rem;border-radius:4px;font-family:var(--font-mono);font-size:0.75rem;font-weight:500;margin-bottom:0.75rem;margin-right:0.4rem}
+        .ct.indigo{background:var(--accent-subtle);color:var(--accent)}.ct.violet{background:var(--violet-subtle);color:var(--violet)}
+        .ct.emerald{background:var(--emerald-subtle);color:var(--emerald)}.ct.rose{background:var(--rose-subtle);color:var(--rose)}
+        .ct.amber{background:var(--amber-subtle);color:var(--amber)}
+        .cc h4{font-size:0.95rem;font-weight:600;margin-bottom:0.5rem;color:var(--text);transition:var(--transition-theme)}
+        .cc p{font-size:0.825rem;color:var(--text-muted);line-height:1.55;transition:var(--transition-theme)}
+
+        /* TABLES */
+        .tw{background:var(--bg-surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-sm);transition:var(--transition-theme);margin-bottom:1.5rem}
+        .tw table{width:100%;border-collapse:collapse;font-size:0.85rem}
+        .tw th{background:var(--bg-elevated);padding:0.875rem 1rem;text-align:left;font-weight:600;font-size:0.75rem;letter-spacing:0.04em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border);transition:var(--transition-theme)}
+        .tw td{padding:0.875rem 1rem;border-bottom:1px solid var(--border);transition:var(--transition-theme)}
+        .tw tr:last-child td{border-bottom:none}.tw tr:hover td{background:var(--hl-row)}
+        .tw .hr td{background:var(--hl-row)}
+        .hl{color:var(--accent);font-weight:600}
+        .bad{color:var(--rose);font-size:0.75rem}
+        .good{color:var(--emerald);font-size:0.75rem}
+        .tw .table-note{padding:0.75rem 1rem;font-size:0.78rem;color:var(--text-faint);border-top:1px solid var(--border);background:var(--bg-elevated)}
+
+        /* CHARTS */
+        .chart-wrap{background:var(--bg-surface);border:1px solid var(--border);border-radius:16px;padding:1.5rem;transition:var(--transition-theme);margin-bottom:1.5rem}
+        .chart-wrap h4{font-size:0.9rem;font-weight:600;margin-bottom:1rem;color:var(--text)}
+        .chart-row{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+        .chart-wrap canvas{max-height:340px}
+
+        /* TRAINING STAGES */
+        .sg{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-sm);transition:var(--transition-theme)}
+        .sc{background:var(--bg-surface);padding:2rem;transition:var(--transition-theme)}
+        .sn{font-family:var(--font-display);font-size:2rem;color:var(--text-faint);margin-bottom:0.25rem;transition:var(--transition-theme)}
+        .sc h4{font-size:1rem;font-weight:600;margin-bottom:0.5rem;color:var(--text);transition:var(--transition-theme)}
+        .sc .stage-meta{font-size:0.78rem;color:var(--text-faint);margin-bottom:1rem}
+        .tag-row{display:flex;flex-wrap:wrap;gap:0.3rem;margin-bottom:1rem}
+        .tag{padding:0.25rem 0.6rem;border-radius:4px;font-size:0.7rem;font-weight:600;letter-spacing:0.02em}
+        .tag.indigo{background:var(--accent-subtle);color:var(--accent)}
+        .tag.violet{background:var(--violet-subtle);color:var(--violet)}
+        .tag.rose{background:var(--rose-subtle);color:var(--rose)}
+        .tag.amber{background:var(--amber-subtle);color:var(--amber)}
+        .tag.emerald{background:var(--emerald-subtle);color:var(--emerald)}
+        .si{font-size:0.825rem;color:var(--text-muted);line-height:1.55;transition:var(--transition-theme)}
+        .si strong{color:var(--text)}
+
+        /* LOSS FUNCTIONS */
+        .loss-card{background:var(--bg-surface);border:1px solid var(--border);border-radius:16px;padding:2rem;margin-bottom:1.5rem;transition:var(--transition-theme)}
+        .loss-card h4{font-size:0.95rem;font-weight:600;margin-bottom:1rem;color:var(--text)}
+        .loss-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+        .loss-grid-stack{display:grid;grid-template-columns:1fr;gap:1.5rem}
+        .loss-item{padding:1.25rem;background:var(--bg-elevated);border-radius:10px;transition:var(--transition-theme);overflow-x:auto}
+        .loss-item h5{font-size:0.85rem;font-weight:600;margin-bottom:0.5rem;color:var(--text)}
+        .loss-item .mjx-container{font-size:0.85rem !important}
+        .loss-item p{font-size:0.78rem;color:var(--text-muted);margin-top:0.5rem}
+        .loss-total{background:var(--accent-subtle);border:1px solid var(--accent-border);border-radius:12px;padding:1.5rem;text-align:center;margin-bottom:2rem}
+        .loss-total .mjx-container{font-size:1.1rem !important}
+
+        /* WEIGHT BAR */
+        .weight-row{display:flex;align-items:center;gap:0.75rem;padding:0.5rem 0;font-size:0.825rem}
+        .weight-label{width:180px;flex-shrink:0;color:var(--text-muted);text-align:right}
+        .weight-bar-bg{flex:1;height:20px;background:var(--bg-elevated);border-radius:4px;overflow:hidden;position:relative}
+        .weight-bar-fill{height:100%;border-radius:4px;transition:width 0.6s ease}
+        .weight-bar-fill.indigo{background:var(--accent)}.weight-bar-fill.violet{background:var(--violet)}
+        .weight-bar-fill.rose{background:var(--rose)}.weight-bar-fill.emerald{background:var(--emerald)}
+        .weight-bar-fill.amber{background:var(--amber)}
+        .weight-val{width:50px;flex-shrink:0;font-family:var(--font-mono);font-size:0.78rem;color:var(--text-faint)}
+
+        /* FINDINGS */
+        .fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-top:1.5rem}
+        .fcard{padding:1.25rem 1.5rem;border-radius:12px;border-left:3px solid;transition:var(--transition-theme)}
+        .fcard.indigo{background:var(--accent-subtle);border-color:var(--accent)}.fcard.violet{background:var(--violet-subtle);border-color:var(--violet)}
+        .fcard.rose{background:var(--rose-subtle);border-color:var(--rose)}.fcard.amber{background:var(--amber-subtle);border-color:var(--amber)}
+        .fcard h4{font-size:0.875rem;font-weight:600;margin-bottom:0.4rem}
+        .fcard.indigo h4{color:var(--accent)}.fcard.violet h4{color:var(--violet)}.fcard.rose h4{color:var(--rose)}.fcard.amber h4{color:var(--amber)}
+        .fcard p{font-size:0.825rem;color:var(--text-muted);line-height:1.55}
+
+        /* CODE */
+        .cb{background:var(--bg-code);border:1px solid var(--border);border-radius:12px;padding:1.5rem;overflow-x:auto;position:relative;transition:var(--transition-theme);margin-bottom:1rem}
+        .cb pre{font-family:var(--font-mono);font-size:0.8rem;line-height:1.7;color:var(--text);margin:0;transition:var(--transition-theme)}
+        .cb .cpb{position:absolute;top:0.75rem;right:0.75rem;width:32px;height:32px;border-radius:6px;border:1px solid var(--border);background:var(--bg-surface);color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.75rem;opacity:0;transition:opacity 0.2s,var(--transition-theme)}
+        .cb:hover .cpb{opacity:1}.cb .cpb:hover{color:var(--accent);border-color:var(--accent)}
+
+        /* USAGE SECTION */
+        .usage-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+        .usage-card{background:var(--bg-surface);border:1px solid var(--border);border-radius:16px;padding:2rem;transition:var(--transition-theme)}
+        .usage-card h4{font-size:0.95rem;font-weight:600;margin-bottom:0.75rem;color:var(--text)}
+        .usage-card p{font-size:0.825rem;color:var(--text-muted);line-height:1.55;margin-bottom:1rem}
+
+        /* SPECS */
+        .spg{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-sm);transition:var(--transition-theme)}
+        .spc{background:var(--bg-surface);padding:1.75rem;transition:var(--transition-theme)}
+        .spc h4{font-size:0.9rem;font-weight:600;margin-bottom:0.75rem;color:var(--text)}
+        .spc p{font-size:0.825rem;color:var(--text-muted);line-height:1.65}
+        .spc strong{color:var(--text);font-weight:500}
+
+        /* CITATION */
+        .cit-block{background:var(--bg-surface);border:1px solid var(--border);border-radius:16px;padding:2rem;position:relative;transition:var(--transition-theme)}
+        .cit-block pre{font-family:var(--font-mono);font-size:0.8rem;line-height:1.7;color:var(--text);background:var(--bg-code);padding:1.25rem;border-radius:8px;overflow-x:auto;margin:0}
+        .cit-copy{position:absolute;top:1rem;right:1rem;padding:0.4rem 0.8rem;border-radius:6px;border:1px solid var(--border);background:var(--bg-elevated);color:var(--text-muted);font-family:var(--font-body);font-size:0.75rem;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:0.35rem;transition:var(--transition-theme)}
+        .cit-copy:hover{color:var(--accent);border-color:var(--accent)}
+        .pub-d{margin-top:1.5rem;padding:1.25rem;background:var(--accent-subtle);border-left:3px solid var(--accent);border-radius:8px}
+        .pub-d p{font-size:0.85rem;color:var(--text-muted);margin:0.3rem 0}
+        .pub-d strong{color:var(--text)}
+
+        /* PRIVACY METERS */
+        .meters{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;margin-bottom:2.5rem}
+        .meter{text-align:center}
+        .meter svg{width:120px;height:120px;margin:0 auto}
+        .meter-label{font-size:0.8rem;color:var(--text-muted);margin-top:0.5rem;font-weight:500}
+
+        /* STATUS */
+        .status-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-sm)}
+        .status-item{background:var(--bg-surface);padding:1.5rem;display:flex;gap:1rem;align-items:flex-start;transition:var(--transition-theme)}
+        .status-check{width:24px;height:24px;border-radius:50%;background:var(--emerald-subtle);color:var(--emerald);display:flex;align-items:center;justify-content:center;font-size:0.7rem;flex-shrink:0;margin-top:2px}
+        .status-info h4{font-size:0.875rem;font-weight:600;color:var(--text);margin-bottom:0.25rem}
+        .status-info p{font-size:0.78rem;color:var(--text-muted);line-height:1.5}
+
+        /* FOOTER */
+        footer{border-top:1px solid var(--border);padding:3rem 2rem;text-align:center;transition:var(--transition-theme)}
+        .footer-inner{max-width:var(--max-width);margin:0 auto}
+        .fl{display:flex;justify-content:center;gap:2rem;margin-bottom:1.5rem;flex-wrap:wrap}
+        .fl a{color:var(--text-muted);font-size:0.85rem;font-weight:500;display:flex;align-items:center;gap:0.4rem;transition:color 0.2s}
+        .fl a:hover{color:var(--text)}
+        .fc-copy{font-size:0.8rem;color:var(--text-faint)}
+
+        /* SCROLL REVEAL */
+        .reveal{opacity:0;transform:translateY(24px);transition:opacity 0.7s ease,transform 0.7s ease}
+        .reveal.vis{opacity:1;transform:translateY(0)}
+        .rd1{transition-delay:0.1s}.rd2{transition-delay:0.2s}.rd3{transition-delay:0.3s}
+
+        /* MOBILE MENU */
+        .mm{display:none;position:fixed;top:var(--nav-height);left:0;right:0;background:var(--bg-surface);border-bottom:1px solid var(--border);padding:1rem;z-index:999;box-shadow:var(--shadow-lg);transition:var(--transition-theme)}
+        .mm.open{display:block;animation:tf 0.25s ease}
+        .mm a{display:block;padding:0.75rem 1rem;color:var(--text-muted);font-weight:500;font-size:0.95rem;border-radius:8px;transition:background 0.2s,color 0.2s}
+        .mm a:hover{background:var(--bg-elevated);color:var(--text)}
+
+        /* RESPONSIVE */
+        @media(max-width:1024px){
+            .fg,.cg{grid-template-columns:repeat(2,1fr)}.spg{grid-template-columns:repeat(2,1fr)}
+            .hero{grid-template-columns:1fr;gap:2rem;min-height:auto;padding-top:calc(var(--nav-height) + 3rem)}
+            .hero-visual{order:-1}.hero-visual svg{max-width:340px}.hero-content{max-width:100%}
+            .chart-row{grid-template-columns:1fr}.usage-grid{grid-template-columns:1fr}
+            .meters{grid-template-columns:repeat(2,1fr)}
+        }
+        @media(max-width:768px){
+            .nav-links{display:none}.mobile-toggle{display:flex;align-items:center;justify-content:center}
+            #mobile-theme{display:flex}
+            .fg,.sg,.cg,.fgrid,.status-grid{grid-template-columns:1fr}.spg{grid-template-columns:1fr}
+            .stats-grid{grid-template-columns:repeat(2,1fr)}.igrid,.igrid-3,.igrid-4{grid-template-columns:1fr}
+            .hero h1{font-size:2.25rem}.hero-visual svg{max-width:280px}
+            .section{padding:3rem 1.25rem}
+            .loss-grid{grid-template-columns:1fr}
+            .meters{grid-template-columns:repeat(2,1fr)}
+        }
+        @media(max-width:480px){
+            .hero-actions{flex-direction:column}.hero-actions .btn{width:100%;justify-content:center}
+            .stats-grid{grid-template-columns:1fr}
+        }
+    </style>
+</head>
+<body>
+    <nav id="nav"><div class="nav-inner">
+        <a href="#" class="nav-logo">Disentangled<em>TMR</em></a>
+        <ul class="nav-links">
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#architecture">Architecture</a></li>
+            <li><a href="#results">Results</a></li>
+            <li><a href="#pipeline">Pipeline</a></li>
+            <li><a href="#losses">Losses</a></li>
+            <li><a href="#figures">Figures</a></li>
+            <li><a href="#usage">Usage</a></li>
+            <li><a href="#citation">Citation</a></li>
+            <li><a href="https://github.com/Thomasc33/Transformer-Retargeting" target="_blank"><i class="fab fa-github"></i> GitHub</a></li>
+            <li><button class="theme-toggle" id="dt" aria-label="Toggle theme"><i class="fas fa-sun" id="ti"></i></button></li>
+        </ul>
+        <div class="nav-right">
+            <button class="theme-toggle" id="mobile-theme" aria-label="Toggle theme"><i class="fas fa-sun" id="ti2"></i></button>
+            <button class="mobile-toggle" id="mt" aria-label="Menu"><i class="fas fa-bars" id="mi"></i></button>
+        </div>
+    </div></nav>
+
+    <div class="mm" id="mmenu">
+        <a href="#overview" onclick="cmm()">Overview</a>
+        <a href="#architecture" onclick="cmm()">Architecture</a>
+        <a href="#results" onclick="cmm()">Results</a>
+        <a href="#pipeline" onclick="cmm()">Pipeline</a>
+        <a href="#losses" onclick="cmm()">Losses</a>
+        <a href="#figures" onclick="cmm()">Figures</a>
+        <a href="#usage" onclick="cmm()">Usage</a>
+        <a href="#citation" onclick="cmm()">Citation</a>
+        <a href="https://github.com/Thomasc33/Transformer-Retargeting" target="_blank"><i class="fab fa-github"></i> GitHub</a>
+    </div>
+
+    <main>
+        <!-- HERO -->
+        <section class="hero">
+            <div class="hero-content">
+                <div class="hero-badge reveal">ECCV 2026</div>
+                <h1 class="reveal rd1">Disentangled Transformer Motion Retargeting</h1>
+                <p class="hero-sub reveal rd2">Privacy-preserving skeleton motion retargeting via factorized transformers. Reducing re-identification to ~12% while preserving ~55% action recognition.</p>
+                <div class="hero-actions reveal rd3">
+                    <a href="#results" class="btn btn-primary"><i class="fas fa-chart-bar"></i> View Results</a>
+                    <a href="https://github.com/Thomasc33/Transformer-Retargeting" class="btn btn-outline" target="_blank"><i class="fab fa-github"></i> GitHub</a>
+                    <a href="#usage" class="btn btn-outline"><i class="fas fa-book"></i> Docs</a>
+                </div>
+            </div>
+            <div class="hero-visual reveal">
+                <svg viewBox="0 0 440 280" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Skeleton retargeting: original to anonymized">
+                    <g class="so"><g class="skel-bone">
+                        <line x1="90" y1="48" x2="90" y2="65" stroke-width="1.5"/><line x1="90" y1="65" x2="90" y2="105" stroke-width="1.5"/>
+                        <line x1="90" y1="105" x2="90" y2="140" stroke-width="1.5"/><line x1="60" y1="70" x2="120" y2="70" stroke-width="1.5"/>
+                        <line x1="60" y1="70" x2="45" y2="100" stroke-width="1.5"/><line x1="45" y1="100" x2="35" y2="130" stroke-width="1.5"/>
+                        <line x1="70" y1="140" x2="110" y2="140" stroke-width="1.5"/>
+                        <line x1="70" y1="140" x2="65" y2="180" stroke-width="1.5"/><line x1="65" y1="180" x2="60" y2="220" stroke-width="1.5"/>
+                        <line x1="110" y1="140" x2="115" y2="180" stroke-width="1.5"/><line x1="115" y1="180" x2="118" y2="220" stroke-width="1.5"/>
+                    </g>
+                    <g class="skel-bone skel-arm" style="transform-origin:120px 70px">
+                        <line x1="120" y1="70" x2="140" y2="98" stroke-width="1.5" stroke="var(--skel-orig)"/>
+                        <line x1="140" y1="98" x2="150" y2="128" stroke-width="1.5" stroke="var(--skel-orig)"/>
+                        <circle cx="140" cy="98" r="3.5" class="skel-joint" fill="var(--skel-orig)"/>
+                        <circle cx="150" cy="128" r="3" class="skel-joint" fill="var(--skel-orig)"/>
+                    </g>
+                    <circle cx="90" cy="38" r="10" class="skel-joint" opacity="0.15"/><circle cx="90" cy="38" r="5" class="skel-joint"/>
+                    <circle cx="90" cy="65" r="3" class="skel-joint"/><circle cx="60" cy="70" r="3.5" class="skel-joint"/>
+                    <circle cx="120" cy="70" r="3.5" class="skel-joint"/><circle cx="45" cy="100" r="3.5" class="skel-joint"/>
+                    <circle cx="35" cy="130" r="3" class="skel-joint"/><circle cx="90" cy="105" r="3" class="skel-joint"/>
+                    <circle cx="90" cy="140" r="3.5" class="skel-joint"/><circle cx="70" cy="140" r="3" class="skel-joint"/>
+                    <circle cx="110" cy="140" r="3" class="skel-joint"/><circle cx="65" cy="180" r="3.5" class="skel-joint"/>
+                    <circle cx="115" cy="180" r="3.5" class="skel-joint"/><circle cx="60" cy="220" r="3" class="skel-joint"/>
+                    <circle cx="118" cy="220" r="3" class="skel-joint"/>
+                    </g>
+                    <text x="90" y="250" class="skel-label" text-anchor="middle" fill="var(--skel-orig)">ORIGINAL</text>
+                    <g><line x1="180" y1="130" x2="250" y2="130" stroke="var(--text-faint)" stroke-width="1.5" stroke-dasharray="4 3"/>
+                    <polygon points="255,130 247,125 247,135" fill="var(--text-faint)"/>
+                    <text x="215" y="118" font-size="9" fill="var(--accent)" text-anchor="middle" font-family="var(--font-body)" font-weight="600">TMR</text></g>
+                    <g class="sa"><g class="skel-bone">
+                        <line x1="340" y1="62" x2="340" y2="76" stroke-width="1.5"/><line x1="340" y1="76" x2="340" y2="110" stroke-width="1.5"/>
+                        <line x1="340" y1="110" x2="340" y2="138" stroke-width="1.5"/><line x1="316" y1="80" x2="364" y2="80" stroke-width="1.5"/>
+                        <line x1="316" y1="80" x2="304" y2="105" stroke-width="1.5"/><line x1="304" y1="105" x2="296" y2="128" stroke-width="1.5"/>
+                        <line x1="324" y1="138" x2="356" y2="138" stroke-width="1.5"/>
+                        <line x1="324" y1="138" x2="320" y2="172" stroke-width="1.5"/><line x1="320" y1="172" x2="316" y2="206" stroke-width="1.5"/>
+                        <line x1="356" y1="138" x2="360" y2="172" stroke-width="1.5"/><line x1="360" y1="172" x2="362" y2="206" stroke-width="1.5"/>
+                    </g>
+                    <g class="skel-bone skel-arm" style="transform-origin:364px 80px">
+                        <line x1="364" y1="80" x2="380" y2="105" stroke-width="1.5" stroke="var(--skel-anon)"/>
+                        <line x1="380" y1="105" x2="388" y2="128" stroke-width="1.5" stroke="var(--skel-anon)"/>
+                        <circle cx="380" cy="105" r="3.5" class="skel-joint" fill="var(--skel-anon)"/>
+                        <circle cx="388" cy="128" r="3" class="skel-joint" fill="var(--skel-anon)"/>
+                    </g>
+                    <circle cx="340" cy="52" r="9" class="skel-joint" opacity="0.15"/><circle cx="340" cy="52" r="4.5" class="skel-joint"/>
+                    <circle cx="340" cy="76" r="3" class="skel-joint"/><circle cx="316" cy="80" r="3.5" class="skel-joint"/>
+                    <circle cx="364" cy="80" r="3.5" class="skel-joint"/><circle cx="304" cy="105" r="3.5" class="skel-joint"/>
+                    <circle cx="296" cy="128" r="3" class="skel-joint"/><circle cx="340" cy="110" r="3" class="skel-joint"/>
+                    <circle cx="340" cy="138" r="3.5" class="skel-joint"/><circle cx="324" cy="138" r="3" class="skel-joint"/>
+                    <circle cx="356" cy="138" r="3" class="skel-joint"/><circle cx="320" cy="172" r="3.5" class="skel-joint"/>
+                    <circle cx="360" cy="172" r="3.5" class="skel-joint"/><circle cx="316" cy="206" r="3" class="skel-joint"/>
+                    <circle cx="362" cy="206" r="3" class="skel-joint"/>
+                    </g>
+                    <text x="340" y="236" class="skel-label" text-anchor="middle" fill="var(--skel-anon)">ANONYMIZED</text>
+                </svg>
+            </div>
+        </section>
+
+        <div class="stats-bar reveal">
+            <div class="stats-grid">
+                <div class="stat-item"><div class="stat-number emerald">75.8%</div><div class="stat-label">Action Retained</div><div class="stat-sub">Pre-trained SGN AR</div></div>
+                <div class="stat-item"><div class="stat-number rose">18.1%</div><div class="stat-label">Re-ID Reduced</div><div class="stat-sub">Pre-trained RI (chance: 2.5%)</div></div>
+                <div class="stat-item"><div class="stat-number accent">3</div><div class="stat-label">Training Stages</div><div class="stat-sub">Curriculum Learning</div></div>
+                <div class="stat-item"><div class="stat-number amber">10+</div><div class="stat-label">Loss Functions</div><div class="stat-sub">Jointly Optimized</div></div>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- OVERVIEW -->
+        <section id="overview" class="section">
+            <p class="section-label reveal">Overview</p>
+            <h2 class="section-title reveal rd1">Disentangling motion from identity</h2>
+            <p class="section-desc reveal rd2">DisentangledTMR transfers motion from one skeleton to another&mdash;preserving the action while removing personally identifiable information through factorized transformer decoding.</p>
+            <div class="fg reveal rd3">
+                <div class="fc"><div class="fdot indigo"></div><h3>Privacy Protection</h3><p>Reduces re-identification from 75.4% to 18.1% by disentangling identity-specific features like body proportions and gait patterns.</p></div>
+                <div class="fc"><div class="fdot emerald"></div><h3>Action Preservation</h3><p>Maintains 75.8% pre-trained action recognition accuracy&mdash;well above PMR (35.7%) and DMR (49.1%) baselines.</p></div>
+                <div class="fc"><div class="fdot violet"></div><h3>Factorized Decoding</h3><p>Adaptive fusion gate learns per-joint, per-frame blending: <code>out = g &middot; action + (1-g) &middot; identity</code> for fine-grained control.</p></div>
+                <div class="fc"><div class="fdot rose"></div><h3>Adversarial Disentanglement</h3><p>Gradient reversal layer prevents action encoder from capturing identity, enforced alongside contrastive and orthogonality losses.</p></div>
+                <div class="fc"><div class="fdot indigo"></div><h3>Asymmetric Encoders</h3><p>Action encoder (768D) captures temporal dynamics; identity encoder (256D) intentionally limited to prevent identity leakage.</p></div>
+                <div class="fc"><div class="fdot amber"></div><h3>Cross-Dataset Transfer</h3><p>Evaluated on NTU60, NTU120, and ETRI-Activity3D. Near-chance RI on ETRI confirms strong generalization.</p></div>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- ARCHITECTURE -->
+        <section id="architecture" class="section">
+            <p class="section-label reveal">Model Design</p>
+            <h2 class="section-title reveal rd1">Architecture overview</h2>
+            <p class="section-desc reveal rd2">Three specialized components with asymmetric capacity. The action encoder captures temporal dynamics, the identity encoder models skeletal structure, and the factorized decoder fuses them through adaptive gating.</p>
+            <div class="reveal rd3">
+                <div class="tabs-nav">
+                    <button class="tab-btn active" onclick="stab(event,'arch-interactive')">Interactive</button>
+                    <button class="tab-btn" onclick="stab(event,'arch-overview')">Overview</button>
+                    <button class="tab-btn" onclick="stab(event,'arch-detail')">Full Architecture</button>
+                    <button class="tab-btn" onclick="stab(event,'arch-encoders')">Encoders</button>
+                    <button class="tab-btn" onclick="stab(event,'arch-decoder')">Decoder</button>
+                    <button class="tab-btn" onclick="stab(event,'arch-components')">Components</button>
+                </div>
+                <div id="arch-interactive" class="tp active">
+<div class="arch-wrap" id="archWrap">
+<div class="arch-controls">
+    <button class="arch-play-btn" id="aPlayBtn">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" id="aPlayIco"><polygon points="1,0 12,6 1,12"/></svg>
+        <span id="aPlayTxt">Play</span>
+    </button>
+    <div class="arch-step-label" id="aStepLbl">Click a component or press Play to animate.</div>
+    <div class="arch-speed">
+        <label>Speed:</label>
+        <select id="aSpeedSel"><option value="2200">0.5x</option><option value="1300" selected>1x</option><option value="650">2x</option></select>
+    </div>
+</div>
+
+<div class="arch-diagram">
+<svg class="arch-svg" id="aSvg" viewBox="0 0 1000 910" xmlns="http://www.w3.org/2000/svg">
+<defs>
+    <!-- Arrow markers -->
+    <marker id="aA" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="var(--accent)" opacity=".65"/></marker>
+    <marker id="aV" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="var(--violet)" opacity=".65"/></marker>
+    <marker id="aE" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="var(--emerald)" opacity=".65"/></marker>
+    <marker id="aR" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="var(--rose)" opacity=".65"/></marker>
+    <!-- Glow filters -->
+    <filter id="gA" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3.5" result="b"/><feFlood flood-color="var(--accent)" flood-opacity=".45" result="c"/><feComposite in="c" in2="b" operator="in" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="gV" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3.5" result="b"/><feFlood flood-color="var(--violet)" flood-opacity=".45" result="c"/><feComposite in="c" in2="b" operator="in" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="gE" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3.5" result="b"/><feFlood flood-color="var(--emerald)" flood-opacity=".45" result="c"/><feComposite in="c" in2="b" operator="in" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+
+    <!-- Kinect v2 / NTU RGB+D 25-joint skeletons. All 25 joints, 24 bones. -->
+    <!-- Centered at (0,0). Head ~y=-15, feet ~y=48. Scale .55 to fit in boxes. -->
+<g id="skel-a">
+        <line x1="0" y1="6" x2="0" y2="16" stroke="var(--accent)" stroke-width="1.8" opacity="0.6" stroke-linecap="round"/>
+        <line x1="0" y1="6" x2="0" y2="-6" stroke="var(--accent)" stroke-width="1.8" opacity="0.6" stroke-linecap="round"/>
+        <line x1="0" y1="-6" x2="0" y2="-9" stroke="var(--accent)" stroke-width="1.8" opacity="0.6" stroke-linecap="round"/>
+        <line x1="0" y1="-9" x2="0" y2="-15" stroke="var(--accent)" stroke-width="1.8" opacity="0.6" stroke-linecap="round"/>
+        <line x1="0" y1="-6" x2="-11" y2="-6" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="-11" y1="-6" x2="-21" y2="-6" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="-21" y1="-6" x2="-28" y2="-6" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="-28" y1="-6" x2="-31" y2="-6" stroke="var(--accent)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="-31" y1="-6" x2="-31" y2="-9" stroke="var(--accent)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="-31" y1="-9" x2="-34" y2="-6" stroke="var(--accent)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="0" y1="-6" x2="11" y2="-6" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="11" y1="-6" x2="21" y2="-6" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="21" y1="-6" x2="28" y2="-6" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="28" y1="-6" x2="31" y2="-6" stroke="var(--accent)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="31" y1="-6" x2="31" y2="-9" stroke="var(--accent)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="31" y1="-9" x2="34" y2="-6" stroke="var(--accent)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="0" y1="16" x2="-7" y2="16" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="-7" y1="16" x2="-7" y2="29" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="-7" y1="29" x2="-7" y2="41" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="-7" y1="41" x2="-10" y2="45" stroke="var(--accent)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="0" y1="16" x2="7" y2="16" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="7" y1="16" x2="7" y2="29" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="7" y1="29" x2="7" y2="41" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="7" y1="41" x2="10" y2="45" stroke="var(--accent)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <circle cx="0" cy="16" r="1.6" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="0" cy="6" r="1.4" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="0" cy="-9" r="1.3" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="0" cy="-15" r="3.2" fill="var(--accent)" opacity=".5"/>
+        <circle cx="-11" cy="-6" r="1.5" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="-21" cy="-6" r="1.3" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="-28" cy="-6" r="1.2" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="-31" cy="-6" r="1.0" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="11" cy="-6" r="1.5" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="21" cy="-6" r="1.3" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="28" cy="-6" r="1.2" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="31" cy="-6" r="1.0" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="-7" cy="16" r="1.5" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="-7" cy="29" r="1.3" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="-7" cy="41" r="1.2" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="-10" cy="45" r="0.8" fill="var(--accent)" opacity="0.35"/>
+        <circle cx="7" cy="16" r="1.5" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="7" cy="29" r="1.3" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="7" cy="41" r="1.2" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="10" cy="45" r="0.8" fill="var(--accent)" opacity="0.35"/>
+        <circle cx="0" cy="-6" r="1.5" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="-34" cy="-6" r="0.7" fill="var(--accent)" opacity="0.35"/>
+        <circle cx="-31" cy="-9" r="0.7" fill="var(--accent)" opacity="0.35"/>
+        <circle cx="34" cy="-6" r="0.7" fill="var(--accent)" opacity="0.35"/>
+        <circle cx="31" cy="-9" r="0.7" fill="var(--accent)" opacity="0.35"/>
+    </g>
+    <g id="skel-a2">
+        <line x1="0" y1="6" x2="0" y2="16" stroke="var(--accent)" stroke-width="1.8" opacity="0.6" stroke-linecap="round"/>
+        <line x1="0" y1="6" x2="0" y2="-6" stroke="var(--accent)" stroke-width="1.8" opacity="0.6" stroke-linecap="round"/>
+        <line x1="0" y1="-6" x2="0" y2="-9" stroke="var(--accent)" stroke-width="1.8" opacity="0.6" stroke-linecap="round"/>
+        <line x1="0" y1="-9" x2="0" y2="-15" stroke="var(--accent)" stroke-width="1.8" opacity="0.6" stroke-linecap="round"/>
+        <line x1="0" y1="-6" x2="-11" y2="-6" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="-11" y1="-6" x2="-13" y2="-17" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="-13" y1="-17" x2="-11" y2="-27" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="-11" y1="-27" x2="-10" y2="-30" stroke="var(--accent)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="-10" y1="-30" x2="-8" y2="-29" stroke="var(--accent)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="-8" y1="-29" x2="-10" y2="-33" stroke="var(--accent)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="0" y1="-6" x2="11" y2="-6" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="11" y1="-6" x2="15" y2="4" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="15" y1="4" x2="18" y2="13" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="18" y1="13" x2="19" y2="16" stroke="var(--accent)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="19" y1="16" x2="21" y2="15" stroke="var(--accent)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="21" y1="15" x2="19" y2="19" stroke="var(--accent)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="0" y1="16" x2="-7" y2="16" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="-7" y1="16" x2="-7" y2="29" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="-7" y1="29" x2="-7" y2="41" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="-7" y1="41" x2="-10" y2="45" stroke="var(--accent)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="0" y1="16" x2="7" y2="16" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="7" y1="16" x2="7" y2="29" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="7" y1="29" x2="7" y2="41" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="7" y1="41" x2="10" y2="45" stroke="var(--accent)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <circle cx="0" cy="16" r="1.6" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="0" cy="6" r="1.4" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="0" cy="-9" r="1.3" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="0" cy="-15" r="3.2" fill="var(--accent)" opacity=".5"/>
+        <circle cx="-11" cy="-6" r="1.5" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="-13" cy="-17" r="1.3" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="-11" cy="-27" r="1.2" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="-10" cy="-30" r="1.0" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="11" cy="-6" r="1.5" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="15" cy="4" r="1.3" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="18" cy="13" r="1.2" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="19" cy="16" r="1.0" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="-7" cy="16" r="1.5" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="-7" cy="29" r="1.3" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="-7" cy="41" r="1.2" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="-10" cy="45" r="0.8" fill="var(--accent)" opacity="0.35"/>
+        <circle cx="7" cy="16" r="1.5" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="7" cy="29" r="1.3" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="7" cy="41" r="1.2" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="10" cy="45" r="0.8" fill="var(--accent)" opacity="0.35"/>
+        <circle cx="0" cy="-6" r="1.5" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="-10" cy="-33" r="0.7" fill="var(--accent)" opacity="0.35"/>
+        <circle cx="-8" cy="-29" r="0.7" fill="var(--accent)" opacity="0.35"/>
+        <circle cx="19" cy="19" r="0.7" fill="var(--accent)" opacity="0.35"/>
+        <circle cx="21" cy="15" r="0.7" fill="var(--accent)" opacity="0.35"/>
+    </g>
+    <g id="skel-a3">
+        <line x1="0" y1="7" x2="0" y2="16" stroke="var(--accent)" stroke-width="1.8" opacity="0.6" stroke-linecap="round"/>
+        <line x1="0" y1="7" x2="0" y2="-5" stroke="var(--accent)" stroke-width="1.8" opacity="0.6" stroke-linecap="round"/>
+        <line x1="0" y1="-5" x2="0" y2="-8" stroke="var(--accent)" stroke-width="1.8" opacity="0.6" stroke-linecap="round"/>
+        <line x1="0" y1="-8" x2="0" y2="-14" stroke="var(--accent)" stroke-width="1.8" opacity="0.6" stroke-linecap="round"/>
+        <line x1="0" y1="-5" x2="-11" y2="-5" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="-11" y1="-5" x2="-15" y2="4" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="-15" y1="4" x2="-20" y2="12" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="-20" y1="12" x2="-22" y2="14" stroke="var(--accent)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="-22" y1="14" x2="-23" y2="11" stroke="var(--accent)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="-23" y1="11" x2="-24" y2="16" stroke="var(--accent)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="0" y1="-5" x2="11" y2="-5" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="11" y1="-5" x2="16" y2="-14" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="16" y1="-14" x2="22" y2="-21" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="22" y1="-21" x2="24" y2="-23" stroke="var(--accent)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="24" y1="-23" x2="26" y2="-22" stroke="var(--accent)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="26" y1="-22" x2="25" y2="-26" stroke="var(--accent)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="0" y1="16" x2="-7" y2="16" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="-7" y1="16" x2="-9" y2="29" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="-9" y1="29" x2="-10" y2="41" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="-10" y1="41" x2="-13" y2="45" stroke="var(--accent)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="0" y1="16" x2="7" y2="16" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="7" y1="16" x2="5" y2="29" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="5" y1="29" x2="4" y2="41" stroke="var(--accent)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="4" y1="41" x2="6" y2="45" stroke="var(--accent)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <circle cx="0" cy="16" r="1.6" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="0" cy="7" r="1.4" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="0" cy="-8" r="1.3" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="0" cy="-14" r="3.2" fill="var(--accent)" opacity=".5"/>
+        <circle cx="-11" cy="-5" r="1.5" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="-15" cy="4" r="1.3" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="-20" cy="12" r="1.2" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="-22" cy="14" r="1.0" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="11" cy="-5" r="1.5" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="16" cy="-14" r="1.3" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="22" cy="-21" r="1.2" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="24" cy="-23" r="1.0" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="-7" cy="16" r="1.5" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="-9" cy="29" r="1.3" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="-10" cy="41" r="1.2" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="-13" cy="45" r="0.8" fill="var(--accent)" opacity="0.35"/>
+        <circle cx="7" cy="16" r="1.5" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="5" cy="29" r="1.3" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="4" cy="41" r="1.2" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="6" cy="45" r="0.8" fill="var(--accent)" opacity="0.35"/>
+        <circle cx="0" cy="-5" r="1.5" fill="var(--accent)" opacity="0.55"/>
+        <circle cx="-24" cy="16" r="0.7" fill="var(--accent)" opacity="0.35"/>
+        <circle cx="-23" cy="11" r="0.7" fill="var(--accent)" opacity="0.35"/>
+        <circle cx="25" cy="-26" r="0.7" fill="var(--accent)" opacity="0.35"/>
+        <circle cx="26" cy="-22" r="0.7" fill="var(--accent)" opacity="0.35"/>
+    </g>
+    <g id="skel-v">
+        <line x1="0" y1="7" x2="0" y2="18" stroke="var(--violet)" stroke-width="1.8" opacity="0.6" stroke-linecap="round"/>
+        <line x1="0" y1="7" x2="0" y2="-6" stroke="var(--violet)" stroke-width="1.8" opacity="0.6" stroke-linecap="round"/>
+        <line x1="0" y1="-6" x2="0" y2="-9" stroke="var(--violet)" stroke-width="1.8" opacity="0.6" stroke-linecap="round"/>
+        <line x1="0" y1="-9" x2="0" y2="-15" stroke="var(--violet)" stroke-width="1.8" opacity="0.6" stroke-linecap="round"/>
+        <line x1="0" y1="-6" x2="-14" y2="-6" stroke="var(--violet)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="-14" y1="-6" x2="-25" y2="-6" stroke="var(--violet)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="-25" y1="-6" x2="-33" y2="-6" stroke="var(--violet)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="-33" y1="-6" x2="-36" y2="-6" stroke="var(--violet)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="-36" y1="-6" x2="-36" y2="-9" stroke="var(--violet)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="-36" y1="-9" x2="-39" y2="-6" stroke="var(--violet)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="0" y1="-6" x2="14" y2="-6" stroke="var(--violet)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="14" y1="-6" x2="25" y2="-6" stroke="var(--violet)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="25" y1="-6" x2="33" y2="-6" stroke="var(--violet)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="33" y1="-6" x2="36" y2="-6" stroke="var(--violet)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="36" y1="-6" x2="36" y2="-9" stroke="var(--violet)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="36" y1="-9" x2="39" y2="-6" stroke="var(--violet)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="0" y1="18" x2="-9" y2="18" stroke="var(--violet)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="-9" y1="18" x2="-9" y2="32" stroke="var(--violet)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="-9" y1="32" x2="-9" y2="44" stroke="var(--violet)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="-9" y1="44" x2="-12" y2="48" stroke="var(--violet)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="0" y1="18" x2="9" y2="18" stroke="var(--violet)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="9" y1="18" x2="9" y2="32" stroke="var(--violet)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="9" y1="32" x2="9" y2="44" stroke="var(--violet)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="9" y1="44" x2="12" y2="48" stroke="var(--violet)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <circle cx="0" cy="18" r="1.6" fill="var(--violet)" opacity="0.55"/>
+        <circle cx="0" cy="7" r="1.4" fill="var(--violet)" opacity="0.55"/>
+        <circle cx="0" cy="-9" r="1.3" fill="var(--violet)" opacity="0.55"/>
+        <circle cx="0" cy="-15" r="3.2" fill="var(--violet)" opacity=".5"/>
+        <circle cx="-14" cy="-6" r="1.5" fill="var(--violet)" opacity="0.55"/>
+        <circle cx="-25" cy="-6" r="1.3" fill="var(--violet)" opacity="0.55"/>
+        <circle cx="-33" cy="-6" r="1.2" fill="var(--violet)" opacity="0.55"/>
+        <circle cx="-36" cy="-6" r="1.0" fill="var(--violet)" opacity="0.55"/>
+        <circle cx="14" cy="-6" r="1.5" fill="var(--violet)" opacity="0.55"/>
+        <circle cx="25" cy="-6" r="1.3" fill="var(--violet)" opacity="0.55"/>
+        <circle cx="33" cy="-6" r="1.2" fill="var(--violet)" opacity="0.55"/>
+        <circle cx="36" cy="-6" r="1.0" fill="var(--violet)" opacity="0.55"/>
+        <circle cx="-9" cy="18" r="1.5" fill="var(--violet)" opacity="0.55"/>
+        <circle cx="-9" cy="32" r="1.3" fill="var(--violet)" opacity="0.55"/>
+        <circle cx="-9" cy="44" r="1.2" fill="var(--violet)" opacity="0.55"/>
+        <circle cx="-12" cy="48" r="0.8" fill="var(--violet)" opacity="0.35"/>
+        <circle cx="9" cy="18" r="1.5" fill="var(--violet)" opacity="0.55"/>
+        <circle cx="9" cy="32" r="1.3" fill="var(--violet)" opacity="0.55"/>
+        <circle cx="9" cy="44" r="1.2" fill="var(--violet)" opacity="0.55"/>
+        <circle cx="12" cy="48" r="0.8" fill="var(--violet)" opacity="0.35"/>
+        <circle cx="0" cy="-6" r="1.5" fill="var(--violet)" opacity="0.55"/>
+        <circle cx="-39" cy="-6" r="0.7" fill="var(--violet)" opacity="0.35"/>
+        <circle cx="-36" cy="-9" r="0.7" fill="var(--violet)" opacity="0.35"/>
+        <circle cx="39" cy="-6" r="0.7" fill="var(--violet)" opacity="0.35"/>
+        <circle cx="36" cy="-9" r="0.7" fill="var(--violet)" opacity="0.35"/>
+    </g>
+    <g id="skel-e">
+        <line x1="0" y1="7" x2="0" y2="18" stroke="var(--emerald)" stroke-width="1.8" opacity="0.6" stroke-linecap="round"/>
+        <line x1="0" y1="7" x2="0" y2="-6" stroke="var(--emerald)" stroke-width="1.8" opacity="0.6" stroke-linecap="round"/>
+        <line x1="0" y1="-6" x2="0" y2="-9" stroke="var(--emerald)" stroke-width="1.8" opacity="0.6" stroke-linecap="round"/>
+        <line x1="0" y1="-9" x2="0" y2="-15" stroke="var(--emerald)" stroke-width="1.8" opacity="0.6" stroke-linecap="round"/>
+        <line x1="0" y1="-6" x2="-14" y2="-6" stroke="var(--emerald)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="-14" y1="-6" x2="-16" y2="-17" stroke="var(--emerald)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="-16" y1="-17" x2="-14" y2="-27" stroke="var(--emerald)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="-14" y1="-27" x2="-13" y2="-30" stroke="var(--emerald)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="-13" y1="-30" x2="-11" y2="-29" stroke="var(--emerald)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="-11" y1="-29" x2="-13" y2="-33" stroke="var(--emerald)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="0" y1="-6" x2="14" y2="-6" stroke="var(--emerald)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="14" y1="-6" x2="18" y2="4" stroke="var(--emerald)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="18" y1="4" x2="21" y2="13" stroke="var(--emerald)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="21" y1="13" x2="22" y2="16" stroke="var(--emerald)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="22" y1="16" x2="24" y2="15" stroke="var(--emerald)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="24" y1="15" x2="22" y2="19" stroke="var(--emerald)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="0" y1="18" x2="-9" y2="18" stroke="var(--emerald)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="-9" y1="18" x2="-9" y2="32" stroke="var(--emerald)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="-9" y1="32" x2="-9" y2="44" stroke="var(--emerald)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="-9" y1="44" x2="-12" y2="48" stroke="var(--emerald)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <line x1="0" y1="18" x2="9" y2="18" stroke="var(--emerald)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="9" y1="18" x2="9" y2="32" stroke="var(--emerald)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="9" y1="32" x2="9" y2="44" stroke="var(--emerald)" stroke-width="1.3" opacity="0.6" stroke-linecap="round"/>
+        <line x1="9" y1="44" x2="12" y2="48" stroke="var(--emerald)" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+        <circle cx="0" cy="18" r="1.6" fill="var(--emerald)" opacity="0.55"/>
+        <circle cx="0" cy="7" r="1.4" fill="var(--emerald)" opacity="0.55"/>
+        <circle cx="0" cy="-9" r="1.3" fill="var(--emerald)" opacity="0.55"/>
+        <circle cx="0" cy="-15" r="3.2" fill="var(--emerald)" opacity=".5"/>
+        <circle cx="-14" cy="-6" r="1.5" fill="var(--emerald)" opacity="0.55"/>
+        <circle cx="-16" cy="-17" r="1.3" fill="var(--emerald)" opacity="0.55"/>
+        <circle cx="-14" cy="-27" r="1.2" fill="var(--emerald)" opacity="0.55"/>
+        <circle cx="-13" cy="-30" r="1.0" fill="var(--emerald)" opacity="0.55"/>
+        <circle cx="14" cy="-6" r="1.5" fill="var(--emerald)" opacity="0.55"/>
+        <circle cx="18" cy="4" r="1.3" fill="var(--emerald)" opacity="0.55"/>
+        <circle cx="21" cy="13" r="1.2" fill="var(--emerald)" opacity="0.55"/>
+        <circle cx="22" cy="16" r="1.0" fill="var(--emerald)" opacity="0.55"/>
+        <circle cx="-9" cy="18" r="1.5" fill="var(--emerald)" opacity="0.55"/>
+        <circle cx="-9" cy="32" r="1.3" fill="var(--emerald)" opacity="0.55"/>
+        <circle cx="-9" cy="44" r="1.2" fill="var(--emerald)" opacity="0.55"/>
+        <circle cx="-12" cy="48" r="0.8" fill="var(--emerald)" opacity="0.35"/>
+        <circle cx="9" cy="18" r="1.5" fill="var(--emerald)" opacity="0.55"/>
+        <circle cx="9" cy="32" r="1.3" fill="var(--emerald)" opacity="0.55"/>
+        <circle cx="9" cy="44" r="1.2" fill="var(--emerald)" opacity="0.55"/>
+        <circle cx="12" cy="48" r="0.8" fill="var(--emerald)" opacity="0.35"/>
+        <circle cx="0" cy="-6" r="1.5" fill="var(--emerald)" opacity="0.55"/>
+        <circle cx="-13" cy="-33" r="0.7" fill="var(--emerald)" opacity="0.35"/>
+        <circle cx="-11" cy="-29" r="0.7" fill="var(--emerald)" opacity="0.35"/>
+        <circle cx="22" cy="19" r="0.7" fill="var(--emerald)" opacity="0.35"/>
+        <circle cx="24" cy="15" r="0.7" fill="var(--emerald)" opacity="0.35"/>
+    </g>
+</defs>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- ROW 1: INPUTS  y=10..100                                      -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<!-- Source Motion: x=75..365, y=10..100 (290×90) -->
+<g class="cb" data-c="src">
+    <rect class="cbg" x="75" y="10" width="290" height="90" rx="8" fill="var(--bg-surface)" stroke="var(--accent-border)" stroke-width="1.5"/>
+    <text x="90" y="32" font-family="var(--font-display)" font-size="13" font-weight="700" fill="var(--accent)">Source Motion</text>
+    <text x="250" y="32" font-family="var(--font-mono)" font-size="9" fill="var(--accent)" opacity=".65">(B, 3, 64, 25, 1)</text>
+    <use href="#skel-a"  x="140" y="64" transform="translate(140,64) scale(.5) translate(-140,-64)" opacity=".65"/>
+    <use href="#skel-a2" x="210" y="64" transform="translate(210,64) scale(.5) translate(-210,-64)" opacity=".8"/>
+    <use href="#skel-a3" x="280" y="64" transform="translate(280,64) scale(.5) translate(-280,-64)" opacity="1"/>
+    <text x="172" y="62" font-size="10" fill="var(--accent)" opacity=".3">&#8594;</text>
+    <text x="242" y="62" font-size="10" fill="var(--accent)" opacity=".3">&#8594;</text>
+    <text x="158" y="96" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">T=64 frames</text>
+</g>
+
+<!-- Target Skeleton: x=635..925, y=10..100 (290×90) -->
+<g class="cb" data-c="tgt">
+    <rect class="cbg" x="635" y="10" width="290" height="90" rx="8" fill="var(--bg-surface)" stroke="var(--violet-border)" stroke-width="1.5"/>
+    <text x="650" y="32" font-family="var(--font-display)" font-size="13" font-weight="700" fill="var(--violet)">Target Skeleton</text>
+    <text x="835" y="32" font-family="var(--font-mono)" font-size="9" fill="var(--violet)" opacity=".65">(B, 3, 64, 25, 1)</text>
+    <use href="#skel-v" x="780" y="64" transform="translate(780,64) scale(.5) translate(-780,-64)" opacity=".85"/>
+    <text x="735" y="96" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">static pose (temporal mean)</text>
+</g>
+
+<!-- ═══ ARROWS: Inputs → Encoders ═══ -->
+<path id="p0" d="M220,100 L220,130" stroke="var(--accent)" stroke-width="1.8" fill="none" opacity=".35" marker-end="url(#aA)"/>
+<path id="p1" d="M780,100 L780,130" stroke="var(--violet)" stroke-width="1.8" fill="none" opacity=".35" marker-end="url(#aV)"/>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- ROW 2: ENCODERS  y=130..400 (centered, 120px gap)             -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<!-- Action Encoder: x=75..440, y=130..400 (365×270) -->
+<g class="cb" data-c="ae">
+    <rect class="cbg" x="75" y="130" width="365" height="270" rx="8" fill="var(--accent-subtle)" stroke="var(--accent-border)" stroke-width="1.5"/>
+    <text x="90" y="153" font-family="var(--font-display)" font-size="13" font-weight="700" fill="var(--accent)">Action Encoder</text>
+    <rect x="265" y="140" width="160" height="16" rx="4" fill="var(--accent)" opacity=".85"/>
+    <text x="275" y="152" font-family="var(--font-mono)" font-size="9" fill="#fff" font-weight="600">output: (64, B, 768)</text>
+    <!-- Inner steps -->
+    <g class="ist" data-i="a1"><rect x="93" y="166" width="225" height="20" rx="4" fill="var(--accent)" opacity=".07" stroke="var(--accent)" stroke-width=".5" stroke-opacity=".2"/><text x="101" y="180" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">pos + vel + acc</text><text x="225" y="180" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(B,9,64,25,1)</text></g>
+    <g class="ist" data-i="a2"><rect x="93" y="192" width="225" height="20" rx="4" fill="var(--accent)" opacity=".07" stroke="var(--accent)" stroke-width=".5" stroke-opacity=".2"/><text x="101" y="206" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">Linear(225&#8594;256)</text><text x="240" y="206" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(B,64,256)</text></g>
+    <g class="ist" data-i="a3"><rect x="93" y="218" width="330" height="24" rx="4" fill="var(--accent)" opacity=".07" stroke="var(--accent)" stroke-width=".5" stroke-opacity=".2"/><text x="101" y="234" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">MultiScale TConv</text>
+        <rect x="210" y="222" width="28" height="14" rx="3" fill="var(--accent)" opacity=".12" stroke="var(--accent)" stroke-width=".6" stroke-opacity=".25"/><text x="215" y="233" font-family="var(--font-mono)" font-size="7.5" fill="var(--accent)">k=3</text>
+        <rect x="243" y="222" width="28" height="14" rx="3" fill="var(--accent)" opacity=".12" stroke="var(--accent)" stroke-width=".6" stroke-opacity=".25"/><text x="248" y="233" font-family="var(--font-mono)" font-size="7.5" fill="var(--accent)">k=5</text>
+        <rect x="276" y="222" width="28" height="14" rx="3" fill="var(--accent)" opacity=".12" stroke="var(--accent)" stroke-width=".6" stroke-opacity=".25"/><text x="281" y="233" font-family="var(--font-mono)" font-size="7.5" fill="var(--accent)">k=7</text>
+        <text x="312" y="234" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(64,B,256)</text></g>
+    <g class="ist" data-i="a4"><rect x="93" y="248" width="280" height="20" rx="4" fill="var(--accent)" opacity=".07" stroke="var(--accent)" stroke-width=".5" stroke-opacity=".2"/><text x="101" y="262" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">Temporal Attn &#215;2 (8 heads)</text><text x="295" y="262" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(64,B,256)</text></g>
+    <g class="ist" data-i="a5"><rect x="93" y="274" width="225" height="20" rx="4" fill="var(--accent)" opacity=".07" stroke="var(--accent)" stroke-width=".5" stroke-opacity=".2"/><text x="101" y="288" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">LSTM (2 layers)</text><text x="225" y="288" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(64,B,256)</text></g>
+    <g class="ist" data-i="a6"><rect x="93" y="300" width="330" height="26" rx="4" fill="var(--accent)" opacity=".1" stroke="var(--accent)" stroke-width=".6" stroke-opacity=".25"/><text x="101" y="317" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">Gate Fusion</text><text x="180" y="317" font-family="var(--font-mono)" font-size="8.5" fill="var(--accent)" opacity=".7">g&#183;lstm + (1-g)&#183;mixf</text><text x="345" y="317" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(64,B,768)</text></g>
+    <g class="ist" data-i="a7"><rect x="93" y="332" width="225" height="20" rx="4" fill="var(--accent)" opacity=".07" stroke="var(--accent)" stroke-width=".5" stroke-opacity=".2"/><text x="101" y="346" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">LayerNorm</text><text x="182" y="346" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">&#8594; (64, B, 768)</text></g>
+    <!-- MixFormer side note -->
+    <rect x="303" y="274" width="115" height="20" rx="4" fill="var(--amber-subtle)" stroke="var(--accent)" stroke-width=".4" stroke-opacity=".15" stroke-dasharray="3,2"/>
+    <text x="311" y="288" font-family="var(--font-body)" font-size="8" fill="var(--text-muted)" font-style="italic">MixFormer (10L)</text>
+    <!-- Inner flow lines -->
+    <line x1="200" y1="186" x2="200" y2="192" stroke="var(--accent)" stroke-width=".7" opacity=".25"/>
+    <line x1="200" y1="212" x2="200" y2="218" stroke="var(--accent)" stroke-width=".7" opacity=".25"/>
+    <line x1="200" y1="242" x2="200" y2="248" stroke="var(--accent)" stroke-width=".7" opacity=".25"/>
+    <line x1="200" y1="268" x2="200" y2="274" stroke="var(--accent)" stroke-width=".7" opacity=".25"/>
+    <line x1="200" y1="294" x2="200" y2="300" stroke="var(--accent)" stroke-width=".7" opacity=".25"/>
+    <line x1="200" y1="326" x2="200" y2="332" stroke="var(--accent)" stroke-width=".7" opacity=".25"/>
+</g>
+
+<!-- Identity Encoder: x=560..925, y=130..400 (365×270) -->
+<g class="cb" data-c="ie">
+    <rect class="cbg" x="560" y="130" width="365" height="270" rx="8" fill="var(--violet-subtle)" stroke="var(--violet-border)" stroke-width="1.5"/>
+    <text x="575" y="153" font-family="var(--font-display)" font-size="13" font-weight="700" fill="var(--violet)">Identity Encoder</text>
+    <rect x="800" y="140" width="115" height="16" rx="4" fill="var(--violet)" opacity=".85"/>
+    <text x="810" y="152" font-family="var(--font-mono)" font-size="9" fill="#fff" font-weight="600">out: (B, 256)</text>
+    <!-- Main processing stream -->
+    <g class="ist" data-i="i1"><rect x="578" y="166" width="225" height="20" rx="4" fill="var(--violet)" opacity=".07" stroke="var(--violet)" stroke-width=".5" stroke-opacity=".2"/><text x="586" y="180" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">Temporal Mean</text><text x="720" y="180" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(B,3,25,1)</text></g>
+    <g class="ist" data-i="i2"><rect x="578" y="192" width="225" height="20" rx="4" fill="var(--violet)" opacity=".07" stroke="var(--violet)" stroke-width=".5" stroke-opacity=".2"/><text x="586" y="206" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">Conv2d(3&#8594;64)</text><text x="720" y="206" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(B,64,25,1)</text></g>
+    <g class="ist" data-i="i3"><rect x="578" y="218" width="255" height="24" rx="4" fill="var(--violet)" opacity=".07" stroke="var(--violet)" stroke-width=".5" stroke-opacity=".2"/><text x="586" y="234" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">Spatial GCN &#215;3</text><text x="740" y="234" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(B,256,25,1)</text></g>
+    <g class="ist" data-i="i4"><rect x="578" y="248" width="225" height="20" rx="4" fill="var(--violet)" opacity=".07" stroke="var(--violet)" stroke-width=".5" stroke-opacity=".2"/><text x="586" y="262" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">Spatial Attn (8h)</text><text x="730" y="262" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(B,25,256)</text></g>
+    <!-- Dual stream: Global Pool + Bone Length MLP side by side -->
+    <g class="ist" data-i="i5">
+        <rect x="578" y="278" width="155" height="36" rx="4" fill="var(--violet)" opacity=".07" stroke="var(--violet)" stroke-width=".5" stroke-opacity=".2"/>
+        <text x="586" y="293" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">Global Pool</text>
+        <text x="586" y="307" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(B, 256)</text>
+    </g>
+    <g class="ist" data-i="i6">
+        <rect x="743" y="278" width="170" height="36" rx="4" fill="var(--violet)" opacity=".05" stroke="var(--violet)" stroke-width=".5" stroke-opacity=".15" stroke-dasharray="3,2"/>
+        <text x="751" y="293" font-family="var(--font-body)" font-size="9" fill="var(--text-muted)">Bone Lengths (24)</text>
+        <text x="751" y="307" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">MLP &#8594; (B, 128)</text>
+    </g>
+    <!-- Merge arrows from both streams into Concat -->
+    <line x1="655" y1="314" x2="655" y2="324" stroke="var(--violet)" stroke-width=".7" opacity=".3"/>
+    <line x1="828" y1="314" x2="828" y2="319" stroke="var(--violet)" stroke-width=".7" opacity=".2" stroke-dasharray="2,2"/>
+    <line x1="828" y1="319" x2="740" y2="324" stroke="var(--violet)" stroke-width=".7" opacity=".2" stroke-dasharray="2,2"/>
+    <!-- Concat + Fusion -->
+    <g class="ist" data-i="i7"><rect x="578" y="324" width="330" height="26" rx="4" fill="var(--violet)" opacity=".1" stroke="var(--violet)" stroke-width=".6" stroke-opacity=".25"/><text x="586" y="341" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">Concat + Fusion</text><text x="720" y="341" font-family="var(--font-mono)" font-size="8.5" fill="var(--violet)" opacity=".7">(384)&#8594;512&#8594;256</text></g>
+    <g class="ist" data-i="i8"><rect x="578" y="356" width="225" height="20" rx="4" fill="var(--violet)" opacity=".07" stroke="var(--violet)" stroke-width=".5" stroke-opacity=".2"/><text x="586" y="370" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">LayerNorm</text><text x="670" y="370" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">&#8594; (B, 256)</text></g>
+    <!-- Inner flow lines (main stream) -->
+    <line x1="690" y1="186" x2="690" y2="192" stroke="var(--violet)" stroke-width=".7" opacity=".25"/>
+    <line x1="690" y1="212" x2="690" y2="218" stroke="var(--violet)" stroke-width=".7" opacity=".25"/>
+    <line x1="690" y1="242" x2="690" y2="248" stroke="var(--violet)" stroke-width=".7" opacity=".25"/>
+    <line x1="690" y1="268" x2="690" y2="278" stroke="var(--violet)" stroke-width=".7" opacity=".25"/>
+    <line x1="690" y1="350" x2="690" y2="356" stroke="var(--violet)" stroke-width=".7" opacity=".25"/>
+</g>
+
+<!-- ═══ ARROWS: Encoders → Decoder ═══ -->
+<!-- Action enc bottom center (~257, y=400) curves to decoder action cross-attn area (~370, y=470) -->
+<path id="p2" d="M257,400 C257,430 370,445 370,470" stroke="var(--accent)" stroke-width="2.2" fill="none" opacity=".35" marker-end="url(#aA)"/>
+<text x="280" y="435" font-family="var(--font-mono)" font-size="8.5" fill="var(--accent)" opacity=".55">(64, B, 768)</text>
+<!-- Identity enc bottom center (~742, y=400) curves to decoder identity cross-attn area (~630, y=470) -->
+<path id="p3" d="M742,400 C742,430 630,445 630,470" stroke="var(--violet)" stroke-width="2.2" fill="none" opacity=".35" marker-end="url(#aV)"/>
+<text x="670" y="435" font-family="var(--font-mono)" font-size="8.5" fill="var(--violet)" opacity=".55">(B, 256)</text>
+
+<!-- ═══ SIDE: Classification heads (Stage 1 only, dashed rose) ═══ -->
+<path id="p6" d="M110,400 L110,430" stroke="var(--rose)" stroke-width="1.3" fill="none" opacity=".2" stroke-dasharray="3,3" marker-end="url(#aR)"/>
+<g class="cb" data-c="ar"><rect class="cbg" x="30" y="432" width="160" height="40" rx="6" fill="var(--rose-subtle)" stroke="var(--rose)" stroke-width=".8" stroke-opacity=".2" stroke-dasharray="4,3"/><text x="46" y="452" font-family="var(--font-display)" font-size="11" font-weight="600" fill="var(--rose)">AR Classifier</text><text x="46" y="465" font-family="var(--font-mono)" font-size="7.5" fill="var(--text-faint)">768&#8594;512&#8594;256&#8594;60</text></g>
+<text x="42" y="428" font-family="var(--font-body)" font-size="7.5" fill="var(--rose)" opacity=".5" font-style="italic">Stage 1</text>
+
+<path id="p7" d="M890,400 L890,430" stroke="var(--rose)" stroke-width="1.3" fill="none" opacity=".2" stroke-dasharray="3,3" marker-end="url(#aR)"/>
+<g class="cb" data-c="ri"><rect class="cbg" x="815" y="432" width="155" height="40" rx="6" fill="var(--rose-subtle)" stroke="var(--rose)" stroke-width=".8" stroke-opacity=".2" stroke-dasharray="4,3"/><text x="831" y="452" font-family="var(--font-display)" font-size="11" font-weight="600" fill="var(--rose)">RI Classifier</text><text x="831" y="465" font-family="var(--font-mono)" font-size="7.5" fill="var(--text-faint)">256&#8594;512&#8594;256&#8594;40</text></g>
+<text x="853" y="428" font-family="var(--font-body)" font-size="7.5" fill="var(--rose)" opacity=".5" font-style="italic">Stage 1</text>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- ROW 3: FACTORIZED DECODER  y=470..770                         -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<g class="cb" data-c="dec">
+    <rect class="cbg" x="175" y="470" width="650" height="300" rx="8" fill="var(--emerald-subtle)" stroke="var(--emerald)" stroke-width="1.5" stroke-opacity=".25"/>
+    <text x="195" y="495" font-family="var(--font-display)" font-size="13" font-weight="700" fill="var(--emerald)">Factorized Decoder</text>
+    <rect x="395" y="480" width="175" height="16" rx="4" fill="var(--emerald)" opacity=".85"/>
+    <text x="405" y="492" font-family="var(--font-mono)" font-size="9" fill="#fff" font-weight="600">6 layers, d=320, 8 heads</text>
+
+    <!-- Causal Self-Attention -->
+    <g class="ist" data-i="d1"><rect x="195" y="508" width="610" height="24" rx="4" fill="var(--emerald)" opacity=".07" stroke="var(--emerald)" stroke-width=".5" stroke-opacity=".2"/>
+        <text x="207" y="524" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">Self-Attn (causal)</text>
+        <polygon points="365,511 383,511 383,528" fill="var(--emerald)" opacity=".08" stroke="var(--emerald)" stroke-width=".5" stroke-opacity=".2"/>
+        <text x="390" y="524" font-family="var(--font-mono)" font-size="8" fill="var(--emerald)" opacity=".55">lower triangular mask</text>
+        <text x="725" y="524" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(T,B,320)</text></g>
+
+    <!-- ── DUAL CROSS-ATTENTION STREAMS ── -->
+    <!-- Stream label -->
+    <text x="310" y="548" font-family="var(--font-body)" font-size="7.5" fill="var(--text-faint)" text-anchor="middle" font-style="italic">action stream</text>
+    <text x="690" y="548" font-family="var(--font-body)" font-size="7.5" fill="var(--text-faint)" text-anchor="middle" font-style="italic">identity stream</text>
+
+    <!-- Action Cross-Attention (left half) -->
+    <g class="ist" data-i="d2"><rect x="195" y="553" width="290" height="28" rx="4" fill="var(--accent)" opacity=".08" stroke="var(--accent)" stroke-width=".7" stroke-opacity=".25"/>
+        <text x="207" y="571" font-family="var(--font-body)" font-size="9.5" fill="var(--accent)" font-weight="500">Action Cross-Attn</text>
+        <text x="350" y="571" font-family="var(--font-mono)" font-size="8" fill="var(--accent)" opacity=".6">(8 heads)</text>
+        <text x="415" y="571" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(T,B,320)</text></g>
+
+    <!-- Identity Cross-Attention (right half) -->
+    <g class="ist" data-i="d3"><rect x="515" y="553" width="290" height="28" rx="4" fill="var(--violet)" opacity=".08" stroke="var(--violet)" stroke-width=".7" stroke-opacity=".25"/>
+        <text x="527" y="571" font-family="var(--font-body)" font-size="9.5" fill="var(--violet)" font-weight="500">Identity Cross-Attn</text>
+        <text x="675" y="571" font-family="var(--font-mono)" font-size="8" fill="var(--violet)" opacity=".6">(8 heads)</text>
+        <text x="735" y="571" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(T,B,320)</text></g>
+
+    <!-- Merge lines from both streams to fusion gate -->
+    <line x1="340" y1="581" x2="340" y2="592" stroke="var(--accent)" stroke-width="1" opacity=".3"/>
+    <line x1="660" y1="581" x2="660" y2="592" stroke="var(--violet)" stroke-width="1" opacity=".3"/>
+
+    <!-- Adaptive Fusion Gate -->
+    <g class="ist" data-i="d4"><rect x="195" y="592" width="610" height="32" rx="4" fill="var(--emerald)" opacity=".1" stroke="var(--emerald)" stroke-width=".6" stroke-opacity=".25"/>
+        <text x="207" y="612" font-family="var(--font-body)" font-size="10" font-weight="600" fill="var(--emerald)">Adaptive Fusion Gate</text>
+        <text x="390" y="613" font-family="var(--font-mono)" font-size="10.5" fill="var(--text)"><tspan fill="var(--accent)" font-weight="600">g</tspan>&#183;act + <tspan fill="var(--violet)" font-weight="600">(1-g)</tspan>&#183;id</text>
+        <!-- Gate merge icon -->
+        <line x1="600" y1="598" x2="622" y2="608" stroke="var(--accent)" stroke-width="1.3" opacity=".45"/>
+        <line x1="600" y1="618" x2="622" y2="608" stroke="var(--violet)" stroke-width="1.3" opacity=".45"/>
+        <circle cx="622" cy="608" r="3.5" fill="var(--emerald)" opacity=".5"/>
+        <line x1="626" y1="608" x2="645" y2="608" stroke="var(--emerald)" stroke-width="1.3" opacity=".45"/>
+        <text x="725" y="613" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(T,B,320)</text></g>
+
+    <!-- FFN -->
+    <g class="ist" data-i="d5"><rect x="195" y="632" width="310" height="20" rx="4" fill="var(--emerald)" opacity=".07" stroke="var(--emerald)" stroke-width=".5" stroke-opacity=".2"/>
+        <text x="207" y="646" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">FFN (320&#8594;2048&#8594;320)</text>
+        <text x="430" y="646" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(T,B,320)</text></g>
+    <!-- x6 badge -->
+    <rect x="520" y="632" width="48" height="20" rx="4" fill="var(--emerald)" opacity=".12"/>
+    <text x="528" y="646" font-family="var(--font-mono)" font-size="9.5" font-weight="700" fill="var(--emerald)">&#215; 6</text>
+
+    <!-- Inner flow lines -->
+    <line x1="500" y1="532" x2="500" y2="540" stroke="var(--emerald)" stroke-width=".7" opacity=".25"/>
+    <line x1="500" y1="624" x2="500" y2="632" stroke="var(--emerald)" stroke-width=".7" opacity=".25"/>
+
+    <!-- Autoregressive loop -->
+    <g class="ist" data-i="d6">
+        <path d="M260,656 C260,690 195,695 195,668 C195,640 195,518 260,508" stroke="var(--emerald)" stroke-width="1" fill="none" opacity=".3" stroke-dasharray="3,2.5" marker-end="url(#aE)"/>
+        <text x="198" y="683" font-family="var(--font-body)" font-size="7" fill="var(--emerald)" opacity=".6" transform="rotate(-90,198,683)">autoregressive</text>
+        <!-- Frame sequence -->
+        <rect x="290" y="662" width="490" height="28" rx="4" fill="var(--bg-surface)" opacity=".4" stroke="var(--emerald)" stroke-width=".4" stroke-opacity=".15"/>
+        <!-- Seed frame (violet mini skeleton) -->
+        <line x1="310" y1="678" x2="310" y2="671" stroke="var(--violet)" stroke-width=".7" opacity=".5"/>
+        <line x1="310" y1="671" x2="306" y2="671" stroke="var(--violet)" stroke-width=".7" opacity=".5"/>
+        <line x1="310" y1="671" x2="314" y2="671" stroke="var(--violet)" stroke-width=".7" opacity=".5"/>
+        <line x1="310" y1="678" x2="307" y2="683" stroke="var(--violet)" stroke-width=".7" opacity=".5"/>
+        <line x1="310" y1="678" x2="313" y2="683" stroke="var(--violet)" stroke-width=".7" opacity=".5"/>
+        <circle cx="310" cy="668" r="1.8" fill="var(--violet)" opacity=".4"/>
+        <text x="322" y="678" font-family="var(--font-mono)" font-size="7.5" fill="var(--text-faint)">seed</text>
+        <text x="350" y="678" font-size="9" fill="var(--emerald)" opacity=".4">&#8594;</text>
+        <!-- Generated frames t=1..63 with increasing opacity -->
+        <line x1="370" y1="678" x2="370" y2="671" stroke="var(--emerald)" stroke-width=".7" opacity=".25"/><line x1="370" y1="671" x2="366" y2="670" stroke="var(--emerald)" stroke-width=".7" opacity=".25"/><line x1="370" y1="671" x2="374" y2="672" stroke="var(--emerald)" stroke-width=".7" opacity=".25"/><line x1="370" y1="678" x2="367" y2="683" stroke="var(--emerald)" stroke-width=".7" opacity=".25"/><line x1="370" y1="678" x2="373" y2="683" stroke="var(--emerald)" stroke-width=".7" opacity=".25"/><circle cx="370" cy="668" r="1.5" fill="var(--emerald)" opacity=".2"/>
+        <text x="380" y="678" font-family="var(--font-mono)" font-size="7" fill="var(--text-faint)">t=1</text>
+        <text x="403" y="678" font-size="8" fill="var(--emerald)" opacity=".35">&#8594;</text>
+        <line x1="420" y1="678" x2="420" y2="671" stroke="var(--emerald)" stroke-width=".7" opacity=".4"/><line x1="420" y1="671" x2="415" y2="669" stroke="var(--emerald)" stroke-width=".7" opacity=".4"/><line x1="420" y1="671" x2="425" y2="673" stroke="var(--emerald)" stroke-width=".7" opacity=".4"/><line x1="420" y1="678" x2="417" y2="683" stroke="var(--emerald)" stroke-width=".7" opacity=".4"/><line x1="420" y1="678" x2="423" y2="683" stroke="var(--emerald)" stroke-width=".7" opacity=".4"/><circle cx="420" cy="668" r="1.5" fill="var(--emerald)" opacity=".3"/>
+        <text x="430" y="678" font-family="var(--font-mono)" font-size="7" fill="var(--text-faint)">t=2</text>
+        <text x="453" y="678" font-size="8" fill="var(--text-faint)">&#8230;</text>
+        <text x="468" y="678" font-size="8" fill="var(--emerald)" opacity=".35">&#8594;</text>
+        <line x1="488" y1="678" x2="488" y2="671" stroke="var(--emerald)" stroke-width=".7" opacity=".6"/><line x1="488" y1="671" x2="483" y2="668" stroke="var(--emerald)" stroke-width=".7" opacity=".6"/><line x1="488" y1="671" x2="493" y2="674" stroke="var(--emerald)" stroke-width=".7" opacity=".6"/><line x1="488" y1="678" x2="485" y2="683" stroke="var(--emerald)" stroke-width=".7" opacity=".6"/><line x1="488" y1="678" x2="491" y2="683" stroke="var(--emerald)" stroke-width=".7" opacity=".6"/><circle cx="488" cy="668" r="1.5" fill="var(--emerald)" opacity=".5"/>
+        <text x="498" y="678" font-family="var(--font-mono)" font-size="7" fill="var(--text-faint)">t=63</text>
+        <text x="540" y="686" font-family="var(--font-body)" font-size="7" fill="var(--text-faint)" font-style="italic">teacher forcing: 1.0&#8594;0.3</text>
+    </g>
+
+    <!-- Physical constraint + output projection -->
+    <text x="195" y="708" font-family="var(--font-body)" font-size="7.5" fill="var(--text-faint)" font-style="italic">+ PhysicalConstraintLayer (soft bone length, 24 NTU bones)</text>
+    <g class="ist" data-i="d7"><rect x="195" y="716" width="310" height="20" rx="4" fill="var(--emerald)" opacity=".07" stroke="var(--emerald)" stroke-width=".5" stroke-opacity=".2"/>
+        <text x="207" y="730" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">Linear(320, 75) &#8594; reshape</text>
+        <text x="430" y="730" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(B,3,63,25,1)</text></g>
+</g>
+
+<!-- ═══ ARROW: Decoder → Output ═══ -->
+<path id="p4" d="M500,770 L500,800" stroke="var(--emerald)" stroke-width="1.8" fill="none" opacity=".35" marker-end="url(#aE)"/>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- ROW 4: OUTPUT  y=800..895                                     -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<g class="cb" data-c="out">
+    <rect class="cbg" x="200" y="800" width="600" height="90" rx="8" fill="var(--bg-surface)" stroke="var(--emerald)" stroke-width="1.5" stroke-opacity=".3"/>
+    <text x="220" y="822" font-family="var(--font-display)" font-size="13" font-weight="700" fill="var(--emerald)">Retargeted Motion</text>
+    <text x="420" y="822" font-family="var(--font-mono)" font-size="9" fill="var(--emerald)" opacity=".65">(B, 3, 63, 25, 1)</text>
+    <text x="600" y="822" font-family="var(--font-body)" font-size="9" fill="var(--text-faint)" font-style="italic">P2 doing A1</text>
+    <use href="#skel-e" x="370" y="855" transform="translate(370,855) scale(.45) translate(-370,-855)" opacity=".7"/>
+    <use href="#skel-e" x="470" y="855" transform="translate(470,855) scale(.45) translate(-470,-855)" opacity=".85"/>
+    <use href="#skel-e" x="570" y="855" transform="translate(570,855) scale(.45) translate(-570,-855)" opacity="1"/>
+    <text x="416" y="855" font-size="10" fill="var(--emerald)" opacity=".35">&#8594;</text>
+    <text x="516" y="855" font-size="10" fill="var(--emerald)" opacity=".35">&#8594;</text>
+    <text x="370" y="886" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">T=63 frames (wider body, source action)</text>
+</g>
+
+<!-- ═══ PULSE CIRCLES ═══ -->
+<circle class="pd" id="pd0" r="5" fill="var(--accent)" opacity="0" filter="url(#gA)"/>
+<circle class="pd" id="pd1" r="5" fill="var(--violet)" opacity="0" filter="url(#gV)"/>
+<circle class="pd" id="pd2" r="5" fill="var(--accent)" opacity="0" filter="url(#gA)"/>
+<circle class="pd" id="pd3" r="5" fill="var(--violet)" opacity="0" filter="url(#gV)"/>
+<circle class="pd" id="pd4" r="5" fill="var(--emerald)" opacity="0" filter="url(#gE)"/>
+</svg>
+</div>
+
+<div class="arch-info" id="aInfo">Click any component above to see detailed tensor shapes and processing details.</div>
+<div class="arch-legend">
+    <div class="arch-badge"><span class="dot" style="background:var(--accent)"></span>Action path</div>
+    <div class="arch-badge"><span class="dot" style="background:var(--violet)"></span>Identity path</div>
+    <div class="arch-badge"><span class="dot" style="background:var(--emerald)"></span>Decoder / output</div>
+    <div class="arch-badge"><span class="dot" style="background:var(--rose)"></span>Classification (Stage 1)</div>
+    <div class="arch-badge"><span class="dot" style="border:1.5px dashed var(--text-faint);background:transparent"></span>Training only</div>
+</div>
+</div>
+                </div>
+                <div id="arch-overview" class="tp">
+                    <figure class="ic full"><img src="assets/simple_architecture.drawio.png" alt="System overview" loading="lazy"><figcaption><strong>System Overview.</strong> Motion retargeting pipeline showing action and identity separation through dual encoders and factorized decoder.</figcaption></figure>
+                </div>
+                <div id="arch-detail" class="tp">
+                    <figure class="ic full"><img src="assets/architecture.png" alt="Full architecture" loading="lazy"><figcaption><strong>Full Architecture.</strong> All components &amp; loss functions including disentanglement losses, reconstruction losses, and classification heads.</figcaption></figure>
+                </div>
+                <div id="arch-encoders" class="tp">
+                    <div class="igrid">
+                        <figure class="ic"><img src="assets/action_encoder.drawio.png" alt="Action encoder" loading="lazy"><figcaption><strong>Action Encoder.</strong> Multi-scale temporal convolution (kernels 3, 5, 7) &rarr; temporal attention &rarr; LSTM. Optional MixFormer backbone. 768D output.</figcaption></figure>
+                        <figure class="ic"><img src="assets/identity_encoder.drawio.png" alt="Identity encoder" loading="lazy"><figcaption><strong>Identity Encoder.</strong> Spatial GCN on skeleton graph + bone length encoding. Intentionally low capacity (256D).</figcaption></figure>
+                    </div>
+                </div>
+                <div id="arch-decoder" class="tp">
+                    <figure class="ic full"><img src="assets/decoder.drawio.png" alt="Factorized decoder" loading="lazy"><figcaption><strong>Factorized Decoder.</strong> Separate cross-attention for action and identity streams with adaptive fusion gate. 6 layers, 320D. Autoregressive with teacher forcing.</figcaption></figure>
+                </div>
+                <div id="arch-components" class="tp">
+                    <div class="cg">
+                        <div class="cc"><div><span class="ct indigo">768D</span><span class="ct violet">8 heads</span></div><h4>Action Encoder</h4><p>Multi-scale temporal convolution (kernels 3, 5, 7), temporal attention + LSTM, MixFormer backbone fused via learned gating.</p></div>
+                        <div class="cc"><div><span class="ct rose">256D</span><span class="ct amber">3 GCN layers</span></div><h4>Identity Encoder</h4><p>3-layer spatial GCN on skeleton graph topology with bone length encoding. Takes temporal mean of pose to remove dynamics.</p></div>
+                        <div class="cc"><div><span class="ct indigo">6 layers</span><span class="ct violet">320D</span></div><h4>Factorized Decoder</h4><p>Separate cross-attention streams with adaptive fusion gate: <code>out = g &middot; action + (1-g) &middot; identity</code>. Autoregressive with scheduled teacher forcing.</p></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- RESULTS -->
+        <section id="results" class="section">
+            <p class="section-label reveal">Experimental Results</p>
+            <h2 class="section-title reveal rd1">Performance evaluation</h2>
+            <p class="section-desc reveal rd2">Evaluation on NTU RGB+D 60/120 and ETRI-Activity3D at the recommended operating point &beta;=0.2. Primary protocol: a pre-trained SGN evaluator (trained on raw data, applied to retargeted output). Secondary: a re-trained SGN action classifier. Higher AR and lower RI is better.</p>
+
+            <div class="meters reveal">
+                <div class="meter">
+                    <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="none" stroke="var(--border)" stroke-width="8"/><circle cx="60" cy="60" r="50" fill="none" stroke="var(--emerald)" stroke-width="8" stroke-dasharray="314" stroke-dashoffset="76" stroke-linecap="round" transform="rotate(-90 60 60)"/><text x="60" y="56" text-anchor="middle" font-family="var(--font-display)" font-size="22" fill="var(--text)">75.8</text><text x="60" y="72" text-anchor="middle" font-family="var(--font-body)" font-size="10" fill="var(--text-muted)">%</text></svg>
+                    <div class="meter-label">Action Retained</div>
+                </div>
+                <div class="meter">
+                    <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="none" stroke="var(--border)" stroke-width="8"/><circle cx="60" cy="60" r="50" fill="none" stroke="var(--accent)" stroke-width="8" stroke-dasharray="314" stroke-dashoffset="57" stroke-linecap="round" transform="rotate(-90 60 60)"/><text x="60" y="56" text-anchor="middle" font-family="var(--font-display)" font-size="22" fill="var(--text)">81.9</text><text x="60" y="72" text-anchor="middle" font-family="var(--font-body)" font-size="10" fill="var(--text-muted)">%</text></svg>
+                    <div class="meter-label">Identity Removed</div>
+                </div>
+                <div class="meter">
+                    <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="none" stroke="var(--border)" stroke-width="8"/><circle cx="60" cy="60" r="50" fill="none" stroke="var(--emerald)" stroke-width="8" stroke-dasharray="314" stroke-dashoffset="40" stroke-linecap="round" transform="rotate(-90 60 60)"/><text x="60" y="56" text-anchor="middle" font-family="var(--font-display)" font-size="22" fill="var(--text)">87.1</text><text x="60" y="72" text-anchor="middle" font-family="var(--font-body)" font-size="10" fill="var(--text-muted)">%</text></svg>
+                    <div class="meter-label">Re-trained AR</div>
+                </div>
+            </div>
+
+            <div class="tw reveal">
+                <table>
+                    <thead><tr><th>Method</th><th>Pre-trained AR &uarr;</th><th>Pre-trained RI &darr;</th><th>Re-trained AR &uarr;</th><th>MSE &darr;</th><th>MPJPE &darr;</th></tr></thead>
+                    <tbody>
+                        <tr><td>Raw Skeleton</td><td>89.1%</td><td>75.4% <span class="bad">&uarr;</span></td><td>89.1%</td><td>&mdash;</td><td>&mdash;</td></tr>
+                        <tr><td>DMR</td><td>49.1%</td><td>25.7%</td><td>43.1%</td><td>0.047</td><td>0.202</td></tr>
+                        <tr><td>PMR</td><td>35.7%</td><td>7.8%</td><td>19.9%</td><td>0.050</td><td>0.272</td></tr>
+                        <tr class="hr"><td><strong>DisentangledTMR (Ours, &beta;=0.2)</strong></td><td class="hl">75.8 &plusmn; 1.1%</td><td class="hl">18.1 &plusmn; 1.8%</td><td class="hl">87.1%</td><td class="hl">0.030</td><td class="hl">0.113</td></tr>
+                    </tbody>
+                </table>
+                <div class="table-note">NTU RGB+D 60 Cross-View, &beta;=0.2. Pre-trained AR/RI: mean &plusmn; std over 5 runs. Random chance: AR &approx;2% (49 classes), RI &approx;2.5% (40 subjects). PMR reaches lower RI but sacrifices over 40pp of action accuracy.</div>
+            </div>
+
+            <div class="chart-row reveal">
+                <div class="chart-wrap"><h4>Privacy-Utility Trade-off</h4><canvas id="scatterChart"></canvas></div>
+                <div class="chart-wrap"><h4>Component Ablation</h4><canvas id="ablationChart"></canvas></div>
+            </div>
+
+            <h3 style="font-size:1rem;font-weight:600;margin:2rem 0 1rem" class="reveal">Ablation study</h3>
+            <div class="tw reveal">
+                <table>
+                    <thead><tr><th>Variant</th><th>Pre-trained AR &uarr;</th><th>Pre-trained RI &darr;</th></tr></thead>
+                    <tbody>
+                        <tr class="hr"><td><strong>Baseline (stable)</strong></td><td class="hl">82.6%</td><td class="hl">51.9%</td></tr>
+                        <tr><td>Static Identity</td><td>82.2%</td><td>48.5%</td></tr>
+                        <tr><td>No Adversarial (GRL)</td><td>82.2%</td><td>49.0%</td></tr>
+                        <tr><td>No Orthogonality</td><td>82.4%</td><td>47.9%</td></tr>
+                        <tr><td>No Action Backbone</td><td>82.2%</td><td>46.4%</td></tr>
+                        <tr><td>No Temporal Convs</td><td>82.2%</td><td>48.2%</td></tr>
+                        <tr><td>Full-Seq Identity</td><td>82.2%</td><td>45.9%</td></tr>
+                    </tbody>
+                </table>
+                <div class="table-note">Post-hoc component ablation (single checkpoints, &beta;=0.2 applied at generation, base model without output-level supervision). Variants cluster tightly &mdash; under post-hoc &beta;-blending the component differences are washed out; the output-level supervision losses during training are what drive RI below 20%.</div>
+            </div>
+
+            <div class="chart-row reveal">
+                <div class="chart-wrap"><h4>Multi-Metric Radar</h4><canvas id="radarChart"></canvas></div>
+                <div class="chart-wrap"><h4>Training Stage Comparison</h4><canvas id="stageChart"></canvas></div>
+            </div>
+
+            <h3 style="font-size:1rem;font-weight:600;margin:2rem 0 1rem" class="reveal">Training stage ablation</h3>
+            <div class="tw reveal">
+                <table>
+                    <thead><tr><th>Training Stages</th><th>Pre-trained AR &uarr;</th><th>Pre-trained RI &darr;</th></tr></thead>
+                    <tbody>
+                        <tr><td>Stage 3 only</td><td class="hl">82.6%</td><td>52.4%</td></tr>
+                        <tr><td>Stages 2&rarr;3</td><td>82.5%</td><td>55.3%</td></tr>
+                        <tr><td>Stages 1&rarr;3</td><td>82.3%</td><td>53.4%</td></tr>
+                        <tr><td>Stages 1&rarr;2</td><td>81.1%</td><td>35.5%</td></tr>
+                        <tr><td>Stage 1 only</td><td>57.3%</td><td class="hl">15.3%</td></tr>
+                    </tbody>
+                </table>
+                <div class="table-note">NTU-60 (X-View, &beta;=0.2), pre-trained SGN evaluator. Every configuration that includes Stage&nbsp;3 clusters near 82% AR &mdash; end-to-end fine-tuning is the dominant driver of action readability. Stage&nbsp;1 alone reaches the strongest privacy (15.3% RI) but collapses utility to 57.3% AR.</div>
+            </div>
+
+            <div class="fgrid reveal">
+                <div class="fcard indigo"><h4>Output-level supervision drives privacy</h4><p>With no output supervision, RI sits at 43.4% (81.0% AR). Adding the output action classifier alone barely moves it (42.2%). Only the full suite of four output-level losses pushes RI down to 18.1% &mdash; the key driver of the privacy&ndash;utility trade-off.</p></div>
+                <div class="fcard rose"><h4>Computational Cost</h4><p>22.7M parameters, ~28 GPU-hours to train the full pipeline, ~458ms/seq at batch 1 on an NVIDIA A40. Higher inference cost is driven by autoregressive decoding (63 sequential steps). DMR: 4.9M, ~1ms. PMR: 1.0M, ~1ms.</p></div>
+            </div>
+
+            <h3 style="font-size:1rem;font-weight:600;margin:2rem 0 1rem" class="reveal">Partial retargeting (&beta; blending)</h3>
+            <p class="section-desc reveal" style="margin:0 0 1.25rem">The output blends the retargeted skeleton with the source: <span style="white-space:nowrap"><em>ŝ</em><sub>&beta;</sub> = &beta;&middot;retargeted + (1&minus;&beta;)&middot;source</span>. &beta; trades utility for privacy. Pre-trained AR shows a sharp cliff between &beta;=0.2 and &beta;=0.25, while re-trained AR degrades gradually &mdash; action information survives across the full range. &beta;=0.2 is the recommended operating point.</p>
+            <div class="tw reveal">
+                <table>
+                    <thead><tr><th>&beta;</th><th>Pre-trained AR &uarr;</th><th>Pre-trained RI &darr;</th><th>Re-trained AR &uarr;</th></tr></thead>
+                    <tbody>
+                        <tr><td>0.00 (raw)</td><td>89.1%</td><td>75.4% <span class="bad">&uarr;</span></td><td>89.1%</td></tr>
+                        <tr><td>0.05</td><td>84.8%</td><td>61.4%</td><td>87.8%</td></tr>
+                        <tr><td>0.10</td><td>82.7%</td><td>52.0%</td><td>87.3%</td></tr>
+                        <tr><td>0.15</td><td>80.0%</td><td>37.5%</td><td>86.9%</td></tr>
+                        <tr class="hr"><td><strong>0.20 &#9664;</strong></td><td class="hl">76.8%</td><td class="hl">17.3%</td><td class="hl">87.1%</td></tr>
+                        <tr><td>0.25</td><td>38.8%</td><td>9.6%</td><td>85.3%</td></tr>
+                        <tr><td>0.50</td><td>27.7%</td><td>3.1%</td><td>84.6%</td></tr>
+                        <tr><td>1.00 (full)</td><td>2.0%</td><td>4.7%</td><td>55.4%</td></tr>
+                    </tbody>
+                </table>
+                <div class="table-note">NTU-60 (X-View), single-run sweep; the &beta;=0.2 row is consistent with the 5-run mean in the main table (75.8&nbsp;&plusmn;&nbsp;1.1 / 18.1&nbsp;&plusmn;&nbsp;1.8).</div>
+            </div>
+
+            <h3 style="font-size:1rem;font-weight:600;margin:2rem 0 1rem" class="reveal">Cross-dataset generalization</h3>
+            <div class="tw reveal">
+                <table>
+                    <thead><tr><th>&beta;</th><th colspan="2">NTU-60</th><th colspan="2">NTU-120</th><th colspan="2">ETRI</th></tr><tr><th></th><th>AR &uarr;</th><th>RI &darr;</th><th>AR &uarr;</th><th>RI &darr;</th><th>AR &uarr;</th><th>RI &darr;</th></tr></thead>
+                    <tbody>
+                        <tr><td>0.00 (raw)</td><td>89.1%</td><td>75.4%</td><td>88.2%</td><td>67.6%</td><td>90.8%</td><td>45.6%</td></tr>
+                        <tr><td>0.10</td><td>82.7%</td><td>52.0%</td><td>85.3%</td><td>62.4%</td><td>90.0%</td><td>43.0%</td></tr>
+                        <tr class="hr"><td><strong>0.20</strong></td><td class="hl">76.8%</td><td class="hl">17.3%</td><td class="hl">81.4%</td><td class="hl">39.4%</td><td class="hl">87.8%</td><td class="hl">35.7%</td></tr>
+                        <tr><td>0.30</td><td>42.8%</td><td>14.3%</td><td>73.5%</td><td>22.8%</td><td>84.0%</td><td>26.0%</td></tr>
+                        <tr><td>0.50</td><td>27.7%</td><td>3.1%</td><td>47.1%</td><td>9.9%</td><td>67.3%</td><td>10.4%</td></tr>
+                        <tr><td>1.00 (full)</td><td>2.0%</td><td>4.7%</td><td>2.6%</td><td>0.9%</td><td>3.7%</td><td>1.0%</td></tr>
+                    </tbody>
+                </table>
+                <div class="table-note">Pre-trained SGN AR/RI per dataset (single run). NTU-120 and ETRI use earlier checkpoints without the full output-level supervision suite. Random-chance RI: &approx;2.5% (NTU-60), &approx;0.9% (NTU-120), &approx;1% (ETRI).</div>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- PIPELINE -->
+        <section id="pipeline" class="section">
+            <p class="section-label reveal">Training Protocol</p>
+            <h2 class="section-title reveal rd1">Three-stage training pipeline</h2>
+            <p class="section-desc reveal rd2">A curriculum-based approach: first establish disentanglement, then learn reconstruction, and finally fine-tune end-to-end.</p>
+            <div class="sg reveal rd3">
+                <div class="sc"><div class="sn">01</div><h4>Encoder Pretraining</h4><div class="stage-meta">20 epochs &middot; Decoder frozen</div><div class="tag-row"><span class="tag indigo">Contrastive</span><span class="tag violet">Adversarial GRL</span><span class="tag indigo">Orthogonality</span><span class="tag violet">Mutual Info</span><span class="tag emerald">AR/RI Clf</span></div><p class="si">Train action and identity encoders with classification heads and disentanglement losses. Establishes clean separation of action and identity representations.</p></div>
+                <div class="sc"><div class="sn">02</div><h4>Decoder Training</h4><div class="stage-meta">15 epochs &middot; Encoders frozen &middot; TF: 1.0&rarr;0.5</div><div class="tag-row"><span class="tag emerald">MSE</span><span class="tag emerald">Bone Length</span><span class="tag amber">Temporal Smooth</span><span class="tag amber">Velocity</span><span class="tag rose">End-Effector</span><span class="tag rose">Foot Contact</span></div><p class="si">Train the factorized decoder with reconstruction and physical plausibility losses. Teacher forcing anneals from 1.0 to 0.5.</p></div>
+                <div class="sc"><div class="sn">03</div><h4>End-to-End Fine-tuning</h4><div class="stage-meta">20 epochs &middot; All unfrozen &middot; TF: 0.5&rarr;0.3</div><div class="tag-row"><span class="tag indigo">All Stage 1</span><span class="tag emerald">All Stage 2</span><span class="tag amber">Lower LR</span><span class="tag rose">Grad Clipping</span></div><p class="si">Joint optimization of all components with all losses active. Produces <code>checkpoint_stage3_best.pth</code>.</p></div>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- LOSSES -->
+        <section id="losses" class="section">
+            <p class="section-label reveal">Loss Functions</p>
+            <h2 class="section-title reveal rd1">Loss functions</h2>
+            <p class="section-desc reveal rd2">Over 10 loss terms, jointly optimized with Optuna-tuned weights, ensure disentanglement, reconstruction quality, and physical plausibility.</p>
+
+            <div class="loss-total reveal">$$\mathcal{L}_\text{total} = \mathcal{L}_\text{recon} + \mathcal{L}_\text{disentangle} + \mathcal{L}_\text{physical}$$</div>
+
+            <div class="loss-grid-stack reveal">
+                <div class="loss-card"><h4>Disentanglement Losses</h4><div class="loss-grid">
+                    <div class="loss-item"><h5>Contrastive (InfoNCE)</h5>$$\mathcal{L}_\text{NCE} = -\log \frac{\exp(\text{sim}(z_i, z_{j}^+)/\tau)}{\sum_k \exp(\text{sim}(z_i, z_k)/\tau)}$$<p>Pulls same-action embeddings together, pushes different actions apart.</p></div>
+                    <div class="loss-item"><h5>Adversarial (GRL)</h5>$$\mathcal{L}_\text{adv} = -\text{CE}(\text{GRL}(h_\text{action}), y_\text{identity})$$<p>Gradient reversal prevents action encoder from capturing identity.</p></div>
+                    <div class="loss-item"><h5>Orthogonality</h5>$$\mathcal{L}_\text{orth} = \|H_\text{action}^\top H_\text{identity}\|_F^2$$<p>Penalizes correlation between action and identity representations.</p></div>
+                    <div class="loss-item"><h5>Mutual Information</h5>$$\mathcal{L}_\text{MI} = \hat{I}(H_\text{action}; H_\text{identity})$$<p>Minimizes shared information between the two spaces.</p></div>
+                </div></div>
+                <div class="loss-card"><h4>Reconstruction &amp; Physical Losses</h4><div class="loss-grid">
+                    <div class="loss-item"><h5>MSE Reconstruction</h5>$$\mathcal{L}_\text{MSE} = \frac{1}{T \cdot V \cdot 3} \sum_{t,v} \|\hat{x}_{t,v} - x_{t,v}\|^2$$<p>Joint-level reconstruction accuracy over all frames and vertices.</p></div>
+                    <div class="loss-item"><h5>Bone Length</h5>$$\mathcal{L}_\text{bone} = \sum_{e \in E}\sum_t \big| \|\hat{b}_{e,t}\| - \|b_e^\text{tgt}\| \big|$$<p>Preserves target skeleton proportions in the output.</p></div>
+                    <div class="loss-item"><h5>Temporal Smoothness</h5>$$\mathcal{L}_\text{smooth} = \sum_t \|\hat{x}_{t+1} - \hat{x}_t\|^2$$<p>Penalizes jittery motion between consecutive frames.</p></div>
+                    <div class="loss-item"><h5>Additional</h5><p style="margin-top:0;font-size:0.85rem"><strong>Velocity:</strong> Matches motion speed profiles.<br><strong>End-Effector:</strong> Preserves hand/foot positions.<br><strong>Foot Contact:</strong> Ground plane consistency.<br><strong>Joint Limits:</strong> Anatomical constraints.</p></div>
+                </div></div>
+            </div>
+
+            <h3 style="font-size:1rem;font-weight:600;margin:2.5rem 0 1rem" class="reveal">Optuna-optimized weights <span style="font-weight:400;color:var(--text-faint);font-size:0.85rem">(Trial 52, objective: 0.7&middot;AR &minus; 0.3&middot;RI)</span></h3>
+            <div class="loss-card reveal" style="padding:1.5rem 2rem">
+                <div class="weight-row"><span class="weight-label">Bone Length</span><div class="weight-bar-bg"><div class="weight-bar-fill indigo" style="width:100%"></div></div><span class="weight-val">6.185</span></div>
+                <div class="weight-row"><span class="weight-label">MSE Reconstruction</span><div class="weight-bar-bg"><div class="weight-bar-fill indigo" style="width:86%"></div></div><span class="weight-val">5.323</span></div>
+                <div class="weight-row"><span class="weight-label">End-Effector</span><div class="weight-bar-bg"><div class="weight-bar-fill indigo" style="width:76%"></div></div><span class="weight-val">4.725</span></div>
+                <div class="weight-row"><span class="weight-label">Inception (FID)</span><div class="weight-bar-bg"><div class="weight-bar-fill violet" style="width:50%"></div></div><span class="weight-val">3.066</span></div>
+                <div class="weight-row"><span class="weight-label">Temporal Smoothness</span><div class="weight-bar-bg"><div class="weight-bar-fill violet" style="width:46%"></div></div><span class="weight-val">2.875</span></div>
+                <div class="weight-row"><span class="weight-label">Velocity FID</span><div class="weight-bar-bg"><div class="weight-bar-fill violet" style="width:37%"></div></div><span class="weight-val">2.261</span></div>
+                <div class="weight-row"><span class="weight-label">Joint Limits</span><div class="weight-bar-bg"><div class="weight-bar-fill amber" style="width:29%"></div></div><span class="weight-val">1.768</span></div>
+                <div class="weight-row"><span class="weight-label">Adversarial (GRL)</span><div class="weight-bar-bg"><div class="weight-bar-fill rose" style="width:25%"></div></div><span class="weight-val">1.530</span></div>
+                <div class="weight-row"><span class="weight-label">RI Classification</span><div class="weight-bar-bg"><div class="weight-bar-fill rose" style="width:16%"></div></div><span class="weight-val">0.998</span></div>
+                <div class="weight-row"><span class="weight-label">Contrastive (InfoNCE)</span><div class="weight-bar-bg"><div class="weight-bar-fill rose" style="width:12%"></div></div><span class="weight-val">0.764</span></div>
+                <div class="weight-row"><span class="weight-label">Orthogonality</span><div class="weight-bar-bg"><div class="weight-bar-fill rose" style="width:10%"></div></div><span class="weight-val">0.617</span></div>
+                <div class="weight-row"><span class="weight-label">Mutual Information</span><div class="weight-bar-bg"><div class="weight-bar-fill rose" style="width:9%"></div></div><span class="weight-val">0.584</span></div>
+                <div class="weight-row"><span class="weight-label">AR Classification</span><div class="weight-bar-bg"><div class="weight-bar-fill rose" style="width:9%"></div></div><span class="weight-val">0.545</span></div>
+                <div class="weight-row"><span class="weight-label">Foot Contact</span><div class="weight-bar-bg"><div class="weight-bar-fill rose" style="width:9%"></div></div><span class="weight-val">0.544</span></div>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- FIGURES -->
+        <section id="figures" class="section">
+            <p class="section-label reveal">Analysis</p>
+            <h2 class="section-title reveal rd1">Analysis &amp; figures</h2>
+            <p class="section-desc reveal rd2">t-SNE embeddings, gate analysis, and qualitative visualizations demonstrating the effectiveness of architectural disentanglement.</p>
+
+            <h3 style="font-size:1rem;font-weight:600;margin:0 0 1.5rem" class="reveal">Retargeting examples</h3>
+            <div class="igrid igrid-3 reveal">
+                <figure class="ic"><img src="assets/sidebyside_A010_clapping.gif" alt="Retargeting: clapping" loading="lazy"><figcaption><strong>Clapping.</strong> Source motion (left) retargeted onto a different identity (right).</figcaption></figure>
+                <figure class="ic"><img src="assets/sidebyside_A024_kicking.gif" alt="Retargeting: kicking" loading="lazy"><figcaption><strong>Kicking.</strong> Action preserved while the skeleton identity is changed.</figcaption></figure>
+                <figure class="ic"><img src="assets/sidebyside_A027_jump_up.gif" alt="Retargeting: jump up" loading="lazy"><figcaption><strong>Jump up.</strong> Dynamic motion transferred across identities.</figcaption></figure>
+            </div>
+
+            <h3 style="font-size:1rem;font-weight:600;margin:2.5rem 0 1.5rem" class="reveal">Embedding analysis</h3>
+            <div class="igrid reveal">
+                <figure class="ic"><img src="assets/tsne_action_by_action_clf_umap.png" alt="Action embeddings by action class" loading="lazy"><figcaption><strong>Action embeddings by action class.</strong> Clear clustering confirms action information is well-captured.</figcaption></figure>
+                <figure class="ic"><img src="assets/tsne_action_by_identity_clf_umap.png" alt="Action embeddings by identity" loading="lazy"><figcaption><strong>Action embeddings by identity.</strong> No identity clustering confirms successful disentanglement.</figcaption></figure>
+            </div>
+
+            <h3 style="font-size:1rem;font-weight:600;margin:2.5rem 0 1.5rem" class="reveal">Adaptive fusion gate</h3>
+            <div class="igrid igrid-2 reveal">
+                <figure class="ic"><img src="assets/gate_per_joint.png" alt="Gate per joint" loading="lazy"><figcaption><strong>Per joint.</strong> End-effectors show higher action contribution.</figcaption></figure>
+                <figure class="ic"><img src="assets/gate_histogram.png" alt="Gate distribution" loading="lazy"><figcaption><strong>Distribution.</strong> Bimodal gate value distribution.</figcaption></figure>
+            </div>
+
+            <h3 style="font-size:1rem;font-weight:600;margin:2.5rem 0 1.5rem" class="reveal">Supplementary experiments</h3>
+            <div class="tabs-nav reveal">
+                <button class="tab-btn active" onclick="stab(event,'sup-noise')">Noise Robustness</button>
+                <button class="tab-btn" onclick="stab(event,'sup-dropout')">Joint Dropout</button>
+                <button class="tab-btn" onclick="stab(event,'sup-temporal')">Temporal Resolution</button>
+                <button class="tab-btn" onclick="stab(event,'sup-datasets')">Dataset Statistics</button>
+            </div>
+            <div id="sup-noise" class="tp active"><div class="tw"><table><thead><tr><th>&sigma;</th><th>MPJPE vs. Clean</th><th>Bone Error</th></tr></thead><tbody>
+                <tr class="hr"><td>0.00</td><td>0.000</td><td>0.0049</td></tr><tr><td>0.01</td><td>0.001</td><td>0.0049</td></tr><tr><td>0.02</td><td>0.002</td><td>0.0049</td></tr><tr><td>0.05</td><td>0.008</td><td>0.0050</td></tr><tr><td>0.10</td><td>0.021</td><td>0.0053</td></tr><tr><td>0.20</td><td>0.049</td><td>0.0057</td></tr>
+            </tbody></table></div></div>
+            <div id="sup-dropout" class="tp"><div class="tw"><table><thead><tr><th>Drop Rate</th><th>MPJPE vs. Clean</th><th>Bone Error</th></tr></thead><tbody>
+                <tr class="hr"><td>0.00</td><td>0.000</td><td>0.0049</td></tr><tr><td>0.05</td><td>0.013</td><td>0.0051</td></tr><tr><td>0.10</td><td>0.021</td><td>0.0052</td></tr><tr><td>0.20</td><td>0.033</td><td>0.0053</td></tr><tr><td>0.30</td><td>0.042</td><td>0.0053</td></tr>
+            </tbody></table></div></div>
+            <div id="sup-temporal" class="tp"><div class="tw"><table><thead><tr><th>Frames</th><th>MPJPE vs. Clean</th><th>Bone Error</th></tr></thead><tbody>
+                <tr class="hr"><td>64</td><td>0.000</td><td>0.0049</td></tr><tr><td>48</td><td>0.002</td><td>0.0049</td></tr><tr><td>32</td><td>0.003</td><td>0.0049</td></tr><tr><td>16</td><td>0.004</td><td>0.0049</td></tr><tr><td>8</td><td>0.007</td><td>0.0048</td></tr>
+            </tbody></table></div></div>
+            <div id="sup-datasets" class="tp"><div class="tw"><table><thead><tr><th>Dataset</th><th>Sequences</th><th>Actions</th><th>Subjects</th><th>Joints</th><th>Pairs</th><th>Split</th></tr></thead><tbody>
+                <tr class="hr"><td><strong>NTU60</strong></td><td>56,880</td><td>49</td><td>40</td><td>25</td><td>10k</td><td>X-View</td></tr><tr><td>NTU120</td><td>114,480</td><td>94</td><td>106</td><td>25</td><td>10k</td><td>X-View</td></tr><tr><td>ETRI</td><td>112,620</td><td>55</td><td>100</td><td>25</td><td>10k</td><td>X-View</td></tr>
+            </tbody></table></div></div>
+
+            <figure class="ic reveal" style="margin-top:1.5rem;max-width:720px">
+                <img src="assets/sensitivity_plots.png" alt="Sensitivity analysis" loading="lazy">
+                <figcaption><strong>Sensitivity Analysis.</strong> MPJPE and bone error under noise perturbation, joint dropout, and temporal resolution changes.</figcaption>
+            </figure>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- USAGE -->
+        <section id="usage" class="section">
+            <p class="section-label reveal">Getting Started</p>
+            <h2 class="section-title reveal rd1">Usage &amp; CLI</h2>
+            <p class="section-desc reveal rd2">DisentangledTMR uses the <code>tmr.py</code> CLI for training, evaluation, and pipeline orchestration. Auto-detects local vs. SLURM environments.</p>
+
+            <div class="spg reveal rd3">
+                <div class="spc"><h4>Hardware</h4><p><strong>GPU:</strong> NVIDIA A40 / RTX 3090<br><strong>Training:</strong> ~55 epochs total<br><strong>Framework:</strong> PyTorch 2.0+</p></div>
+                <div class="spc"><h4>Data Format</h4><p><strong>Shape:</strong> (B, 3, 64, 25, 1)<br><strong>Joints:</strong> 25 NTU skeleton<br><strong>Frames:</strong> 64 per sequence</p></div>
+                <div class="spc"><h4>Model</h4><p><strong>Params:</strong> 22.7M total<br><strong>Action Enc:</strong> 768D output<br><strong>Identity Enc:</strong> 256D output</p></div>
+                <div class="spc"><h4>Output</h4><p><strong>Checkpoint:</strong> stage3_best.pth<br><strong>Inference:</strong> ~458ms/seq<br><strong>Config:</strong> main_config.yaml</p></div>
+            </div>
+
+            <h3 style="font-size:1rem;font-weight:600;margin:2.5rem 0 1rem" class="reveal">Installation</h3>
+            <div class="cb reveal"><button class="cpb" onclick="cpc(this)"><i class="fas fa-copy"></i></button><pre>git clone https://github.com/Thomasc33/Transformer-Retargeting.git
+cd Transformer-Retargeting
+python -m pip install -r requirements.txt</pre></div>
+
+            <h3 style="font-size:1rem;font-weight:600;margin:2rem 0 1rem" class="reveal">Training</h3>
+            <div class="usage-grid reveal">
+                <div class="usage-card"><h4>Quick Start (CLI)</h4><p>The simplest way to train. Auto-detects SLURM for HPC job submission.</p><div class="cb"><button class="cpb" onclick="cpc(this)"><i class="fas fa-copy"></i></button><pre># Train with default stable config
+python tmr.py train --experiment stable
+
+# Check experiment status
+python tmr.py status
+
+# Run full pipeline
+python tmr.py run-pipeline</pre></div></div>
+                <div class="usage-card"><h4>Full Control</h4><p>Direct script invocation with all hyperparameters exposed.</p><div class="cb"><button class="cpb" onclick="cpc(this)"><i class="fas fa-copy"></i></button><pre># Train with explicit parameters
+python scripts/train_disentangled_tmr_stages.py \
+  --data_path data/ntu/ntu_cv_paired_10k.pt \
+  --dataset ntu \
+  --output_dir output/disentangled_tmr_stable</pre></div></div>
+            </div>
+
+            <h3 style="font-size:1rem;font-weight:600;margin:2rem 0 1rem" class="reveal">Evaluation &amp; Generation</h3>
+            <div class="usage-grid reveal">
+                <div class="usage-card"><h4>Evaluate Checkpoint</h4><p>Evaluate a trained model on any supported dataset.</p><div class="cb"><button class="cpb" onclick="cpc(this)"><i class="fas fa-copy"></i></button><pre># Evaluate on NTU60
+python tmr.py eval \
+  --checkpoint output/disentangled_tmr/checkpoint_stage3_best.pth \
+  --data_path data/ntu_cv_paired_comprehensive.pt \
+  --dataset ntu</pre></div></div>
+                <div class="usage-card"><h4>Generate &amp; Downstream</h4><p>Create retargeted datasets and train downstream classifiers.</p><div class="cb"><button class="cpb" onclick="cpc(this)"><i class="fas fa-copy"></i></button><pre># Generate retargeted dataset
+python scripts/generate_retargeted_dataset.py
+
+# Train downstream classifiers (SGN, MixFormer)
+python scripts/train_downstream_models.py</pre></div></div>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- STATUS -->
+        <section id="status" class="section">
+            <p class="section-label reveal">Experiments</p>
+            <h2 class="section-title reveal rd1">Experiment status</h2>
+            <p class="section-desc reveal rd2">All experiments completed across datasets and configurations.</p>
+            <div class="status-grid reveal rd3">
+                <div class="status-item"><div class="status-check"><i class="fas fa-check"></i></div><div class="status-info"><h4>NTU60 Main Result</h4><p>5 seeds at β=0.2. Pre-trained AR: 75.8 ± 1.1% | RI: 18.1 ± 1.8%. Re-trained AR: 87.1%.</p></div></div>
+                <div class="status-item"><div class="status-check"><i class="fas fa-check"></i></div><div class="status-info"><h4>Component Ablation</h4><p>7 architectural variants evaluated (post-hoc β=0.2, pre-trained SGN).</p></div></div>
+                <div class="status-item"><div class="status-check"><i class="fas fa-check"></i></div><div class="status-info"><h4>Stage Ablation</h4><p>5 training-stage configurations. Full 3-stage protocol validated.</p></div></div>
+                <div class="status-item"><div class="status-check"><i class="fas fa-check"></i></div><div class="status-info"><h4>Cross-Dataset</h4><p>NTU60, NTU120, ETRI β sweeps. Privacy transfers across datasets.</p></div></div>
+                <div class="status-item"><div class="status-check"><i class="fas fa-check"></i></div><div class="status-info"><h4>Output-Level Supervision</h4><p>Four output losses drive RI from 43.4% down to 18.1% at β=0.2.</p></div></div>
+                <div class="status-item"><div class="status-check"><i class="fas fa-check"></i></div><div class="status-info"><h4>Computational Analysis</h4><p>22.7M params, ~28 GPU-h, ~458ms/seq benchmarked on NVIDIA A40.</p></div></div>
+                <div class="status-item"><div class="status-check"><i class="fas fa-check"></i></div><div class="status-info"><h4>Partial Retargeting</h4><p>Full β sweep (0.0→1.0) on NTU60 with pre-trained and re-trained evaluators.</p></div></div>
+                <div class="status-item"><div class="status-check"><i class="fas fa-check"></i></div><div class="status-info"><h4>Paper</h4><p>Accepted to ECCV 2026.</p></div></div>
+            </div>
+            <p style="font-size:0.78rem;color:var(--text-faint);margin-top:1rem;text-align:right" class="reveal">Last updated: Feb 24, 2026 &middot; SLURM cluster</p>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- CITATION -->
+        <section id="citation" class="section">
+            <p class="section-label reveal">Citation</p>
+            <h2 class="section-title reveal rd1">Cite this work</h2>
+            <p class="section-desc reveal rd2">If you use DisentangledTMR in your research, please cite our ECCV 2026 paper.</p>
+            <div class="cit-block reveal rd3">
+                <button class="cit-copy" onclick="cpb(this)"><i class="fas fa-copy"></i> Copy BibTeX</button>
+<pre id="bib">@InProceedings{Carr_2026_ECCV,
+    author    = {Carr, Thomas and Xu, Depeng and Yuan, Shuhan and Lu, Aidong},
+    title     = {DisentangledTMR: Privacy-Preserving Skeleton Motion
+                 Retargeting via Factorized Transformers},
+    booktitle = {Proceedings of the European Conference
+                 on Computer Vision (ECCV)},
+    year      = {2026}
+}</pre>
+                <div class="pub-d">
+                    <p><strong>Conference:</strong> European Conference on Computer Vision (ECCV) 2026</p>
+                    <p><strong>Authors:</strong> Thomas Carr, Depeng Xu, Shuhan Yuan, Aidong Lu</p>
+                    <p><strong>Affiliation:</strong> UNC Charlotte</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer><div class="footer-inner">
+        <div class="fl">
+            <a href="https://github.com/Thomasc33/Transformer-Retargeting" target="_blank"><i class="fab fa-github"></i> GitHub</a>
+            <a href="#citation"><i class="fas fa-file-alt"></i> Paper</a>
+            <a href="mailto:depeng.xu@charlotte.edu"><i class="fas fa-envelope"></i> Contact</a>
+        </div>
+        <p class="fc-copy">&copy; 2026 Thomas Carr, Depeng Xu, Shuhan Yuan, Aidong Lu &middot; UNC Charlotte</p>
+    </div></footer>
+
+    <script>
+    // Theme
+    function gpt(){var s=localStorage.getItem('dtmr-theme');if(s)return s;return window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark'}
+    function setTheme(t){
+        document.documentElement.setAttribute('data-theme',t);
+        localStorage.setItem('dtmr-theme',t);
+        var icon=t==='light'?'fa-moon':'fa-sun';
+        document.getElementById('ti').className='fas '+icon;
+        document.getElementById('ti2').className='fas '+icon;
+    }
+    setTheme(gpt());
+    document.getElementById('dt').addEventListener('click',function(){setTheme(document.documentElement.getAttribute('data-theme')==='light'?'dark':'light')});
+    document.getElementById('mobile-theme').addEventListener('click',function(){setTheme(document.documentElement.getAttribute('data-theme')==='light'?'dark':'light')});
+
+    // Mobile menu
+    var mmenu=document.getElementById('mmenu'),micon=document.getElementById('mi');
+    document.getElementById('mt').addEventListener('click',function(){var o=mmenu.classList.toggle('open');micon.className=o?'fas fa-times':'fas fa-bars'});
+    function cmm(){mmenu.classList.remove('open');micon.className='fas fa-bars'}
+
+    // Tabs
+    function stab(e,id){
+        var section=e.currentTarget.closest('.section')||e.currentTarget.closest('section');
+        section.querySelectorAll('.tp').forEach(function(p){p.classList.remove('active')});
+        section.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active')});
+        document.getElementById(id).classList.add('active');
+        e.currentTarget.classList.add('active');
+    }
+
+    // Copy code block
+    function cpc(btn){
+        var pre=btn.closest('.cb').querySelector('pre');
+        navigator.clipboard.writeText(pre.textContent).then(function(){
+            var orig=btn.textContent;
+            btn.textContent='\u2713';
+            btn.style.color='var(--accent)';
+            btn.style.borderColor='var(--accent)';
+            setTimeout(function(){
+                btn.textContent='';
+                var i=document.createElement('i');
+                i.className='fas fa-copy';
+                btn.appendChild(i);
+                btn.style.color='';
+                btn.style.borderColor='';
+            },2000);
+        });
+    }
+
+    // Copy bibtex
+    function cpb(btn){
+        navigator.clipboard.writeText(document.getElementById('bib').textContent).then(function(){
+            btn.textContent='\u2713 Copied!';
+            btn.style.color='var(--accent)';
+            btn.style.borderColor='var(--accent)';
+            setTimeout(function(){
+                btn.textContent='';
+                var i=document.createElement('i');
+                i.className='fas fa-copy';
+                btn.appendChild(i);
+                btn.append(' Copy BibTeX');
+                btn.style.color='';
+                btn.style.borderColor='';
+            },2000);
+        });
+    }
+
+    // Nav scroll
+    var navEl=document.getElementById('nav');
+    window.addEventListener('scroll',function(){navEl.classList.toggle('scrolled',window.scrollY>40)},{passive:true});
+
+    // Scroll reveal
+    var observer=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('vis');observer.unobserve(e.target)}})},{threshold:0.08,rootMargin:'0px 0px -40px 0px'});
+    document.querySelectorAll('.reveal').forEach(function(el){observer.observe(el)});
+
+    // Smooth scroll
+    document.querySelectorAll('a[href^="#"]').forEach(function(a){a.addEventListener('click',function(e){var h=this.getAttribute('href');if(h!=='#'&&h.startsWith('#')){e.preventDefault();var t=document.querySelector(h);if(t)t.scrollIntoView({behavior:'smooth'})}})});
+
+    // ═══════════ CHARTS ═══════════
+    function chartColors(){
+        var dark=document.documentElement.getAttribute('data-theme')==='dark';
+        return {
+            grid: dark?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.06)',
+            text: dark?'#8B8B8B':'#6B6B6B',
+            accent: dark?'#818CF8':'#6366F1',
+            violet: dark?'#A78BFA':'#7C3AED',
+            rose: dark?'#FB7185':'#E11D48',
+            emerald: dark?'#34D399':'#059669',
+            amber: dark?'#FBBF24':'#B45309'
+        };
+    }
+
+    var activeCharts=[];
+    function initCharts(){
+        activeCharts.forEach(function(c){c.destroy()});
+        activeCharts=[];
+        var c=chartColors();
+        Chart.defaults.color=c.text;
+        Chart.defaults.borderColor=c.grid;
+        Chart.defaults.font.family='Outfit';
+
+        // Scatter
+        activeCharts.push(new Chart(document.getElementById('scatterChart'),{
+            type:'scatter',
+            data:{datasets:[
+                {label:'Raw Skeleton',data:[{x:75.4,y:89.1}],backgroundColor:c.rose,pointRadius:8,pointHoverRadius:10},
+                {label:'DMR',data:[{x:25.7,y:49.1}],backgroundColor:c.violet,pointRadius:8,pointHoverRadius:10},
+                {label:'PMR',data:[{x:7.8,y:35.7}],backgroundColor:c.text,pointRadius:8,pointHoverRadius:10},
+                {label:'Ours (\u03B2=0.2)',data:[{x:18.1,y:75.8}],backgroundColor:c.accent,pointRadius:11,pointHoverRadius:13,pointStyle:'rectRot'}
+            ]},
+            options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true,padding:16,font:{size:12}}}},scales:{x:{title:{display:true,text:'Re-Identification (RI %) \u2014 Lower is better',font:{size:12}},min:0,max:100,grid:{color:c.grid}},y:{title:{display:true,text:'Action Recognition (AR %) \u2014 Higher is better',font:{size:12}},min:0,max:100,grid:{color:c.grid}}}}
+        }));
+
+        // Ablation bar
+        activeCharts.push(new Chart(document.getElementById('ablationChart'),{
+            type:'bar',
+            data:{labels:['Baseline','Static ID','No Adv','No Orth','No Backbone','No TConvs','Full-Seq'],datasets:[
+                {label:'Pre-trained AR %',data:[82.6,82.2,82.2,82.4,82.2,82.2,82.2],backgroundColor:c.accent,borderRadius:4},
+                {label:'Pre-trained RI %',data:[51.9,48.5,49.0,47.9,46.4,48.2,45.9],backgroundColor:c.rose,borderRadius:4}
+            ]},
+            options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'bottom',labels:{padding:16,font:{size:12}}}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,max:100,grid:{color:c.grid}}}}
+        }));
+
+        // Radar
+        activeCharts.push(new Chart(document.getElementById('radarChart'),{
+            type:'radar',
+            data:{labels:['Pre-trained AR','Privacy (100−RI)','Re-trained AR'],datasets:[
+                {label:'Ours (β=0.2)',data:[75.8,81.9,87.1],borderColor:c.accent,backgroundColor:c.accent+'22',pointBackgroundColor:c.accent,borderWidth:2},
+                {label:'DMR',data:[49.1,74.3,43.1],borderColor:c.violet,backgroundColor:c.violet+'22',pointBackgroundColor:c.violet,borderWidth:2},
+                {label:'PMR',data:[35.7,92.2,19.9],borderColor:c.amber,backgroundColor:c.amber+'22',pointBackgroundColor:c.amber,borderWidth:2},
+                {label:'Raw Skeleton',data:[89.1,24.6,89.1],borderColor:c.rose,backgroundColor:c.rose+'22',pointBackgroundColor:c.rose,borderWidth:2}
+            ]},
+            options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'bottom',labels:{padding:16,font:{size:12}}}},scales:{r:{suggestedMin:0,suggestedMax:100,grid:{color:c.grid},angleLines:{color:c.grid},pointLabels:{font:{size:11,family:'Outfit'}},ticks:{backdropColor:'transparent',font:{size:10}}}}}
+        }));
+
+        // Stage bar (horizontal)
+        activeCharts.push(new Chart(document.getElementById('stageChart'),{
+            type:'bar',
+            data:{labels:['Stage 3 only','Stages 2\u21923','Stages 1\u21923','Stages 1\u21922','Stage 1 only'],datasets:[
+                {label:'Pre-trained AR %',data:[82.6,82.5,82.3,81.1,57.3],backgroundColor:c.accent,borderRadius:4},
+                {label:'Pre-trained RI %',data:[52.4,55.3,53.4,35.5,15.3],backgroundColor:c.rose,borderRadius:4}
+            ]},
+            options:{responsive:true,maintainAspectRatio:true,indexAxis:'y',plugins:{legend:{position:'bottom',labels:{padding:16,font:{size:12}}}},scales:{x:{beginAtZero:true,max:100,grid:{color:c.grid}},y:{grid:{display:false}}}}
+        }));
+    }
+
+    // Init charts on load and reinit on theme change
+    document.addEventListener('DOMContentLoaded',initCharts);
+    var _origSetTheme=setTheme;
+    setTheme=function(t){_origSetTheme(t);setTimeout(initCharts,50)};
+    setTheme(gpt());
+
+    // ═══════════ INTERACTIVE ARCHITECTURE ═══════════
+(function(){
+"use strict";
+var playing=false,timer=null,si=-1,spd=1300,activeCmp=null;
+var PATHS=["p0","p1","p2","p3","p4","p6","p7"];
+var INFO={
+"src":{t:"Source Motion",b:"Person P1 performing action A1. Contains motion dynamics (position, velocity, acceleration) to transfer.",s:"(B, 3, 64, 25, 1) | B=batch, 3=XYZ, 64=frames, 25=NTU joints, 1=person"},
+"tgt":{t:"Target Skeleton",b:"Person P2's skeleton sequence. Identity Encoder extracts static pose via temporal mean to capture body proportions.",s:"(B, 3, 64, 25, 1) -> temporal mean -> (B, 3, 25, 1)"},
+"ae":{t:"Action Encoder",b:"Multi-scale temporal pipeline: finite-diff velocity/acceleration, parallel convolutions (k=3,5,7), temporal attention (8h) x2, LSTM (2 layers), optional MixFormer backbone with learned gating.",s:"(B,3,64,25,1) -> [pos,vel,acc] -> (B,9,64,25,1) -> Linear(225,256) -> MultiScaleTConv -> TempAttn x2 -> LSTM -> GateFusion -> LayerNorm -> (64, B, 768)"},
+"ie":{t:"Identity Encoder",b:"Low-capacity spatial encoder (256D limits identity leakage). 3 GCN layers on NTU bone graph, spatial attention, parallel bone-length MLP (24 bones).",s:"(B,3,64,25,1) -> mean(T) -> Conv2d(3,64) -> GCN x3 -> SpatialAttn(8h) -> Pool -> (B,256) || Bones(24)->MLP->(B,128) -> Concat(384) -> 512 -> 256"},
+"dec":{t:"Factorized Decoder",b:"6-layer autoregressive decoder. Each layer: causal self-attn, action cross-attn, identity cross-attn, adaptive fusion gate (g*act + (1-g)*id), FFN. Teacher forcing 1.0->0.3. PhysicalConstraintLayer for bone lengths.",s:"Action: (64,B,768)->Linear->(64,B,320) | Identity: (B,256)->Linear->(B,320) | Seed: Linear(75,320) | Out: Linear(320,75)->reshape->(B,3,63,25,1)"},
+"out":{t:"Retargeted Motion",b:"Person P2 performing action A1. Source motion transferred onto target skeleton. T-1 frames (first frame is seed).",s:"(B, 3, 63, 25, 1) | 63 = T-1 frames (autoregressive)"},
+"ar":{t:"AR Classifier (Stage 1)",b:"3-layer MLP on temporal mean of action features. Classifies into 60 NTU actions. Training only.",s:"mean(T) of (64,B,768) -> (B,768) -> 512 -> 256 -> 60"},
+"ri":{t:"RI Classifier (Stage 1)",b:"3-layer MLP on identity features. Classifies into 40 NTU actors. Adversarial GRL prevents identity leakage into action encoder.",s:"(B,256) -> 512 -> 256 -> 40"}
+};
+var LABELS=[
+"Step 1/15: Source motion (B,3,64,25,1) enters Action Encoder",
+"Step 2/15: Velocity + acceleration via finite differences, concat -> (B,9,64,25,1)",
+"Step 3/15: Multi-scale temporal convolutions: parallel kernels k=3, k=5, k=7",
+"Step 4/15: Temporal attention (8h) x2 + LSTM (2 layers)",
+"Step 5/15: Gate fusion with MixFormer backbone -> (64, B, 768)",
+"Step 6/15: Target skeleton enters Identity Encoder",
+"Step 7/15: Temporal mean + Conv2d + Spatial GCN x3 on skeleton graph",
+"Step 8/15: Bone lengths (24) + spatial attention + fusion -> (B, 256)",
+"Step 9/15: Action features (64,B,768) flow to Factorized Decoder",
+"Step 10/15: Identity features (B,256) flow to Factorized Decoder",
+"Step 11/15: Self-attention with causal mask, then parallel cross-attention",
+"Step 12/15: Adaptive fusion gate: g*action + (1-g)*identity",
+"Step 13/15: Autoregressive generation: seed frame -> t=1...63 with teacher forcing",
+"Step 14/15: Output (B,3,63,25,1) — retargeted motion",
+"Step 15/15: Stage 1 classification heads: AR (60 actions) + RI (40 identities)"
+];
+var STEPS=[
+{c:["src","ae"],p:["p0"],i:[],pu:{d:"pd0",p:"p0"}},
+{c:["ae"],p:[],i:["a1","a2"]},
+{c:["ae"],p:[],i:["a3"]},
+{c:["ae"],p:[],i:["a4","a5"]},
+{c:["ae"],p:[],i:["a6","a7"]},
+{c:["tgt","ie"],p:["p1"],i:[],pu:{d:"pd1",p:"p1"}},
+{c:["ie"],p:[],i:["i1","i2","i3"]},
+{c:["ie"],p:[],i:["i4","i5","i6","i7","i8"]},
+{c:["ae","dec"],p:["p2"],i:[],pu:{d:"pd2",p:"p2"}},
+{c:["ie","dec"],p:["p3"],i:[],pu:{d:"pd3",p:"p3"}},
+{c:["dec"],p:[],i:["d1","d2","d3"]},
+{c:["dec"],p:[],i:["d4","d5"]},
+{c:["dec"],p:[],i:["d6"]},
+{c:["dec","out"],p:["p4"],i:["d7"],pu:{d:"pd4",p:"p4"}},
+{c:["ar","ri"],p:["p6","p7"],i:[]}
+];
+
+var svg=document.getElementById("aSvg"),info=document.getElementById("aInfo");
+var btn=document.getElementById("aPlayBtn"),ico=document.getElementById("aPlayIco"),txt=document.getElementById("aPlayTxt"),lbl=document.getElementById("aStepLbl");
+
+svg.addEventListener("click",function(e){
+    var b=e.target.closest(".cb");if(!b)return;
+    var c=b.getAttribute("data-c");if(!c||!INFO[c])return;
+    var prev=svg.querySelector(".cb.act");if(prev)prev.classList.remove("act");
+    if(activeCmp===c){activeCmp=null;info.textContent="Click any component above to see detailed tensor shapes and processing details.";return;}
+    activeCmp=c;b.classList.add("act");
+    var d=INFO[c];info.textContent="";
+    var t=document.createElement("div");t.className="ait";t.textContent=d.t;
+    var bd=document.createElement("div");bd.textContent=d.b;
+    var s=document.createElement("div");s.className="ais";s.textContent=d.s;
+    info.appendChild(t);info.appendChild(bd);info.appendChild(s);
+});
+btn.addEventListener("click",function(){playing?stop():start()});
+document.getElementById("aSpeedSel").addEventListener("change",function(){spd=parseInt(this.value,10)});
+
+function start(){playing=true;si=-1;btn.classList.add("playing");ico.innerHTML='<rect x="1" y="0" width="4" height="12"/><rect x="7" y="0" width="4" height="12"/>';txt.textContent="Stop";next();}
+function stop(){playing=false;if(timer){clearTimeout(timer);timer=null;}btn.classList.remove("playing");ico.innerHTML='<polygon points="1,0 12,6 1,12"/>';txt.textContent="Play";clear();lbl.textContent="Click a component or press Play to animate.";}
+function next(){if(!playing)return;si++;if(si>=STEPS.length){stop();return;}apply(si);timer=setTimeout(next,spd);}
+
+function apply(idx){
+    clear();var s=STEPS[idx];lbl.textContent=LABELS[idx];
+    (s.c||[]).forEach(function(n){var el=svg.querySelector('.cb[data-c="'+n+'"]');if(el){el.classList.add("act");var bg=el.querySelector(".cbg");if(bg)bg.style.strokeWidth="2.5";}});
+    (s.p||[]).forEach(function(id){var p=document.getElementById(id);if(p){p.style.opacity=".8";p.style.strokeWidth="3";}});
+    (s.i||[]).forEach(function(n){var el=svg.querySelector('.ist[data-i="'+n+'"]');if(el){el.classList.add("hl");var r=el.querySelector("rect");if(r){r.setAttribute("data-po",r.getAttribute("opacity")||".07");r.setAttribute("opacity",".25");}}});
+    if(s.pu)pulse(s.pu.d,s.pu.p);
+}
+function clear(){
+    svg.querySelectorAll(".cb.act").forEach(function(e){e.classList.remove("act");var bg=e.querySelector(".cbg");if(bg)bg.style.strokeWidth="";});
+    PATHS.forEach(function(id){var p=document.getElementById(id);if(p){p.style.opacity="";p.style.strokeWidth="";}});
+    svg.querySelectorAll(".ist.hl").forEach(function(e){e.classList.remove("hl");var r=e.querySelector("rect");if(r){var po=r.getAttribute("data-po");if(po)r.setAttribute("opacity",po);}});
+    document.querySelectorAll(".pd").forEach(function(d){d.style.opacity="0";});
+}
+function pulse(did,pid){
+    var dot=document.getElementById(did),path=document.getElementById(pid);if(!dot||!path)return;
+    var len=path.getTotalLength(),dur=Math.max(350,spd*.5),t0=performance.now();dot.style.opacity="1";
+    function tick(now){if(!playing){dot.style.opacity="0";return;}var p=Math.min((now-t0)/dur,1);var pt=path.getPointAtLength(p*len);dot.setAttribute("cx",pt.x);dot.setAttribute("cy",pt.y);dot.style.opacity=String(1-p*.4);if(p<1)requestAnimationFrame(tick);else dot.style.opacity="0";}
+    requestAnimationFrame(tick);
+}
+})();
+        </script>
+</body>
+</html>

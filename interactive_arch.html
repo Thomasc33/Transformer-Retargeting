@@ -1,0 +1,483 @@
+<!--
+  DisentangledTMR — Interactive Architecture (Pure SVG)
+  All tensor shapes from source code. viewBox 0 0 1000 980.
+-->
+<style>
+.arch-wrap{position:relative;padding:1.5rem 0}
+.arch-controls{display:flex;align-items:center;gap:1rem;margin-bottom:1rem;flex-wrap:wrap}
+.arch-play-btn{display:inline-flex;align-items:center;gap:.5rem;padding:.55rem 1.2rem;border-radius:8px;border:1px solid var(--accent-border);background:var(--accent-subtle);color:var(--accent);font-family:var(--font-body);font-size:.82rem;font-weight:600;cursor:pointer;transition:all .25s ease}
+.arch-play-btn:hover{background:var(--accent);color:#fff;transform:translateY(-1px);box-shadow:var(--shadow-md)}
+[data-theme="dark"] .arch-play-btn:hover{color:#0B0B0D}
+.arch-play-btn.playing{background:var(--rose);border-color:var(--rose);color:#fff}
+.arch-step-label{font-family:var(--font-body);font-size:.82rem;color:var(--text-muted);flex:1;min-width:180px}
+.arch-speed{display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:var(--text-muted);font-family:var(--font-body)}
+.arch-speed select{padding:.25rem .45rem;border-radius:5px;border:1px solid var(--border);background:var(--bg-surface);color:var(--text);font-family:var(--font-mono);font-size:.72rem;cursor:pointer}
+.arch-diagram{width:100%;max-width:1100px;margin:0 auto;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.arch-svg{width:100%;height:auto;display:block;min-width:740px}
+.arch-info{margin-top:.8rem;padding:.8rem 1rem;border-radius:8px;background:var(--bg-surface);border:1px solid var(--border);font-family:var(--font-body);font-size:.8rem;color:var(--text-muted);line-height:1.55;min-height:2em}
+.arch-info .ait{font-weight:700;font-size:.85rem;color:var(--text);margin-bottom:.2rem}
+.arch-info .ais{font-family:var(--font-mono);font-size:.72rem;color:var(--text-faint);margin-top:.15rem}
+.arch-legend{display:flex;gap:.8rem;margin-top:1rem;flex-wrap:wrap}
+.arch-badge{display:inline-flex;align-items:center;gap:.35rem;font-size:.72rem;font-family:var(--font-body);color:var(--text-muted);padding:.25rem .6rem;border-radius:5px;background:var(--bg-surface);border:1px solid var(--border)}
+.arch-badge .dot{width:7px;height:7px;border-radius:50%}
+.arch-svg .cb{cursor:pointer}
+.arch-svg .cb:hover .cbg{filter:brightness(1.08)}
+.arch-svg .cb.act .cbg{stroke-width:2.5}
+.arch-svg .ist{transition:opacity .25s}
+.arch-svg .ist.hl rect{opacity:.3!important}
+@media(max-width:768px){.arch-controls{flex-direction:column;align-items:stretch}.arch-step-label{text-align:center}}
+</style>
+
+<div class="arch-wrap" id="archWrap">
+<div class="arch-controls">
+    <button class="arch-play-btn" id="aPlayBtn">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" id="aPlayIco"><polygon points="1,0 12,6 1,12"/></svg>
+        <span id="aPlayTxt">Play</span>
+    </button>
+    <div class="arch-step-label" id="aStepLbl">Click a component or press Play to animate.</div>
+    <div class="arch-speed">
+        <label>Speed:</label>
+        <select id="aSpeedSel"><option value="2200">0.5x</option><option value="1300" selected>1x</option><option value="650">2x</option></select>
+    </div>
+</div>
+
+<div class="arch-diagram">
+<svg class="arch-svg" id="aSvg" viewBox="0 0 1000 980" xmlns="http://www.w3.org/2000/svg">
+<defs>
+    <!-- Arrow markers -->
+    <marker id="aA" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="var(--accent)" opacity=".65"/></marker>
+    <marker id="aV" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="var(--violet)" opacity=".65"/></marker>
+    <marker id="aE" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="var(--emerald)" opacity=".65"/></marker>
+    <marker id="aR" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="var(--rose)" opacity=".65"/></marker>
+    <!-- Glow filters -->
+    <filter id="gA" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3.5" result="b"/><feFlood flood-color="var(--accent)" flood-opacity=".45" result="c"/><feComposite in="c" in2="b" operator="in" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="gV" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3.5" result="b"/><feFlood flood-color="var(--violet)" flood-opacity=".45" result="c"/><feComposite in="c" in2="b" operator="in" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="gE" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3.5" result="b"/><feFlood flood-color="var(--emerald)" flood-opacity=".45" result="c"/><feComposite in="c" in2="b" operator="in" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+
+    <!-- NTU Skeleton: centered at (0,0), head at y=-14, feet at y=52. Total ~66px. -->
+    <!-- Scaled to fit comfortably in boxes -->
+    <g id="skel-a"><!-- accent T-pose -->
+        <line x1="0" y1="26" x2="0" y2="14" stroke="var(--accent)" stroke-width="1.4" opacity=".7"/>
+        <line x1="0" y1="14" x2="0" y2="3" stroke="var(--accent)" stroke-width="1.4" opacity=".7"/>
+        <line x1="0" y1="3" x2="0" y2="-5" stroke="var(--accent)" stroke-width="1.4" opacity=".7"/>
+        <line x1="0" y1="-5" x2="0" y2="-14" stroke="var(--accent)" stroke-width="1.3" opacity=".7"/>
+        <line x1="0" y1="3" x2="-8" y2="3" stroke="var(--accent)" stroke-width="1.3" opacity=".65"/>
+        <line x1="-8" y1="3" x2="-16" y2="3" stroke="var(--accent)" stroke-width="1.3" opacity=".6"/>
+        <line x1="-16" y1="3" x2="-22" y2="3" stroke="var(--accent)" stroke-width="1.1" opacity=".5"/>
+        <line x1="0" y1="3" x2="8" y2="3" stroke="var(--accent)" stroke-width="1.3" opacity=".65"/>
+        <line x1="8" y1="3" x2="16" y2="3" stroke="var(--accent)" stroke-width="1.3" opacity=".6"/>
+        <line x1="16" y1="3" x2="22" y2="3" stroke="var(--accent)" stroke-width="1.1" opacity=".5"/>
+        <line x1="0" y1="26" x2="-6" y2="38" stroke="var(--accent)" stroke-width="1.3" opacity=".65"/>
+        <line x1="-6" y1="38" x2="-6" y2="48" stroke="var(--accent)" stroke-width="1.3" opacity=".6"/>
+        <line x1="-6" y1="48" x2="-8" y2="52" stroke="var(--accent)" stroke-width="1.1" opacity=".5"/>
+        <line x1="0" y1="26" x2="6" y2="38" stroke="var(--accent)" stroke-width="1.3" opacity=".65"/>
+        <line x1="6" y1="38" x2="6" y2="48" stroke="var(--accent)" stroke-width="1.3" opacity=".6"/>
+        <line x1="6" y1="48" x2="8" y2="52" stroke="var(--accent)" stroke-width="1.1" opacity=".5"/>
+        <circle cx="0" cy="-14" r="3" fill="var(--accent)" opacity=".45"/>
+        <circle cx="0" cy="3" r="1.8" fill="var(--accent)" opacity=".5"/>
+    </g>
+    <g id="skel-a2"><!-- accent left arm raised -->
+        <line x1="0" y1="26" x2="0" y2="14" stroke="var(--accent)" stroke-width="1.4" opacity=".7"/>
+        <line x1="0" y1="14" x2="0" y2="3" stroke="var(--accent)" stroke-width="1.4" opacity=".7"/>
+        <line x1="0" y1="3" x2="0" y2="-5" stroke="var(--accent)" stroke-width="1.4" opacity=".7"/>
+        <line x1="0" y1="-5" x2="0" y2="-14" stroke="var(--accent)" stroke-width="1.3" opacity=".7"/>
+        <line x1="0" y1="3" x2="-7" y2="-1" stroke="var(--accent)" stroke-width="1.3" opacity=".65"/>
+        <line x1="-7" y1="-1" x2="-14" y2="-8" stroke="var(--accent)" stroke-width="1.3" opacity=".6"/>
+        <line x1="-14" y1="-8" x2="-19" y2="-13" stroke="var(--accent)" stroke-width="1.1" opacity=".5"/>
+        <line x1="0" y1="3" x2="8" y2="7" stroke="var(--accent)" stroke-width="1.3" opacity=".65"/>
+        <line x1="8" y1="7" x2="16" y2="14" stroke="var(--accent)" stroke-width="1.3" opacity=".6"/>
+        <line x1="16" y1="14" x2="21" y2="18" stroke="var(--accent)" stroke-width="1.1" opacity=".5"/>
+        <line x1="0" y1="26" x2="-6" y2="38" stroke="var(--accent)" stroke-width="1.3" opacity=".65"/>
+        <line x1="-6" y1="38" x2="-6" y2="48" stroke="var(--accent)" stroke-width="1.3" opacity=".6"/>
+        <line x1="-6" y1="48" x2="-8" y2="52" stroke="var(--accent)" stroke-width="1.1" opacity=".5"/>
+        <line x1="0" y1="26" x2="6" y2="38" stroke="var(--accent)" stroke-width="1.3" opacity=".65"/>
+        <line x1="6" y1="38" x2="6" y2="48" stroke="var(--accent)" stroke-width="1.3" opacity=".6"/>
+        <line x1="6" y1="48" x2="8" y2="52" stroke="var(--accent)" stroke-width="1.1" opacity=".5"/>
+        <circle cx="0" cy="-14" r="3" fill="var(--accent)" opacity=".45"/>
+        <circle cx="0" cy="3" r="1.8" fill="var(--accent)" opacity=".5"/>
+    </g>
+    <g id="skel-a3"><!-- accent arms mid-swing -->
+        <line x1="0" y1="26" x2="0" y2="14" stroke="var(--accent)" stroke-width="1.4" opacity=".7"/>
+        <line x1="0" y1="14" x2="0" y2="3" stroke="var(--accent)" stroke-width="1.4" opacity=".7"/>
+        <line x1="0" y1="3" x2="0" y2="-5" stroke="var(--accent)" stroke-width="1.4" opacity=".7"/>
+        <line x1="0" y1="-5" x2="0" y2="-14" stroke="var(--accent)" stroke-width="1.3" opacity=".7"/>
+        <line x1="0" y1="3" x2="-8" y2="6" stroke="var(--accent)" stroke-width="1.3" opacity=".65"/>
+        <line x1="-8" y1="6" x2="-16" y2="12" stroke="var(--accent)" stroke-width="1.3" opacity=".6"/>
+        <line x1="-16" y1="12" x2="-22" y2="15" stroke="var(--accent)" stroke-width="1.1" opacity=".5"/>
+        <line x1="0" y1="3" x2="7" y2="-1" stroke="var(--accent)" stroke-width="1.3" opacity=".65"/>
+        <line x1="7" y1="-1" x2="14" y2="-7" stroke="var(--accent)" stroke-width="1.3" opacity=".6"/>
+        <line x1="14" y1="-7" x2="19" y2="-12" stroke="var(--accent)" stroke-width="1.1" opacity=".5"/>
+        <line x1="0" y1="26" x2="-6" y2="38" stroke="var(--accent)" stroke-width="1.3" opacity=".65"/>
+        <line x1="-6" y1="38" x2="-6" y2="48" stroke="var(--accent)" stroke-width="1.3" opacity=".6"/>
+        <line x1="-6" y1="48" x2="-8" y2="52" stroke="var(--accent)" stroke-width="1.1" opacity=".5"/>
+        <line x1="0" y1="26" x2="6" y2="38" stroke="var(--accent)" stroke-width="1.3" opacity=".65"/>
+        <line x1="6" y1="38" x2="6" y2="48" stroke="var(--accent)" stroke-width="1.3" opacity=".6"/>
+        <line x1="6" y1="48" x2="8" y2="52" stroke="var(--accent)" stroke-width="1.1" opacity=".5"/>
+        <circle cx="0" cy="-14" r="3" fill="var(--accent)" opacity=".45"/>
+        <circle cx="0" cy="3" r="1.8" fill="var(--accent)" opacity=".5"/>
+    </g>
+    <g id="skel-v"><!-- violet T-pose, slightly wider proportions -->
+        <line x1="0" y1="28" x2="0" y2="15" stroke="var(--violet)" stroke-width="1.6" opacity=".7"/>
+        <line x1="0" y1="15" x2="0" y2="4" stroke="var(--violet)" stroke-width="1.6" opacity=".7"/>
+        <line x1="0" y1="4" x2="0" y2="-5" stroke="var(--violet)" stroke-width="1.6" opacity=".7"/>
+        <line x1="0" y1="-5" x2="0" y2="-14" stroke="var(--violet)" stroke-width="1.4" opacity=".7"/>
+        <line x1="0" y1="4" x2="-10" y2="4" stroke="var(--violet)" stroke-width="1.5" opacity=".65"/>
+        <line x1="-10" y1="4" x2="-19" y2="4" stroke="var(--violet)" stroke-width="1.5" opacity=".6"/>
+        <line x1="-19" y1="4" x2="-26" y2="4" stroke="var(--violet)" stroke-width="1.2" opacity=".5"/>
+        <line x1="0" y1="4" x2="10" y2="4" stroke="var(--violet)" stroke-width="1.5" opacity=".65"/>
+        <line x1="10" y1="4" x2="19" y2="4" stroke="var(--violet)" stroke-width="1.5" opacity=".6"/>
+        <line x1="19" y1="4" x2="26" y2="4" stroke="var(--violet)" stroke-width="1.2" opacity=".5"/>
+        <line x1="0" y1="28" x2="-7" y2="40" stroke="var(--violet)" stroke-width="1.5" opacity=".65"/>
+        <line x1="-7" y1="40" x2="-7" y2="50" stroke="var(--violet)" stroke-width="1.5" opacity=".6"/>
+        <line x1="-7" y1="50" x2="-10" y2="55" stroke="var(--violet)" stroke-width="1.2" opacity=".5"/>
+        <line x1="0" y1="28" x2="7" y2="40" stroke="var(--violet)" stroke-width="1.5" opacity=".65"/>
+        <line x1="7" y1="40" x2="7" y2="50" stroke="var(--violet)" stroke-width="1.5" opacity=".6"/>
+        <line x1="7" y1="50" x2="10" y2="55" stroke="var(--violet)" stroke-width="1.2" opacity=".5"/>
+        <circle cx="0" cy="-14" r="3.5" fill="var(--violet)" opacity=".45"/>
+        <circle cx="0" cy="4" r="2" fill="var(--violet)" opacity=".5"/>
+    </g>
+    <g id="skel-e"><!-- emerald output: wider body + action pose -->
+        <line x1="0" y1="28" x2="0" y2="15" stroke="var(--emerald)" stroke-width="1.6" opacity=".7"/>
+        <line x1="0" y1="15" x2="0" y2="4" stroke="var(--emerald)" stroke-width="1.6" opacity=".7"/>
+        <line x1="0" y1="4" x2="0" y2="-5" stroke="var(--emerald)" stroke-width="1.6" opacity=".7"/>
+        <line x1="0" y1="-5" x2="0" y2="-14" stroke="var(--emerald)" stroke-width="1.4" opacity=".7"/>
+        <line x1="0" y1="4" x2="-9" y2="0" stroke="var(--emerald)" stroke-width="1.5" opacity=".65"/>
+        <line x1="-9" y1="0" x2="-17" y2="-6" stroke="var(--emerald)" stroke-width="1.5" opacity=".6"/>
+        <line x1="-17" y1="-6" x2="-23" y2="-10" stroke="var(--emerald)" stroke-width="1.2" opacity=".5"/>
+        <line x1="0" y1="4" x2="10" y2="7" stroke="var(--emerald)" stroke-width="1.5" opacity=".65"/>
+        <line x1="10" y1="7" x2="19" y2="14" stroke="var(--emerald)" stroke-width="1.5" opacity=".6"/>
+        <line x1="19" y1="14" x2="25" y2="18" stroke="var(--emerald)" stroke-width="1.2" opacity=".5"/>
+        <line x1="0" y1="28" x2="-7" y2="40" stroke="var(--emerald)" stroke-width="1.5" opacity=".65"/>
+        <line x1="-7" y1="40" x2="-7" y2="50" stroke="var(--emerald)" stroke-width="1.5" opacity=".6"/>
+        <line x1="-7" y1="50" x2="-10" y2="55" stroke="var(--emerald)" stroke-width="1.2" opacity=".5"/>
+        <line x1="0" y1="28" x2="7" y2="40" stroke="var(--emerald)" stroke-width="1.5" opacity=".65"/>
+        <line x1="7" y1="40" x2="7" y2="50" stroke="var(--emerald)" stroke-width="1.5" opacity=".6"/>
+        <line x1="7" y1="50" x2="10" y2="55" stroke="var(--emerald)" stroke-width="1.2" opacity=".5"/>
+        <circle cx="0" cy="-14" r="3.5" fill="var(--emerald)" opacity=".45"/>
+        <circle cx="0" cy="4" r="2" fill="var(--emerald)" opacity=".5"/>
+    </g>
+</defs>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- ROW 1: INPUTS  y=10..100                                      -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- Source Motion: x=30..350, y=10..100 (320x90) -->
+<g class="cb" data-c="src">
+    <rect class="cbg" x="30" y="10" width="320" height="90" rx="8" fill="var(--bg-surface)" stroke="var(--accent-border)" stroke-width="1.5"/>
+    <text x="45" y="32" font-family="var(--font-display)" font-size="13" font-weight="700" fill="var(--accent)">Source Motion</text>
+    <text x="210" y="32" font-family="var(--font-mono)" font-size="9" fill="var(--accent)" opacity=".65">(B, 3, 64, 25, 1)</text>
+    <!-- 3 skeletons showing motion. Scale .55, positioned so feet stay inside box -->
+    <use href="#skel-a"  x="100" y="64" transform="translate(100,64) scale(.55) translate(-100,-64)" opacity=".7"/>
+    <use href="#skel-a2" x="175" y="64" transform="translate(175,64) scale(.55) translate(-175,-64)" opacity=".85"/>
+    <use href="#skel-a3" x="250" y="64" transform="translate(250,64) scale(.55) translate(-250,-64)" opacity="1"/>
+    <text x="132" y="62" font-size="10" fill="var(--accent)" opacity=".35">&#8594;</text>
+    <text x="207" y="62" font-size="10" fill="var(--accent)" opacity=".35">&#8594;</text>
+    <text x="120" y="96" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">T=64 frames</text>
+</g>
+
+<!-- Target Skeleton: x=650..970, y=10..100 -->
+<g class="cb" data-c="tgt">
+    <rect class="cbg" x="650" y="10" width="320" height="90" rx="8" fill="var(--bg-surface)" stroke="var(--violet-border)" stroke-width="1.5"/>
+    <text x="665" y="32" font-family="var(--font-display)" font-size="13" font-weight="700" fill="var(--violet)">Target Skeleton</text>
+    <text x="850" y="32" font-family="var(--font-mono)" font-size="9" fill="var(--violet)" opacity=".65">(B, 3, 64, 25, 1)</text>
+    <use href="#skel-v" x="810" y="64" transform="translate(810,64) scale(.55) translate(-810,-64)" opacity=".85"/>
+    <text x="760" y="96" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">static pose (temporal mean)</text>
+</g>
+
+<!-- ═══ ARROWS: Inputs → Encoders ═══ -->
+<!-- Source (center=190, bottom=100) → Action Enc (center=190, top=130) -->
+<path id="p0" d="M190,100 L190,130" stroke="var(--accent)" stroke-width="1.8" fill="none" opacity=".35" marker-end="url(#aA)"/>
+<!-- Target (center=810, bottom=100) → Identity Enc (center=810, top=130) -->
+<path id="p1" d="M810,100 L810,130" stroke="var(--violet)" stroke-width="1.8" fill="none" opacity=".35" marker-end="url(#aV)"/>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- ROW 2: ENCODERS  y=130..400                                   -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- Action Encoder: x=30..380, y=130..400 (350x270) -->
+<g class="cb" data-c="ae">
+    <rect class="cbg" x="30" y="130" width="350" height="270" rx="8" fill="var(--accent-subtle)" stroke="var(--accent-border)" stroke-width="1.5"/>
+    <text x="45" y="153" font-family="var(--font-display)" font-size="13" font-weight="700" fill="var(--accent)">Action Encoder</text>
+    <rect x="220" y="140" width="145" height="16" rx="4" fill="var(--accent)" opacity=".85"/>
+    <text x="230" y="152" font-family="var(--font-mono)" font-size="9" fill="#fff" font-weight="600">out: (64, B, 768)</text>
+    <!-- Inner steps -->
+    <g class="ist" data-i="a1"><rect x="48" y="166" width="200" height="20" rx="4" fill="var(--accent)" opacity=".07" stroke="var(--accent)" stroke-width=".5" stroke-opacity=".2"/><text x="56" y="180" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">pos + vel + acc</text><text x="175" y="180" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(B,9,64,25,1)</text></g>
+    <g class="ist" data-i="a2"><rect x="48" y="192" width="200" height="20" rx="4" fill="var(--accent)" opacity=".07" stroke="var(--accent)" stroke-width=".5" stroke-opacity=".2"/><text x="56" y="206" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">Linear(225&#8594;256)</text><text x="185" y="206" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(B,64,256)</text></g>
+    <g class="ist" data-i="a3"><rect x="48" y="218" width="320" height="24" rx="4" fill="var(--accent)" opacity=".07" stroke="var(--accent)" stroke-width=".5" stroke-opacity=".2"/><text x="56" y="234" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">MultiScale TConv</text>
+        <rect x="165" y="222" width="28" height="14" rx="3" fill="var(--accent)" opacity=".12" stroke="var(--accent)" stroke-width=".6" stroke-opacity=".25"/><text x="170" y="233" font-family="var(--font-mono)" font-size="7.5" fill="var(--accent)">k=3</text>
+        <rect x="198" y="222" width="28" height="14" rx="3" fill="var(--accent)" opacity=".12" stroke="var(--accent)" stroke-width=".6" stroke-opacity=".25"/><text x="203" y="233" font-family="var(--font-mono)" font-size="7.5" fill="var(--accent)">k=5</text>
+        <rect x="231" y="222" width="28" height="14" rx="3" fill="var(--accent)" opacity=".12" stroke="var(--accent)" stroke-width=".6" stroke-opacity=".25"/><text x="236" y="233" font-family="var(--font-mono)" font-size="7.5" fill="var(--accent)">k=7</text>
+        <text x="268" y="234" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(64,B,256)</text></g>
+    <g class="ist" data-i="a4"><rect x="48" y="248" width="260" height="20" rx="4" fill="var(--accent)" opacity=".07" stroke="var(--accent)" stroke-width=".5" stroke-opacity=".2"/><text x="56" y="262" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">Temporal Attn &#215;2 (8 heads)</text><text x="240" y="262" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(64,B,256)</text></g>
+    <g class="ist" data-i="a5"><rect x="48" y="274" width="200" height="20" rx="4" fill="var(--accent)" opacity=".07" stroke="var(--accent)" stroke-width=".5" stroke-opacity=".2"/><text x="56" y="288" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">LSTM (2 layers)</text><text x="175" y="288" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(64,B,256)</text></g>
+    <g class="ist" data-i="a6"><rect x="48" y="300" width="320" height="26" rx="4" fill="var(--accent)" opacity=".1" stroke="var(--accent)" stroke-width=".6" stroke-opacity=".25"/><text x="56" y="317" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">Gate Fusion</text><text x="135" y="317" font-family="var(--font-mono)" font-size="8.5" fill="var(--accent)" opacity=".7">g&#183;lstm + (1-g)&#183;mixf</text><text x="295" y="317" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(64,B,768)</text></g>
+    <g class="ist" data-i="a7"><rect x="48" y="332" width="200" height="20" rx="4" fill="var(--accent)" opacity=".07" stroke="var(--accent)" stroke-width=".5" stroke-opacity=".2"/><text x="56" y="346" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">LayerNorm</text><text x="135" y="346" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">&#8594; (64, B, 768)</text></g>
+    <!-- MixFormer note -->
+    <rect x="262" y="274" width="100" height="20" rx="4" fill="var(--amber-subtle)" stroke="var(--accent)" stroke-width=".4" stroke-opacity=".15" stroke-dasharray="3,2"/>
+    <text x="270" y="288" font-family="var(--font-body)" font-size="8" fill="var(--text-muted)" font-style="italic">MixFormer (10L)</text>
+    <!-- Inner flow lines -->
+    <line x1="148" y1="186" x2="148" y2="192" stroke="var(--accent)" stroke-width=".7" opacity=".25"/>
+    <line x1="148" y1="212" x2="148" y2="218" stroke="var(--accent)" stroke-width=".7" opacity=".25"/>
+    <line x1="148" y1="242" x2="148" y2="248" stroke="var(--accent)" stroke-width=".7" opacity=".25"/>
+    <line x1="148" y1="268" x2="148" y2="274" stroke="var(--accent)" stroke-width=".7" opacity=".25"/>
+    <line x1="148" y1="294" x2="148" y2="300" stroke="var(--accent)" stroke-width=".7" opacity=".25"/>
+    <line x1="148" y1="326" x2="148" y2="332" stroke="var(--accent)" stroke-width=".7" opacity=".25"/>
+</g>
+
+<!-- Identity Encoder: x=620..970, y=130..400 (350x270) -->
+<g class="cb" data-c="ie">
+    <rect class="cbg" x="620" y="130" width="350" height="270" rx="8" fill="var(--violet-subtle)" stroke="var(--violet-border)" stroke-width="1.5"/>
+    <text x="635" y="153" font-family="var(--font-display)" font-size="13" font-weight="700" fill="var(--violet)">Identity Encoder</text>
+    <rect x="840" y="140" width="115" height="16" rx="4" fill="var(--violet)" opacity=".85"/>
+    <text x="850" y="152" font-family="var(--font-mono)" font-size="9" fill="#fff" font-weight="600">out: (B, 256)</text>
+    <!-- Inner steps -->
+    <g class="ist" data-i="i1"><rect x="638" y="166" width="200" height="20" rx="4" fill="var(--violet)" opacity=".07" stroke="var(--violet)" stroke-width=".5" stroke-opacity=".2"/><text x="646" y="180" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">Temporal Mean</text><text x="770" y="180" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(B,3,25,1)</text></g>
+    <g class="ist" data-i="i2"><rect x="638" y="192" width="200" height="20" rx="4" fill="var(--violet)" opacity=".07" stroke="var(--violet)" stroke-width=".5" stroke-opacity=".2"/><text x="646" y="206" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">Conv2d(3&#8594;64)</text><text x="770" y="206" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(B,64,25,1)</text></g>
+    <g class="ist" data-i="i3"><rect x="638" y="218" width="240" height="24" rx="4" fill="var(--violet)" opacity=".07" stroke="var(--violet)" stroke-width=".5" stroke-opacity=".2"/><text x="646" y="234" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">Spatial GCN &#215;3</text><text x="790" y="234" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(B,256,25,1)</text></g>
+    <g class="ist" data-i="i4"><rect x="638" y="248" width="200" height="20" rx="4" fill="var(--violet)" opacity=".07" stroke="var(--violet)" stroke-width=".5" stroke-opacity=".2"/><text x="646" y="262" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">Spatial Attn (8h)</text><text x="780" y="262" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(B,25,256)</text></g>
+    <g class="ist" data-i="i5"><rect x="638" y="274" width="140" height="20" rx="4" fill="var(--violet)" opacity=".07" stroke="var(--violet)" stroke-width=".5" stroke-opacity=".2"/><text x="646" y="288" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">Global Pool</text><text x="730" y="288" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(B,256)</text></g>
+    <g class="ist" data-i="i6"><rect x="800" y="274" width="155" height="20" rx="4" fill="var(--violet)" opacity=".05" stroke="var(--violet)" stroke-width=".5" stroke-opacity=".15" stroke-dasharray="3,2"/><text x="808" y="288" font-family="var(--font-body)" font-size="8.5" fill="var(--text-muted)">Bone Lengths(24)&#8594;MLP</text><text x="935" y="288" font-family="var(--font-mono)" font-size="7.5" fill="var(--text-faint)">(B,128)</text></g>
+    <g class="ist" data-i="i7"><rect x="638" y="300" width="320" height="26" rx="4" fill="var(--violet)" opacity=".1" stroke="var(--violet)" stroke-width=".6" stroke-opacity=".25"/><text x="646" y="317" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">Concat + Fusion</text><text x="770" y="317" font-family="var(--font-mono)" font-size="8.5" fill="var(--violet)" opacity=".7">(384)&#8594;512&#8594;256</text></g>
+    <g class="ist" data-i="i8"><rect x="638" y="332" width="200" height="20" rx="4" fill="var(--violet)" opacity=".07" stroke="var(--violet)" stroke-width=".5" stroke-opacity=".2"/><text x="646" y="346" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">LayerNorm</text><text x="730" y="346" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">&#8594; (B, 256)</text></g>
+    <!-- Inner flow lines -->
+    <line x1="738" y1="186" x2="738" y2="192" stroke="var(--violet)" stroke-width=".7" opacity=".25"/>
+    <line x1="738" y1="212" x2="738" y2="218" stroke="var(--violet)" stroke-width=".7" opacity=".25"/>
+    <line x1="738" y1="242" x2="738" y2="248" stroke="var(--violet)" stroke-width=".7" opacity=".25"/>
+    <line x1="738" y1="268" x2="738" y2="274" stroke="var(--violet)" stroke-width=".7" opacity=".25"/>
+    <line x1="738" y1="294" x2="738" y2="300" stroke="var(--violet)" stroke-width=".7" opacity=".25"/>
+    <line x1="738" y1="326" x2="738" y2="332" stroke="var(--violet)" stroke-width=".7" opacity=".25"/>
+</g>
+
+<!-- ═══ ARROWS: Encoders → Decoder ═══ -->
+<!-- Action enc bottom (205,400) curves to decoder top-left area (380,440) -->
+<path id="p2" d="M205,400 C205,420 380,430 380,440" stroke="var(--accent)" stroke-width="2.2" fill="none" opacity=".35" marker-end="url(#aA)"/>
+<text x="240" y="418" font-family="var(--font-mono)" font-size="8.5" fill="var(--accent)" opacity=".55">(64, B, 768)</text>
+<!-- Identity enc bottom (795,400) curves to decoder top-right area (620,440) -->
+<path id="p3" d="M795,400 C795,420 620,430 620,440" stroke="var(--violet)" stroke-width="2.2" fill="none" opacity=".35" marker-end="url(#aV)"/>
+<text x="700" y="418" font-family="var(--font-mono)" font-size="8.5" fill="var(--violet)" opacity=".55">(B, 256)</text>
+
+<!-- ═══ SIDE: Classification heads (Stage 1 only, dashed rose) ═══ -->
+<path id="p6" d="M80,400 L80,430" stroke="var(--rose)" stroke-width="1.3" fill="none" opacity=".2" stroke-dasharray="3,3" marker-end="url(#aR)"/>
+<g class="cb" data-c="ar"><rect class="cbg" x="18" y="432" width="150" height="40" rx="6" fill="var(--rose-subtle)" stroke="var(--rose)" stroke-width=".8" stroke-opacity=".2" stroke-dasharray="4,3"/><text x="34" y="452" font-family="var(--font-display)" font-size="11" font-weight="600" fill="var(--rose)">AR Classifier</text><text x="34" y="465" font-family="var(--font-mono)" font-size="7.5" fill="var(--text-faint)">768&#8594;512&#8594;256&#8594;60</text></g>
+
+<path id="p7" d="M920,400 L920,430" stroke="var(--rose)" stroke-width="1.3" fill="none" opacity=".2" stroke-dasharray="3,3" marker-end="url(#aR)"/>
+<g class="cb" data-c="ri"><rect class="cbg" x="840" y="432" width="145" height="40" rx="6" fill="var(--rose-subtle)" stroke="var(--rose)" stroke-width=".8" stroke-opacity=".2" stroke-dasharray="4,3"/><text x="856" y="452" font-family="var(--font-display)" font-size="11" font-weight="600" fill="var(--rose)">RI Classifier</text><text x="856" y="465" font-family="var(--font-mono)" font-size="7.5" fill="var(--text-faint)">256&#8594;512&#8594;256&#8594;40</text></g>
+<text x="30" y="428" font-family="var(--font-body)" font-size="7.5" fill="var(--rose)" opacity=".5" font-style="italic">Stage 1</text>
+<text x="877" y="428" font-family="var(--font-body)" font-size="7.5" fill="var(--rose)" opacity=".5" font-style="italic">Stage 1</text>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- ROW 3: FACTORIZED DECODER  y=440..750                         -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<g class="cb" data-c="dec">
+    <rect class="cbg" x="200" y="440" width="600" height="310" rx="8" fill="var(--emerald-subtle)" stroke="var(--emerald)" stroke-width="1.5" stroke-opacity=".25"/>
+    <text x="220" y="465" font-family="var(--font-display)" font-size="13" font-weight="700" fill="var(--emerald)">Factorized Decoder</text>
+    <rect x="420" y="450" width="175" height="16" rx="4" fill="var(--emerald)" opacity=".85"/>
+    <text x="430" y="462" font-family="var(--font-mono)" font-size="9" fill="#fff" font-weight="600">6 layers, d=320, 8 heads</text>
+
+    <!-- Self-Attention -->
+    <g class="ist" data-i="d1"><rect x="220" y="478" width="560" height="24" rx="4" fill="var(--emerald)" opacity=".07" stroke="var(--emerald)" stroke-width=".5" stroke-opacity=".2"/>
+        <text x="232" y="494" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">Self-Attn (causal)</text>
+        <!-- causal mask triangle -->
+        <polygon points="390,481 408,481 408,498" fill="var(--emerald)" opacity=".08" stroke="var(--emerald)" stroke-width=".5" stroke-opacity=".2"/>
+        <text x="415" y="494" font-family="var(--font-mono)" font-size="8" fill="var(--emerald)" opacity=".55">lower triangular mask</text>
+        <text x="700" y="494" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(T,B,320)</text></g>
+
+    <!-- Two parallel cross-attention branches -->
+    <g class="ist" data-i="d2"><rect x="220" y="510" width="268" height="26" rx="4" fill="var(--accent)" opacity=".07" stroke="var(--accent)" stroke-width=".6" stroke-opacity=".2"/>
+        <text x="232" y="527" font-family="var(--font-body)" font-size="9.5" fill="var(--accent)">Action Cross-Attn (8h)</text>
+        <text x="428" y="527" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(T,B,320)</text></g>
+    <g class="ist" data-i="d3"><rect x="502" y="510" width="268" height="26" rx="4" fill="var(--violet)" opacity=".07" stroke="var(--violet)" stroke-width=".6" stroke-opacity=".2"/>
+        <text x="514" y="527" font-family="var(--font-body)" font-size="9.5" fill="var(--violet)">Identity Cross-Attn (8h)</text>
+        <text x="710" y="527" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(T,B,320)</text></g>
+
+    <!-- Adaptive Fusion Gate -->
+    <g class="ist" data-i="d4"><rect x="220" y="544" width="560" height="30" rx="4" fill="var(--emerald)" opacity=".1" stroke="var(--emerald)" stroke-width=".6" stroke-opacity=".25"/>
+        <text x="232" y="563" font-family="var(--font-body)" font-size="10" font-weight="600" fill="var(--emerald)">Adaptive Fusion Gate</text>
+        <text x="410" y="564" font-family="var(--font-mono)" font-size="10" fill="var(--text)"><tspan fill="var(--accent)">g</tspan>&#183;act + <tspan fill="var(--violet)">(1-g)</tspan>&#183;id</text>
+        <!-- Gate viz -->
+        <line x1="620" y1="550" x2="640" y2="559" stroke="var(--accent)" stroke-width="1.3" opacity=".45"/>
+        <line x1="620" y1="568" x2="640" y2="559" stroke="var(--violet)" stroke-width="1.3" opacity=".45"/>
+        <circle cx="640" cy="559" r="3.5" fill="var(--emerald)" opacity=".5"/>
+        <line x1="644" y1="559" x2="660" y2="559" stroke="var(--emerald)" stroke-width="1.3" opacity=".45"/>
+        <text x="700" y="564" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(T,B,320)</text></g>
+
+    <!-- FFN -->
+    <g class="ist" data-i="d5"><rect x="220" y="582" width="290" height="20" rx="4" fill="var(--emerald)" opacity=".07" stroke="var(--emerald)" stroke-width=".5" stroke-opacity=".2"/>
+        <text x="232" y="596" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">FFN (320&#8594;2048&#8594;320)</text>
+        <text x="440" y="596" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(T,B,320)</text></g>
+    <!-- x6 badge -->
+    <rect x="530" y="582" width="48" height="20" rx="4" fill="var(--emerald)" opacity=".12"/>
+    <text x="538" y="596" font-family="var(--font-mono)" font-size="9.5" font-weight="700" fill="var(--emerald)">&#215; 6</text>
+
+    <!-- Inner flow lines -->
+    <line x1="500" y1="502" x2="500" y2="510" stroke="var(--emerald)" stroke-width=".7" opacity=".25"/>
+    <line x1="354" y1="536" x2="354" y2="544" stroke="var(--accent)" stroke-width=".7" opacity=".25"/>
+    <line x1="636" y1="536" x2="636" y2="544" stroke="var(--violet)" stroke-width=".7" opacity=".25"/>
+    <line x1="500" y1="574" x2="500" y2="582" stroke="var(--emerald)" stroke-width=".7" opacity=".25"/>
+
+    <!-- Autoregressive loop -->
+    <g class="ist" data-i="d6">
+        <path d="M280,606 C280,640 215,648 215,618 C215,590 215,485 280,478" stroke="var(--emerald)" stroke-width="1" fill="none" opacity=".3" stroke-dasharray="3,2.5" marker-end="url(#aE)"/>
+        <text x="218" y="636" font-family="var(--font-body)" font-size="7" fill="var(--emerald)" opacity=".6" transform="rotate(-90,218,636)">autoregressive</text>
+        <!-- Frame sequence -->
+        <rect x="310" y="614" width="470" height="28" rx="4" fill="var(--bg-surface)" opacity=".4" stroke="var(--emerald)" stroke-width=".4" stroke-opacity=".15"/>
+        <!-- Seed frame (violet tiny skeleton) -->
+        <line x1="330" y1="630" x2="330" y2="623" stroke="var(--violet)" stroke-width=".7" opacity=".5"/>
+        <line x1="330" y1="623" x2="326" y2="623" stroke="var(--violet)" stroke-width=".7" opacity=".5"/>
+        <line x1="330" y1="623" x2="334" y2="623" stroke="var(--violet)" stroke-width=".7" opacity=".5"/>
+        <line x1="330" y1="630" x2="327" y2="635" stroke="var(--violet)" stroke-width=".7" opacity=".5"/>
+        <line x1="330" y1="630" x2="333" y2="635" stroke="var(--violet)" stroke-width=".7" opacity=".5"/>
+        <circle cx="330" cy="620" r="1.8" fill="var(--violet)" opacity=".4"/>
+        <text x="340" y="630" font-family="var(--font-mono)" font-size="7.5" fill="var(--text-faint)">seed</text>
+        <text x="368" y="630" font-size="9" fill="var(--emerald)" opacity=".4">&#8594;</text>
+        <!-- Generated frames getting more opaque -->
+        <line x1="390" y1="630" x2="390" y2="623" stroke="var(--emerald)" stroke-width=".7" opacity=".25"/><line x1="390" y1="623" x2="386" y2="622" stroke="var(--emerald)" stroke-width=".7" opacity=".25"/><line x1="390" y1="623" x2="394" y2="624" stroke="var(--emerald)" stroke-width=".7" opacity=".25"/><line x1="390" y1="630" x2="387" y2="635" stroke="var(--emerald)" stroke-width=".7" opacity=".25"/><line x1="390" y1="630" x2="393" y2="635" stroke="var(--emerald)" stroke-width=".7" opacity=".25"/><circle cx="390" cy="620" r="1.5" fill="var(--emerald)" opacity=".2"/>
+        <text x="400" y="630" font-family="var(--font-mono)" font-size="7" fill="var(--text-faint)">t=1</text>
+        <text x="423" y="630" font-size="8" fill="var(--emerald)" opacity=".35">&#8594;</text>
+        <line x1="440" y1="630" x2="440" y2="623" stroke="var(--emerald)" stroke-width=".7" opacity=".4"/><line x1="440" y1="623" x2="435" y2="621" stroke="var(--emerald)" stroke-width=".7" opacity=".4"/><line x1="440" y1="623" x2="445" y2="625" stroke="var(--emerald)" stroke-width=".7" opacity=".4"/><line x1="440" y1="630" x2="437" y2="635" stroke="var(--emerald)" stroke-width=".7" opacity=".4"/><line x1="440" y1="630" x2="443" y2="635" stroke="var(--emerald)" stroke-width=".7" opacity=".4"/><circle cx="440" cy="620" r="1.5" fill="var(--emerald)" opacity=".3"/>
+        <text x="450" y="630" font-family="var(--font-mono)" font-size="7" fill="var(--text-faint)">t=2</text>
+        <text x="473" y="630" font-size="8" fill="var(--text-faint)">&#8230;</text>
+        <text x="490" y="630" font-size="8" fill="var(--emerald)" opacity=".35">&#8594;</text>
+        <line x1="510" y1="630" x2="510" y2="623" stroke="var(--emerald)" stroke-width=".7" opacity=".6"/><line x1="510" y1="623" x2="505" y2="620" stroke="var(--emerald)" stroke-width=".7" opacity=".6"/><line x1="510" y1="623" x2="515" y2="626" stroke="var(--emerald)" stroke-width=".7" opacity=".6"/><line x1="510" y1="630" x2="507" y2="635" stroke="var(--emerald)" stroke-width=".7" opacity=".6"/><line x1="510" y1="630" x2="513" y2="635" stroke="var(--emerald)" stroke-width=".7" opacity=".6"/><circle cx="510" cy="620" r="1.5" fill="var(--emerald)" opacity=".5"/>
+        <text x="520" y="630" font-family="var(--font-mono)" font-size="7" fill="var(--text-faint)">t=63</text>
+        <text x="560" y="638" font-family="var(--font-body)" font-size="7" fill="var(--text-faint)" font-style="italic">teacher forcing: 1.0&#8594;0.3</text>
+    </g>
+
+    <!-- Physical constraint + output projection -->
+    <text x="220" y="660" font-family="var(--font-body)" font-size="7.5" fill="var(--text-faint)" font-style="italic">+ PhysicalConstraintLayer (soft bone length, 24 NTU bones)</text>
+    <g class="ist" data-i="d7"><rect x="220" y="668" width="290" height="20" rx="4" fill="var(--emerald)" opacity=".07" stroke="var(--emerald)" stroke-width=".5" stroke-opacity=".2"/>
+        <text x="232" y="682" font-family="var(--font-body)" font-size="9.5" fill="var(--text)">Linear(320, 75) &#8594; reshape</text>
+        <text x="430" y="682" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">(B,3,63,25,1)</text></g>
+</g>
+
+<!-- ═══ ARROW: Decoder → Output ═══ -->
+<path id="p4" d="M500,750 L500,780" stroke="var(--emerald)" stroke-width="1.8" fill="none" opacity=".35" marker-end="url(#aE)"/>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- ROW 4: OUTPUT  y=780..880                                     -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<g class="cb" data-c="out">
+    <rect class="cbg" x="200" y="780" width="600" height="95" rx="8" fill="var(--bg-surface)" stroke="var(--emerald)" stroke-width="1.5" stroke-opacity=".3"/>
+    <text x="220" y="803" font-family="var(--font-display)" font-size="13" font-weight="700" fill="var(--emerald)">Retargeted Motion</text>
+    <text x="420" y="803" font-family="var(--font-mono)" font-size="9" fill="var(--emerald)" opacity=".65">(B, 3, 63, 25, 1)</text>
+    <text x="600" y="803" font-family="var(--font-body)" font-size="9" fill="var(--text-faint)" font-style="italic">P2 doing A1</text>
+    <!-- 3 emerald skeletons -->
+    <use href="#skel-e" x="360" y="840" transform="translate(360,840) scale(.5) translate(-360,-840)" opacity=".75"/>
+    <use href="#skel-a" x="460" y="840" transform="translate(460,840) scale(.5) translate(-460,-840)" opacity=".85"><!-- reuse T-pose but emerald override below --></use>
+    <use href="#skel-e" x="560" y="840" transform="translate(560,840) scale(.5) translate(-560,-840)" opacity="1"/>
+    <text x="405" y="840" font-size="10" fill="var(--emerald)" opacity=".35">&#8594;</text>
+    <text x="505" y="840" font-size="10" fill="var(--emerald)" opacity=".35">&#8594;</text>
+    <text x="380" y="870" font-family="var(--font-mono)" font-size="8" fill="var(--text-faint)">T=63 frames (wider body, source action)</text>
+</g>
+
+<!-- ═══ PULSE CIRCLES ═══ -->
+<circle class="pd" id="pd0" r="5" fill="var(--accent)" opacity="0" filter="url(#gA)"/>
+<circle class="pd" id="pd1" r="5" fill="var(--violet)" opacity="0" filter="url(#gV)"/>
+<circle class="pd" id="pd2" r="5" fill="var(--accent)" opacity="0" filter="url(#gA)"/>
+<circle class="pd" id="pd3" r="5" fill="var(--violet)" opacity="0" filter="url(#gV)"/>
+<circle class="pd" id="pd4" r="5" fill="var(--emerald)" opacity="0" filter="url(#gE)"/>
+</svg>
+</div>
+
+<div class="arch-info" id="aInfo">Click any component above to see detailed tensor shapes and processing details.</div>
+<div class="arch-legend">
+    <div class="arch-badge"><span class="dot" style="background:var(--accent)"></span>Action path</div>
+    <div class="arch-badge"><span class="dot" style="background:var(--violet)"></span>Identity path</div>
+    <div class="arch-badge"><span class="dot" style="background:var(--emerald)"></span>Decoder / output</div>
+    <div class="arch-badge"><span class="dot" style="background:var(--rose)"></span>Classification (Stage 1)</div>
+    <div class="arch-badge"><span class="dot" style="border:1.5px dashed var(--text-faint);background:transparent"></span>Training only</div>
+</div>
+</div>
+
+<script>
+(function(){
+"use strict";
+var playing=false,timer=null,si=-1,spd=1300,activeCmp=null;
+var PATHS=["p0","p1","p2","p3","p4","p6","p7"];
+var INFO={
+"src":{t:"Source Motion",b:"Person P1 performing action A1. Contains motion dynamics (position, velocity, acceleration) to transfer.",s:"(B, 3, 64, 25, 1) | B=batch, 3=XYZ, 64=frames, 25=NTU joints, 1=person"},
+"tgt":{t:"Target Skeleton",b:"Person P2's skeleton sequence. Identity Encoder extracts static pose via temporal mean to capture body proportions.",s:"(B, 3, 64, 25, 1) -> temporal mean -> (B, 3, 25, 1)"},
+"ae":{t:"Action Encoder",b:"Multi-scale temporal pipeline: finite-diff velocity/acceleration, parallel convolutions (k=3,5,7), temporal attention (8h) x2, LSTM (2 layers), optional MixFormer backbone with learned gating.",s:"(B,3,64,25,1) -> [pos,vel,acc] -> (B,9,64,25,1) -> Linear(225,256) -> MultiScaleTConv -> TempAttn x2 -> LSTM -> GateFusion -> LayerNorm -> (64, B, 768)"},
+"ie":{t:"Identity Encoder",b:"Low-capacity spatial encoder (256D limits identity leakage). 3 GCN layers on NTU bone graph, spatial attention, parallel bone-length MLP (24 bones).",s:"(B,3,64,25,1) -> mean(T) -> Conv2d(3,64) -> GCN x3 -> SpatialAttn(8h) -> Pool -> (B,256) || Bones(24)->MLP->(B,128) -> Concat(384) -> 512 -> 256"},
+"dec":{t:"Factorized Decoder",b:"6-layer autoregressive decoder. Each layer: causal self-attn, action cross-attn, identity cross-attn, adaptive fusion gate (g*act + (1-g)*id), FFN. Teacher forcing 1.0->0.3. PhysicalConstraintLayer for bone lengths.",s:"Action: (64,B,768)->Linear->(64,B,320) | Identity: (B,256)->Linear->(B,320) | Seed: Linear(75,320) | Out: Linear(320,75)->reshape->(B,3,63,25,1)"},
+"out":{t:"Retargeted Motion",b:"Person P2 performing action A1. Source motion transferred onto target skeleton. T-1 frames (first frame is seed).",s:"(B, 3, 63, 25, 1) | 63 = T-1 frames (autoregressive)"},
+"ar":{t:"AR Classifier (Stage 1)",b:"3-layer MLP on temporal mean of action features. Classifies into 60 NTU actions. Training only.",s:"mean(T) of (64,B,768) -> (B,768) -> 512 -> 256 -> 60"},
+"ri":{t:"RI Classifier (Stage 1)",b:"3-layer MLP on identity features. Classifies into 40 NTU actors. Adversarial GRL prevents identity leakage into action encoder.",s:"(B,256) -> 512 -> 256 -> 40"}
+};
+var LABELS=[
+"Step 1/15: Source motion (B,3,64,25,1) enters Action Encoder",
+"Step 2/15: Velocity + acceleration via finite differences, concat -> (B,9,64,25,1)",
+"Step 3/15: Multi-scale temporal convolutions: parallel kernels k=3, k=5, k=7",
+"Step 4/15: Temporal attention (8h) x2 + LSTM (2 layers)",
+"Step 5/15: Gate fusion with MixFormer backbone -> (64, B, 768)",
+"Step 6/15: Target skeleton enters Identity Encoder",
+"Step 7/15: Temporal mean + Conv2d + Spatial GCN x3 on skeleton graph",
+"Step 8/15: Bone lengths (24) + spatial attention + fusion -> (B, 256)",
+"Step 9/15: Action features (64,B,768) flow to Factorized Decoder",
+"Step 10/15: Identity features (B,256) flow to Factorized Decoder",
+"Step 11/15: Self-attention with causal mask, then parallel cross-attention",
+"Step 12/15: Adaptive fusion gate: g*action + (1-g)*identity",
+"Step 13/15: Autoregressive generation: seed frame -> t=1...63 with teacher forcing",
+"Step 14/15: Output (B,3,63,25,1) — retargeted motion",
+"Step 15/15: Stage 1 classification heads: AR (60 actions) + RI (40 identities)"
+];
+var STEPS=[
+{c:["src","ae"],p:["p0"],i:[],pu:{d:"pd0",p:"p0"}},
+{c:["ae"],p:[],i:["a1","a2"]},
+{c:["ae"],p:[],i:["a3"]},
+{c:["ae"],p:[],i:["a4","a5"]},
+{c:["ae"],p:[],i:["a6","a7"]},
+{c:["tgt","ie"],p:["p1"],i:[],pu:{d:"pd1",p:"p1"}},
+{c:["ie"],p:[],i:["i1","i2","i3"]},
+{c:["ie"],p:[],i:["i4","i5","i6","i7","i8"]},
+{c:["ae","dec"],p:["p2"],i:[],pu:{d:"pd2",p:"p2"}},
+{c:["ie","dec"],p:["p3"],i:[],pu:{d:"pd3",p:"p3"}},
+{c:["dec"],p:[],i:["d1","d2","d3"]},
+{c:["dec"],p:[],i:["d4","d5"]},
+{c:["dec"],p:[],i:["d6"]},
+{c:["dec","out"],p:["p4"],i:["d7"],pu:{d:"pd4",p:"p4"}},
+{c:["ar","ri"],p:["p6","p7"],i:[]}
+];
+
+var svg=document.getElementById("aSvg"),info=document.getElementById("aInfo");
+var btn=document.getElementById("aPlayBtn"),ico=document.getElementById("aPlayIco"),txt=document.getElementById("aPlayTxt"),lbl=document.getElementById("aStepLbl");
+
+svg.addEventListener("click",function(e){
+    var b=e.target.closest(".cb");if(!b)return;
+    var c=b.getAttribute("data-c");if(!c||!INFO[c])return;
+    var prev=svg.querySelector(".cb.act");if(prev)prev.classList.remove("act");
+    if(activeCmp===c){activeCmp=null;info.textContent="Click any component above to see detailed tensor shapes and processing details.";return;}
+    activeCmp=c;b.classList.add("act");
+    var d=INFO[c];info.textContent="";
+    var t=document.createElement("div");t.className="ait";t.textContent=d.t;
+    var bd=document.createElement("div");bd.textContent=d.b;
+    var s=document.createElement("div");s.className="ais";s.textContent=d.s;
+    info.appendChild(t);info.appendChild(bd);info.appendChild(s);
+});
+btn.addEventListener("click",function(){playing?stop():start()});
+document.getElementById("aSpeedSel").addEventListener("change",function(){spd=parseInt(this.value,10)});
+
+function start(){playing=true;si=-1;btn.classList.add("playing");ico.innerHTML='<rect x="1" y="0" width="4" height="12"/><rect x="7" y="0" width="4" height="12"/>';txt.textContent="Stop";next();}
+function stop(){playing=false;if(timer){clearTimeout(timer);timer=null;}btn.classList.remove("playing");ico.innerHTML='<polygon points="1,0 12,6 1,12"/>';txt.textContent="Play";clear();lbl.textContent="Click a component or press Play to animate.";}
+function next(){if(!playing)return;si++;if(si>=STEPS.length){stop();return;}apply(si);timer=setTimeout(next,spd);}
+
+function apply(idx){
+    clear();var s=STEPS[idx];lbl.textContent=LABELS[idx];
+    (s.c||[]).forEach(function(n){var el=svg.querySelector('.cb[data-c="'+n+'"]');if(el){el.classList.add("act");var bg=el.querySelector(".cbg");if(bg)bg.style.strokeWidth="2.5";}});
+    (s.p||[]).forEach(function(id){var p=document.getElementById(id);if(p){p.style.opacity=".8";p.style.strokeWidth="3";}});
+    (s.i||[]).forEach(function(n){var el=svg.querySelector('.ist[data-i="'+n+'"]');if(el){el.classList.add("hl");var r=el.querySelector("rect");if(r){r.setAttribute("data-po",r.getAttribute("opacity")||".07");r.setAttribute("opacity",".25");}}});
+    if(s.pu)pulse(s.pu.d,s.pu.p);
+}
+function clear(){
+    svg.querySelectorAll(".cb.act").forEach(function(e){e.classList.remove("act");var bg=e.querySelector(".cbg");if(bg)bg.style.strokeWidth="";});
+    PATHS.forEach(function(id){var p=document.getElementById(id);if(p){p.style.opacity="";p.style.strokeWidth="";}});
+    svg.querySelectorAll(".ist.hl").forEach(function(e){e.classList.remove("hl");var r=e.querySelector("rect");if(r){var po=r.getAttribute("data-po");if(po)r.setAttribute("opacity",po);}});
+    document.querySelectorAll(".pd").forEach(function(d){d.style.opacity="0";});
+}
+function pulse(did,pid){
+    var dot=document.getElementById(did),path=document.getElementById(pid);if(!dot||!path)return;
+    var len=path.getTotalLength(),dur=Math.max(350,spd*.5),t0=performance.now();dot.style.opacity="1";
+    function tick(now){if(!playing){dot.style.opacity="0";return;}var p=Math.min((now-t0)/dur,1);var pt=path.getPointAtLength(p*len);dot.setAttribute("cx",pt.x);dot.setAttribute("cy",pt.y);dot.style.opacity=String(1-p*.4);if(p<1)requestAnimationFrame(tick);else dot.style.opacity="0";}
+    requestAnimationFrame(tick);
+}
+})();
+</script>

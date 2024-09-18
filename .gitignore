@@ -1,0 +1,66 @@
+__pycache__/
+.venv/
+wandb/
+
+# Logs and outputs
+*.log
+*.pkl
+*.skeleton
+*.npz
+*.out
+*.err
+
+# Model and data files (too large for git)
+*.pth
+*.pth.tar
+*.pt
+data/models_output/
+data/models/
+
+# Results and test outputs
+results/
+test_results/
+logs/
+output/
+
+# Dataset metadata
+data/ntu120/denoised_data/actors_info/*.txt
+data/ntu/denoised_data/actors_info/*.txt
+data/**/frames_cnt.txt
+
+# Old/archived files
+experimentsold/
+results_old/
+archive/
+rm/
+scripts/generated/
+eval/
+
+*.md
+!README.md
+
+# Local env / editor
+.env
+.vscode/
+.idea/
+
+# LaTeX temp files
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.fdb_latexmk
+paper/*.fls
+paper/*.log
+paper/*.out
+paper/*.synctex.gz
+paper/*.synctex(busy)
+paper/*.brf
+
+external_repo_for_reference/
+projects/
+*.zip
+.DS_Store
+paper/main.pdf
+paper/supplementary.pdf
+
+sbatch_queue/
