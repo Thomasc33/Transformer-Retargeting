@@ -7,7 +7,7 @@ from torch.utils.data import Dataset, DataLoader
 
 datasets = {
     'ntu120': {
-        'path': 'data\\ntu120\\ntu120.pkl',
+        'path': 'data/ntu120/ntu120.pkl',
         'max_actors': 1,
         'joints': 25,
         'channels': 3,
@@ -16,7 +16,7 @@ datasets = {
         'train_actors': [1, 2, 4, 5, 8, 9, 13, 14, 15, 16, 17, 18, 19, 25, 27, 28, 31, 34, 35, 38, 45, 46, 47, 49, 50, 52, 53, 54, 55, 56, 57, 58, 59, 70, 74, 78, 80, 81, 82, 83, 84, 85, 86, 89, 91, 92, 93, 94, 95, 97, 98, 100, 103],
     },
     'ntu': {
-        'path': 'data\\ntu\\ntu.pkl',
+        'path': 'data/ntu/ntu.pkl',
         'max_actors': 1,
         'joints': 25,
         'channels': 3,
@@ -228,12 +228,12 @@ def get_cross_data(X, dataset, setting, batch_size=32, T=64, return_loader=True,
 
 def get_rec_data(X, dataset, setting, T=64, batch_size=32, return_loader=True):
     # Keep only 1000 samples of the data
-    i = 0
-    for key in list(X.keys()):
-        if i < 1000:
-            i += 1
-        else:
-            del X[key]
+    # i = 0
+    # for key in list(X.keys()):
+    #     if i < 1000:
+    #         i += 1
+    #     else:
+    #         del X[key]
     X_train, X_test, train_actors, train_actions, test_actors, test_actions = sample_rec_data(X, dataset, setting, T)
     train_dataset = Rec_Data(X_train, train_actors, train_actions)
     val_dataset = Rec_Data(X_test, test_actors, test_actions)
