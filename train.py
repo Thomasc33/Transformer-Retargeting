@@ -4,7 +4,8 @@ class Trainer:
     def __init__(self, model, optimizer, criterion,
                  train_loader, val_loader,
                  train_paired_loader, val_paired_loader,
-                 num_epochs_stage1=10, num_epochs_stage2=10, device='cuda'):
+                 num_epochs_stage1=10, num_epochs_stage2=10, 
+                 wandb_project = None, device='cuda'):
         self.model = model.to(device)
         self.optimizer = optimizer
         self.criterion = criterion
@@ -14,7 +15,21 @@ class Trainer:
         self.val_paired_loader = val_paired_loader          # test_paired_x for stage 2
         self.num_epochs_stage1 = num_epochs_stage1
         self.num_epochs_stage2 = num_epochs_stage2
+        self.wandb_project = wandb_project
         self.device = device
+
+        if self.wandb_project is not None:
+            config = {
+                'lr': self.optimizer.param_groups[0]['lr'],
+                'batch_size': self.train_loader.batch_size,
+                'num_epochs_stage1': self.num_epochs_stage1,
+                'num_epochs_stage2': self.num_epochs_stage2,
+                'paired_train_samples': len(self.train_paired_loader.dataset),
+                'paired_val_samples': len(self.val_paired_loader.dataset)
+            }
+            import wandb
+            wandb.init(project=self.wandb_project, config=config)
+            wandb.watch(self.model)
 
     def train_stage1(self):
         print("Starting Stage 1 Training (Reconstruction with Masking)...")
@@ -58,8 +73,13 @@ class Trainer:
             avg_loss = running_loss / len(self.train_loader)
             print(f'Stage 1 Epoch [{epoch+1}/{self.num_epochs_stage1}], Loss: {avg_loss:.4f}')
 
-            # Optionally evaluate on validation data
-            self.evaluate_stage1(self.val_loader)
+            # Evaluate on validation data
+            val_loss = self.evaluate_stage1(self.val_loader)
+
+            if self.wandb_project is not None:
+                import wandb
+                wandb.log({'Stage 1 Loss': avg_loss, 'Stage 1 Val Loss': val_loss})
+
 
     def mask_data(self, data):
         # data: (batch_size, T, D)
@@ -143,7 +163,11 @@ class Trainer:
             print(f'Stage 2 Epoch [{epoch+1}/{self.num_epochs_stage2}], Loss: {avg_loss:.4f}')
 
             # Optionally evaluate on validation data
-            self.evaluate_stage2(self.val_paired_loader)
+            val_loss = self.evaluate_stage2(self.val_paired_loader)
+
+            if self.wandb_project is not None:
+                import wandb
+                wandb.log({'Stage 2 Loss': avg_loss, 'Stage 2 Val Loss': val_loss})
 
     def evaluate_stage1(self, data_loader):
         self.model.eval()
