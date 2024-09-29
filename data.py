@@ -228,12 +228,12 @@ def get_cross_data(X, dataset, setting, batch_size=32, T=64, return_loader=True,
 
 def get_rec_data(X, dataset, setting, T=64, batch_size=32, return_loader=True):
     # Keep only 1000 samples of the data
-    # i = 0
-    # for key in list(X.keys()):
-    #     if i < 1000:
-    #         i += 1
-    #     else:
-    #         del X[key]
+    i = 0
+    for key in list(X.keys()):
+        if i < 1000:
+            i += 1
+        else:
+            del X[key]
     X_train, X_test, train_actors, train_actions, test_actors, test_actions = sample_rec_data(X, dataset, setting, T)
     train_dataset = Rec_Data(X_train, train_actors, train_actions)
     val_dataset = Rec_Data(X_test, test_actors, test_actions)
