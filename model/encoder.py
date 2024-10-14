@@ -72,13 +72,6 @@ class Encoder(nn.Module):
         # Remove 'module.' prefix if present in pretrained_state_dict keys
         pretrained_state_dict = {k.replace('module.', ''): v for k, v in pretrained_state_dict.items()}
 
-        # Adjust 'data_bn' parameters
-        if 'data_bn.weight' in pretrained_state_dict:
-            pretrained_state_dict['data_bn.weight'] = pretrained_state_dict['data_bn.weight'][:2000]
-            pretrained_state_dict['data_bn.bias'] = pretrained_state_dict['data_bn.bias'][:2000]
-            pretrained_state_dict['data_bn.running_mean'] = pretrained_state_dict['data_bn.running_mean'][:2000]
-            pretrained_state_dict['data_bn.running_var'] = pretrained_state_dict['data_bn.running_var'][:2000]
-
         # Filter out unnecessary keys
         pretrained_state_dict = {k: v for k, v in pretrained_state_dict.items() if k in model_state_dict}
 
@@ -101,6 +94,12 @@ class Encoder(nn.Module):
 
     def forward(self, x):
         N, C, T, V, M = x.size()  # Extract sizes
+
+        # Pad zeros for a second actor
+        if M == 1: 
+            x = torch.cat([x, torch.zeros(N, C, T, V, 1).to(x.device)], dim=4)
+            M = 2
+        
         x = rearrange(x, 'n c t v m -> (n m t) v c', m=M).contiguous()
 
         p = self.A_vector.to(x.device).expand(N * M * T, -1, -1)

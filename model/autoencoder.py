@@ -27,7 +27,7 @@ class PositionalEncoding(nn.Module):
 class Model(nn.Module):
     def __init__(self, num_class=60, num_point=25, num_person=1, graph=None, graph_args=dict(), in_channels=3, debug=False):
         super(Model, self).__init__()
-        self.encoder = Encoder(num_class=num_class, num_point=num_point, num_person=num_person,
+        self.encoder = Encoder(num_class=num_class, num_point=num_point, num_person=2,
                                graph=graph, graph_args=graph_args, in_channels=in_channels, debug=debug)
         self.decoder = Decoder(d_model=320, nhead=8, num_layers=6, dim_feedforward=2048, dropout=0.1)
         self.debug = debug
