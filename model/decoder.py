@@ -27,20 +27,50 @@ class DecoderLayer(nn.Module):
         # Dropout
         self.dropout = nn.Dropout(dropout)
 
-    def forward(self, tgt, memory, memory_prime, tgt_mask=None, memory_mask=None, tgt_key_padding_mask=None, memory_key_padding_mask=None):
+    def forward(self, tgt, memory, memory_prime, tgt_mask=None, memory_mask=None,
+                tgt_key_padding_mask=None, memory_key_padding_mask=None, cache=None, use_cache=False):
+        # Initialize cache if not provided
+        if cache is None:
+            cache = {}
+
         # Self-Attention with causal mask
-        tgt2 = self.self_attn(tgt, tgt, tgt, attn_mask=tgt_mask, key_padding_mask=tgt_key_padding_mask)[0]
+        if 'self_attn' in cache and use_cache:
+            # Retrieve cached keys and values
+            prev_k, prev_v = cache['self_attn']
+            # Concatenate with current inputs
+            k = torch.cat([prev_k, tgt], dim=0)
+            v = torch.cat([prev_v, tgt], dim=0)
+        else:
+            k = v = tgt
+        # Update cache
+        if use_cache:
+            cache['self_attn'] = (k, v)
+        
+        tgt2 = self.self_attn(tgt, k, v, attn_mask=tgt_mask, key_padding_mask=tgt_key_padding_mask)[0]
         tgt = tgt + self.dropout(tgt2)
         tgt = self.norm1(tgt)
 
         # Encoder-Decoder Attention
-        tgt2 = self.enc_dec_attn(tgt, memory, memory, attn_mask=memory_mask, key_padding_mask=memory_key_padding_mask)[0]
+        # Cache encoder outputs since they are static during decoding
+        if 'enc_dec_attn' in cache and use_cache:
+            memory_k, memory_v = cache['enc_dec_attn']
+        else:
+            memory_k = memory_v = memory
+            if use_cache:
+                cache['enc_dec_attn'] = (memory_k, memory_v)
+        tgt2 = self.enc_dec_attn(tgt, memory_k, memory_v, attn_mask=memory_mask, key_padding_mask=memory_key_padding_mask)[0]
         tgt = tgt + self.dropout(tgt2)
         tgt = self.norm2(tgt)
 
-        # Cross-Attention (CA) on dummy (if used)
+        # Cross-Attention (if memory_prime is used)
         if memory_prime is not None:
-            tgt2 = self.cross_attn(tgt, memory_prime, memory_prime)[0]
+            if 'cross_attn' in cache and use_cache:
+                memory_prime_k, memory_prime_v = cache['cross_attn']
+            else:
+                memory_prime_k = memory_prime_v = memory_prime
+                if use_cache:
+                    cache['cross_attn'] = (memory_prime_k, memory_prime_v)
+            tgt2 = self.cross_attn(tgt, memory_prime_k, memory_prime_v)[0]
             tgt = tgt + self.dropout(tgt2)
             tgt = self.norm3(tgt)
 
@@ -49,7 +79,7 @@ class DecoderLayer(nn.Module):
         tgt = tgt + self.dropout(tgt2)
         tgt = self.norm4(tgt)
         
-        return tgt
+        return tgt, cache
 
 class Decoder(nn.Module):
     def __init__(self, d_model, nhead, num_layers, dim_feedforward=2048, dropout=0.1):
@@ -59,7 +89,16 @@ class Decoder(nn.Module):
             for _ in range(num_layers)
         ])
         
-    def forward(self, tgt, memory, memory_prime=None, tgt_mask=None, memory_mask=None, tgt_key_padding_mask=None, memory_key_padding_mask=None):
-        for layer in self.layers:
-            tgt = layer(tgt, memory, memory_prime, tgt_mask, memory_mask, tgt_key_padding_mask, memory_key_padding_mask)
-        return tgt
+    def forward(self, tgt, memory, memory_prime=None, tgt_mask=None, memory_mask=None,
+                tgt_key_padding_mask=None, memory_key_padding_mask=None, cache=None, use_cache=False):
+        # Initialize cache for each layer if not provided
+        if cache is None:
+            cache = [None] * len(self.layers)
+        new_caches = []
+        for i, layer in enumerate(self.layers):
+            tgt, layer_cache = layer(
+                tgt, memory, memory_prime, tgt_mask, memory_mask,
+                tgt_key_padding_mask, memory_key_padding_mask, cache=cache[i], use_cache=use_cache
+            )
+            new_caches.append(layer_cache)
+        return tgt, new_caches
