@@ -83,7 +83,7 @@ class Model(nn.Module):
         self.l10= Ske_MixF(320, 320, A, 16)
 
         self.fc = nn.Linear(320, num_class)
-        nn.init.normal(self.fc.weight, 0, math.sqrt(2. / num_class))
+        nn.init.normal_(self.fc.weight, 0, math.sqrt(2. / num_class))
         bn_init(self.data_bn, 1)
         
         # Retrospect Model
@@ -114,12 +114,11 @@ class Model(nn.Module):
         return  torch.from_numpy(I - np.linalg.matrix_power(A_outward, k))        
 
     def forward(self, x):
-        print('input x shape: ', x.shape)
         N, C, T, V, M = x.size()
         x = rearrange(x, 'n c t v m -> (n m t) v c', m=M, v=V).contiguous()
 
         p = self.A_vector
-        p = torch.tensor(p,dtype=torch.float)
+        p = p.clone().float().detach()
         x = p.to(x.device).expand(N*M*T, -1, -1) @ x
         
         x = self.to_joint_embedding(x)

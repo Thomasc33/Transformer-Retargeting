@@ -81,6 +81,7 @@ class Trainer:
                 import wandb
                 wandb.log({'Loss': avg_loss, 'Val Loss': val_loss})
 
+    @torch.no_grad()
     def evaluate(self):
         self.model.eval()
         total_loss = 0.0
