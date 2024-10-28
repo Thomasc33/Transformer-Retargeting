@@ -1,17 +1,32 @@
 import torch
+from loss import Loss
 
 class Trainer:
-    def __init__(self, model, optimizer, criterion,
+    def __init__(self, model, optimizer,
                  train_paired_loader, val_paired_loader,
-                 num_epochs=10, wandb_project=None, device='cuda'):
+                 num_epochs=10, wandb_project=None, device='cuda', dataset='ntu'):
         self.model = model.to(device)
         self.optimizer = optimizer
-        self.criterion = criterion
         self.train_paired_loader = train_paired_loader
         self.val_paired_loader = val_paired_loader
         self.num_epochs = num_epochs
         self.wandb_project = wandb_project
         self.device = device
+        self.dataset = dataset
+
+        # Setup loss
+        losses = {
+            'mse': 1,
+            'l1': 1,
+            'smoothl1': 1,
+            'kl': 1,
+            'ce': 1,
+            'ee': 1,
+            'smoothing': 1,
+            # 'latent': 1,
+            'triplet': 1
+        }
+        self.loss = Loss(losses, device=device, dataset=dataset)
 
         if self.wandb_project is not None:
             config = {
@@ -62,7 +77,7 @@ class Trainer:
                 # target_motion: (N, C_in, T, V, M)
                 target = target_motion[:, :, 1:, :, :]  # Ground truth next frames
 
-                loss = self.criterion(output, target)
+                loss = self.loss.loss(output, target, source_motion[:, :, 1:, :, :])
 
                 # Backward and optimize
                 self.optimizer.zero_grad()
@@ -71,15 +86,17 @@ class Trainer:
 
                 running_loss += loss.item()
 
-            avg_loss = running_loss / len(self.train_paired_loader)
+            avg_loss, losses = running_loss / len(self.train_paired_loader)
             print(f'Epoch [{epoch+1}/{self.num_epochs}], Loss: {avg_loss:.4f}')
 
             # Evaluate on validation data
-            val_loss = self.evaluate()
+            val_loss, val_losses = self.evaluate()
 
             if self.wandb_project is not None:
                 import wandb
-                wandb.log({'Loss': avg_loss, 'Val Loss': val_loss})
+                loss_info = {key: value for key, value in losses.items()}
+                val_loss_info = {f"Val {key}": value for key, value in val_losses.items()}
+                wandb.log({'Loss': avg_loss, 'Val Loss': val_loss, **loss_info, **val_loss_info})
 
     @torch.no_grad()
     def evaluate(self):
@@ -116,10 +133,10 @@ class Trainer:
                 # Compute loss
                 target = target_motion[:, :, 1:, :, :]  # Ground truth next frames
 
-                loss = self.criterion(output, target)
+                loss = self.loss.loss(output, target, source_motion[:, :, 1:, :, :])
                 total_loss += loss.item()
 
-        avg_loss = total_loss / len(self.val_paired_loader)
+        avg_loss, losses = total_loss / len(self.val_paired_loader)
         print(f'Validation Loss: {avg_loss:.4f}')
         self.model.train()
-        return avg_loss
+        return avg_loss, losses
