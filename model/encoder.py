@@ -10,7 +10,7 @@ from .spa_mixf import Spatial_MixFormer
 from .ske_mixf import Ske_MixF, import_class, bn_init, conv_init
 
 class Encoder(nn.Module):
-    def __init__(self, num_class=60, num_point=25, num_person=1, graph=None, graph_args=dict(), in_channels=3, debug=False):
+    def __init__(self, num_class=60, num_point=25, num_person=1, graph=None, graph_args=dict(), in_channels=3, debug=False, dataset='ntu'):
         super(Encoder, self).__init__()
         if graph is None:
             raise ValueError()
@@ -23,6 +23,7 @@ class Encoder(nn.Module):
         self.num_person = num_person
         self.in_channels = in_channels
         self.debug = debug
+        self.dataset = dataset
 
         self.data_bn = nn.BatchNorm1d(self.num_person * 80 * self.num_point)
         self.to_joint_embedding = nn.Linear(self.in_channels, 80)
@@ -66,7 +67,7 @@ class Encoder(nn.Module):
         bn_init(self.data_bn, 1)
 
         # Load pre-trained Skeleton-MixFormer weights
-        pretrained_state_dict = torch.load('eval/mixformer/pretrained/ntu120/ar.pth')
+        pretrained_state_dict = torch.load(f'eval/mixformer/pretrained/{self.dataset}/ar.pth')
         model_state_dict = self.state_dict()
 
         # Remove 'module.' prefix if present in pretrained_state_dict keys
