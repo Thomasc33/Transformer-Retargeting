@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class Loss():
-    def __init__(self, loss_weights, device = 'cuda', dataset = 'ntu'):
+    def __init__(self, loss_weights, device = 'cuda', dataset = 'ntu', encoder=None):
         # Toggles for losses
         self.mse = 'mse' in loss_weights
         self.l1 = 'l1' in loss_weights
@@ -14,12 +14,14 @@ class Loss():
         self.smoothing = 'smoothing' in loss_weights
         self.latent = 'latent' in loss_weights
         self.triplet = 'triplet' in loss_weights
+        self.inception = 'inception' in loss_weights
 
         # Loss weights
         self.loss_weights = loss_weights
 
         self.device = device
         self.dataset = dataset
+        self.encoder = encoder
 
     def mse_loss(self, output, target):
         return F.mse_loss(output, target)
@@ -37,25 +39,24 @@ class Loss():
         return F.cross_entropy(output, target)
     
     def ee_loss(self, output, target):
-        # TODO: Adapt this to the new model
         assert self.dataset in ee_chains, f"Dataset {self.dataset} not supported for end effector loss"
         assert self.dataset in ee_chain_lengths, f"Dataset {self.dataset} not supported for end effector loss"
 
         # Remove the actors dimension (assuming it's always 1)
-        output = output.squeeze(-1)  # Shape is now (channels, frames, joints)
-        target = target.squeeze(-1)  # Shape is now (channels, frames, joints)
+        output = output.squeeze(-1)  # Shape is now (batch, channels, frames, joints)
+        target = target.squeeze(-1)  # Shape is now (batch, channels, frames, joints)
 
         # Select the channels for end effectors based on `ee_chains`
         # The new shape requires adjusting the index selection to use the correct axis
-        x_ee = output[ee_chains[self.dataset], :, :]  # End effector channels from the output
-        y_ee = target[ee_chains[self.dataset], :, :]  # End effector channels from the target
+        x_ee = output[:, :, ee_chains[self.dataset], :]  # End effector channels from the output
+        y_ee = target[:, :, ee_chains[self.dataset], :]  # End effector channels from the target
 
         # Calculate velocities by taking differences along the frames dimension
-        x_vel = torch.norm(x_ee[:, 1:] - x_ee[:, :-1], dim=0) / ee_chain_lengths[self.dataset].unsqueeze(0)
-        y_vel = torch.norm(y_ee[:, 1:] - y_ee[:, :-1], dim=0) / ee_chain_lengths[self.dataset].unsqueeze(0)
+        x_vel = torch.norm(x_ee[:, 1:] - x_ee[:, :-1], dim=0) / ee_chain_lengths[self.dataset].unsqueeze(1).to(self.device)
+        y_vel = torch.norm(y_ee[:, 1:] - y_ee[:, :-1], dim=0) / ee_chain_lengths[self.dataset].unsqueeze(1).to(self.device)
 
         # Compute MSE loss for each joint, reduce as needed
-        losses = F.mse_loss(x_vel, y_vel, reduction='none')
+        losses = (x_vel - y_vel).pow(2)
         loss = losses.sum(dim=0).mean()  # Sum over end effectors and average over the batch
 
         return loss
@@ -83,7 +84,14 @@ class Loss():
         pass
 
     def triplet_loss(self, output, target, input):
-        return F.triplet_margin_loss(output, target, input)
+        pass
+    
+    @torch.no_grad()
+    def inception_loss(self, output, target):
+        # Add zero frame to end of sequence
+        output = torch.cat([output, torch.zeros_like(output[:, :, :1, :, :])], dim=2)
+        target = torch.cat([target, torch.zeros_like(target[:, :, :1, :, :])], dim=2)
+        return F.mse_loss(self.encoder(output), self.encoder(target))
         
     def loss(self, output, target, input):
         loss = 0
@@ -106,13 +114,15 @@ class Loss():
             losses['latent'] = self.latent_loss(output, target)
         if self.triplet:
             losses['triplet'] = self.triplet_loss(output, target, input)
+        if self.inception:
+            losses['inception'] = self.inception_loss(output, target)
         loss = sum([losses[key] * self.loss_weights[key] for key in self.loss_weights])
         return loss, losses
     
 
 ee_chains = {
-    'ntu': torch.tensor([19, 15, 23, 24, 21, 22, 3]) * 3,
-    'ntu120': torch.tensor([19, 15, 23, 24, 21, 22, 3]) * 3,
+    'ntu': torch.tensor([19, 15, 23, 24, 21, 22, 3]),
+    'ntu120': torch.tensor([19, 15, 23, 24, 21, 22, 3]),
 }
 
 ee_chain_lengths = {

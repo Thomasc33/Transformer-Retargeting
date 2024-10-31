@@ -17,16 +17,17 @@ class Trainer:
         # Setup loss
         losses = {
             'mse': 1,
-            'l1': 1,
-            'smoothl1': 1,
-            'kl': 1,
-            'ce': 1,
+            # 'l1': 1,
+            # 'smoothl1': 1,
+            # 'kl': 1,
+            # 'ce': 1,
             'ee': 1,
             'smoothing': 1,
             # 'latent': 1,
-            'triplet': 1
+            # 'triplet': 1,
+            'inception': 1
         }
-        self.loss = Loss(losses, device=device, dataset=dataset)
+        self.loss = Loss(losses, device=device, dataset=dataset, encoder=model.encoder)
 
         if self.wandb_project is not None:
             config = {
@@ -45,6 +46,7 @@ class Trainer:
         self.model.train()
         for epoch in range(self.num_epochs):
             running_loss = 0.0
+            running_losses = {key: 0.0 for key in self.loss.loss_weights.keys()}
             for batch_idx, (x1, x2, y1, y2, actors, actions) in enumerate(self.train_paired_loader):
                 x1 = x1.float().to(self.device)  # P1 A1
                 x2 = x2.float().to(self.device)  # P2 A2
@@ -77,7 +79,7 @@ class Trainer:
                 # target_motion: (N, C_in, T, V, M)
                 target = target_motion[:, :, 1:, :, :]  # Ground truth next frames
 
-                loss = self.loss.loss(output, target, source_motion[:, :, 1:, :, :])
+                loss, losses = self.loss.loss(output, target, source_motion[:, :, 1:, :, :])
 
                 # Backward and optimize
                 self.optimizer.zero_grad()
@@ -85,9 +87,13 @@ class Trainer:
                 self.optimizer.step()
 
                 running_loss += loss.item()
+                for key, value in losses.items():
+                    running_losses[key] += value.item()
 
-            avg_loss, losses = running_loss / len(self.train_paired_loader)
+            avg_loss = running_loss / len(self.train_paired_loader)
+            losses = {key: value / len(self.train_paired_loader) for key, value in running_losses.items()}
             print(f'Epoch [{epoch+1}/{self.num_epochs}], Loss: {avg_loss:.4f}')
+            print(losses)
 
             # Evaluate on validation data
             val_loss, val_losses = self.evaluate()
@@ -102,6 +108,7 @@ class Trainer:
     def evaluate(self):
         self.model.eval()
         total_loss = 0.0
+        losses = {key: 0.0 for key in self.loss.loss_weights.keys()}
         with torch.no_grad():
             for batch_idx, (x1, x2, y1, y2, actors, actions) in enumerate(self.val_paired_loader):
                 x1 = x1.float().to(self.device)  # P1 A1
@@ -133,10 +140,15 @@ class Trainer:
                 # Compute loss
                 target = target_motion[:, :, 1:, :, :]  # Ground truth next frames
 
-                loss = self.loss.loss(output, target, source_motion[:, :, 1:, :, :])
+                loss, losses_ = self.loss.loss(output, target, source_motion[:, :, 1:, :, :])
                 total_loss += loss.item()
 
-        avg_loss, losses = total_loss / len(self.val_paired_loader)
+                for key, value in losses_.items():
+                    losses[key] += value.item()
+
+        avg_loss = total_loss / len(self.val_paired_loader)
+        losses = {key: value / len(self.val_paired_loader) for key, value in losses.items()}
         print(f'Validation Loss: {avg_loss:.4f}')
+        print(losses)
         self.model.train()
         return avg_loss, losses
