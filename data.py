@@ -26,14 +26,38 @@ datasets = {
     },
 }
 
-def load_data(dataset):
+def load_data(dataset, T=64):
     assert dataset in datasets, f'Dataset {dataset} not found'
+    
+    # Load the data file
     with open(datasets[dataset]['path'], 'rb') as f:
         data = pickle.load(f)
-    if datasets[dataset]['max_actors'] == 1:
-        # Assuming shape (frames, joints * channels)
-        data = {k: v[:, :datasets[dataset]['joints'] * datasets[dataset]['channels']] for k, v in data.items()}
-    return data
+    
+    processed_data = {}
+    for k, v in data.items():
+        # Keep only the relevant joint and channel data if max_actors is 1
+        if datasets[dataset]['max_actors'] == 1:
+            v = v[:, :datasets[dataset]['joints'] * datasets[dataset]['channels']]
+        
+        # Remove zero frames along axis=1 (frame level)
+        non_zero_frames = v[~np.all(v == 0, axis=1)]
+        
+        # Adjust the sequence length to T
+        if len(non_zero_frames) < T:
+            # If shorter than T, repeat the last frame until reaching T frames
+            last_frame = non_zero_frames[-1:] if len(non_zero_frames) > 0 else np.zeros((1, non_zero_frames.shape[1]))
+            num_repeats = T - len(non_zero_frames)
+            padded_sequence = np.vstack([non_zero_frames] + [last_frame] * num_repeats)
+        else:
+            # Clip to T frames
+            padded_sequence = non_zero_frames[:T]
+        
+        # Store the processed sequence in the dictionary
+        processed_data[k] = padded_sequence
+    
+    return processed_data
+
+
 
 def parse_file_name(file_name):
     """Parses the filename into a dictionary of parts."""
@@ -55,17 +79,15 @@ def organize_data(data, setting, dataset='ntu120', T=64):
     train_actors = datasets[dataset]['train_actors']
 
     organized_data = defaultdict(list)
-    for file_name, content in data.items():
-        content = content[:T]
+    for file_name in data.keys():
         parts = parse_file_name(file_name)
-        organized_data[parts['C']].append((parts['P'], parts['A'], content))
+        organized_data[parts['C']].append((parts['P'], parts['A'], file_name))
         if setting == 'cs':
             if parts['P'] in train_actors:
-                train_data[parts['C']].append((parts['P'], parts['A'], content))
+                train_data[parts['C']].append((parts['P'], parts['A'], file_name))
             else:
-                test_data[parts['C']].append((parts['P'], parts['A'], content))
+                test_data[parts['C']].append((parts['P'], parts['A'], file_name))
 
-        
     if setting == 'cv':
         for camera in train_cameras:
             train_data[camera].extend(organized_data[camera])
@@ -76,167 +98,107 @@ def organize_data(data, setting, dataset='ntu120', T=64):
     return train_data, test_data
 
 def sample_data(organized_data):
-    # Pick a random C pair
+    # Pick a random camera C
     C = random.choice(list(organized_data.keys()))
 
-    # Get all (P, A, content) tuples for this C 
+    # Get all (P, A, fname) tuples for this C 
     pa_list = organized_data[C]
 
-    # Pick 2 unique P values, find two overlapping A's
-    
+    # Build a mapping from actors to actions they have performed
+    actor_to_actions = defaultdict(set)
+    for p, a, fname in pa_list:
+        actor_to_actions[p].add(a)
 
-    # Pick 2 unique P values and 2 unique A values
-    random.shuffle(pa_list)
-    unique_p = set()
-    unique_a = set()
-    for p, a, _ in pa_list:
-        if len(unique_p) < 2:
-            unique_p.add(p)
-        if len(unique_a) < 2:
-            unique_a.add(a)
-        if len(unique_p) == 2 and len(unique_a) == 2:
-            break
+    # Find actors who have performed at least two actions
+    actors_with_multiple_actions = [p for p, actions in actor_to_actions.items() if len(actions) >= 2]
 
-    if len(unique_p) < 2 or len(unique_a) < 2:
-        raise Exception(f'Not enough unique P or A values for C pair {C}')
+    if len(actors_with_multiple_actions) < 2:
+        # Not enough actors with multiple actions
+        return None
 
-    # Form all four (P, A) pairs and get the corresponding content
-    sampled_data = [] #(p1, a1) (p1, a2) (p2, a1) (p2, a2)
-    for p in unique_p:
-        for a in unique_a:
-            for pa_content in pa_list:
-                if pa_content[0] == p and pa_content[1] == a:
-                    sampled_data.append(pa_content)
-                    break
-
-    return sampled_data
+    # Shuffle actors to randomize selection
+    random.shuffle(actors_with_multiple_actions)
+    for i in range(len(actors_with_multiple_actions)):
+        p1 = actors_with_multiple_actions[i]
+        for j in range(i + 1, len(actors_with_multiple_actions)):
+            p2 = actors_with_multiple_actions[j]
+            common_actions = actor_to_actions[p1].intersection(actor_to_actions[p2])
+            if len(common_actions) >= 2:
+                # Found two actors with at least two common actions
+                a1, a2 = random.sample(common_actions, 2)
+                # Now get file names for (p1,a1), (p1,a2), (p2,a1), (p2,a2)
+                pa_to_fname = {}
+                for p, a, fname in pa_list:
+                    key = (p, a)
+                    if key not in pa_to_fname:
+                        pa_to_fname[key] = fname
+                required_keys = [(p1, a1), (p1, a2), (p2, a1), (p2, a2)]
+                if all(k in pa_to_fname for k in required_keys):
+                    sampled_data = [
+                        (p1, a1, pa_to_fname[(p1, a1)]),
+                        (p1, a2, pa_to_fname[(p1, a2)]),
+                        (p2, a1, pa_to_fname[(p2, a1)]),
+                        (p2, a2, pa_to_fname[(p2, a2)]),
+                    ]
+                    return sampled_data
+    # If we reach here, no suitable pair found
+    return None
 
 def gen_samples(samples, data):
     d = []
-    for _ in range(samples):
-        failed = 0
-        while True:
-            d_ = sample_data(data)
-            d_tuple = tuple(tuple(x) for x in d_)
-            if len(d_tuple) == 4:
-                d.append(d_)  # Add the unique sample to the dataset
-                break
-            failed += 1
-            if failed > 100:
-                print('failed to sample data')
-                break
+    seen = set()
+    failed_attempts = 0
+    max_failed_attempts = 10000
+    while len(d) < samples and failed_attempts < max_failed_attempts:
+        result = sample_data(data)
+        if result is None:
+            failed_attempts += 1
+            continue
+        # Create a unique key for the sample to avoid duplicates
+        key = tuple(sorted((p, a) for p, a, _ in result))
+        if key not in seen:
+            seen.add(key)
+            d.append(result)
+        else:
+            failed_attempts += 1
+    if failed_attempts >= max_failed_attempts:
+        print('Failed to sample enough data without duplicates')
     return d
 
-def sample_rec_data(X, dataset, setting, T=64):
-    assert dataset in datasets, f'Dataset {dataset} not found'
-    assert setting in ['cs', 'cv'], f'Setting {setting} not found'
-    train_cameras = datasets[dataset]['train_cameras']
-    train_actors = datasets[dataset]['train_actors']
-    joints = datasets[dataset]['joints']
-    channels = datasets[dataset]['channels']
-
-    # Split by camera views
-    X_train_keys = []
-    X_test_keys = []
-    if setting == 'cs':
-        for key in X.keys():
-            if parse_file_name(key)['P'] in train_actors:
-                X_train_keys.append(key)
-            else:
-                X_test_keys.append(key)
-    elif setting == 'cv':
-        for key in X.keys():
-            if parse_file_name(key)['C'] in train_cameras:
-                X_train_keys.append(key)
-            else:
-                X_test_keys.append(key)
-    
-    # Create train and test sets
-    X_train = np.zeros((len(X_train_keys), T, joints*channels))
-    X_test = np.zeros((len(X_test_keys), T, joints*channels))
-    for i, key in enumerate(X_train_keys):
-        X_train[i] = X[key][:T]
-    for i, key in enumerate(X_test_keys):
-        X_test[i] = X[key][:T]
-
-    # Get actor and action names
-    train_actors = [parse_file_name(key)['P'] for key in X_train_keys]
-    test_actors = [parse_file_name(key)['P'] for key in X_test_keys]
-    train_actions = [parse_file_name(key)['A'] for key in X_train_keys]
-    test_actions = [parse_file_name(key)['A'] for key in X_test_keys]
-    
-    return X_train, X_test, train_actors, train_actions, test_actors, test_actions
-
 class Cross_Data(Dataset):
-    def __init__(self, sampled_data):
-        self.data = sampled_data  # The tuple is (actor, action, frames)
-        # Extract and stack the content (frames) from the sampled data
-        self.x1 = np.stack([sample[0][2] for sample in sampled_data])  # P1, A1
-        self.x2 = np.stack([sample[3][2] for sample in sampled_data])  # P2, A2
-        self.y1 = np.stack([sample[1][2] for sample in sampled_data])  # P1, A2
-        self.y2 = np.stack([sample[2][2] for sample in sampled_data])  # P2, A1
-
-        # Store actors and actions as NumPy arrays for easy retrieval
-        self.actors = np.array(
-            [[sample[0][0], sample[3][0]] for sample in sampled_data],
-            dtype=float
-        )
-        self.actions = np.array(
-            [[sample[0][1], sample[3][1]] for sample in sampled_data],
-            dtype=float
-        )
+    def __init__(self, sampled_data, X):
+        self.X = X  # The dictionary with skeleton sequences
+        self.sampled_data = sampled_data  # List of sampled data
+        # Extract actors and actions for fast retrieval
+        self.actors = np.array([[sample[0][0], sample[2][0]] for sample in sampled_data], dtype=float)
+        self.actions = np.array([[sample[0][1], sample[2][1]] for sample in sampled_data], dtype=float)
 
     def __getitem__(self, index):
+        sample = self.sampled_data[index]
+        # Load the skeleton sequences from self.X using the file names
+        x1 = self.X[sample[0][2]]  # P1, A1
+        x2 = self.X[sample[3][2]]  # P2, A2
+        y1 = self.X[sample[1][2]]  # P1, A2
+        y2 = self.X[sample[2][2]]  # P2, A1
+
         return (
-            self.x1[index],
-            self.x2[index],
-            self.y1[index],
-            self.y2[index],
+            x1,
+            x2,
+            y1,
+            y2,
             self.actors[index],
             self.actions[index]
         )
 
     def __len__(self):
-        return len(self.x1)
+        return len(self.sampled_data)
 
-
-class Rec_Data(Dataset):
-    def __init__(self, X, Actor, Action):
-        self.X = X
-        self.Actor = Actor
-        self.Action = Action
-    
-    def __getitem__(self, index):
-        return self.X[index], float(self.Actor[index]), float(self.Action[index])
-    
-    def __len__(self):
-        return len(self.X)
-    
-
-def get_cross_data(X, dataset, setting, batch_size=32, T=64, return_loader=True, train_samples=50000, test_samples=5000):
-    organized_data_train, organized_data_test = organize_data(X, setting, dataset, T)
-    train_data = gen_samples(train_samples, organized_data_train,)
+def get_cross_data(X, dataset, setting, batch_size=32, return_loader=True, train_samples=50000, test_samples=5000):
+    organized_data_train, organized_data_test = organize_data(X, setting, dataset)
+    train_data = gen_samples(train_samples, organized_data_train)
     val_data = gen_samples(test_samples, organized_data_test)
-    train_dataset = Cross_Data(train_data)
-    val_dataset = Cross_Data(val_data)
-    if return_loader:
-        train_dl = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-        val_dl = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
-        return train_dl, val_dl
-    return train_dataset, val_dataset
-
-
-def get_rec_data(X, dataset, setting, T=64, batch_size=32, return_loader=True):
-    # Keep only 1000 samples of the data
-    # i = 0
-    # for key in list(X.keys()):
-    #     if i < 1000:
-    #         i += 1
-    #     else:
-    #         del X[key]
-    X_train, X_test, train_actors, train_actions, test_actors, test_actions = sample_rec_data(X, dataset, setting, T)
-    train_dataset = Rec_Data(X_train, train_actors, train_actions)
-    val_dataset = Rec_Data(X_test, test_actors, test_actions)
+    train_dataset = Cross_Data(train_data, X)
+    val_dataset = Cross_Data(val_data, X)
     if return_loader:
         train_dl = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
         val_dl = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
