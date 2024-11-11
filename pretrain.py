@@ -144,3 +144,6 @@ for epoch in range(1, epochs+1):
           f'Val Actor Loss: {avg_val_actor_loss:.4f}, '
           f'Val Action Accuracy: {val_action_accuracy:.2f}%, '
           f'Val Actor Accuracy: {val_actor_accuracy:.2f}%')
+    
+    # Save model
+    torch.save(model.state_dict(), f"eval/mixformer/pretrained/{dataset}/ar_ri.pth")
