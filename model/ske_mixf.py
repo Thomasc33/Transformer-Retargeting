@@ -57,7 +57,7 @@ class Ske_MixF(nn.Module):
 
 
 class Model(nn.Module):
-    def __init__(self, num_class=60, num_point=25, num_person=2, graph=None, graph_args=dict(), in_channels=3):
+    def __init__(self, num_class=60, num_actors=40, num_point=25, num_person=2, graph=None, graph_args=dict(), in_channels=3):
         super(Model, self).__init__()
         if graph is None:
             raise ValueError()
@@ -83,6 +83,7 @@ class Model(nn.Module):
         self.l10= Ske_MixF(320, 320, A, 16)
 
         self.fc = nn.Linear(320, num_class)
+        self.fc_ri = nn.Linear(320, num_actors)
         nn.init.normal_(self.fc.weight, 0, math.sqrt(2. / num_class))
         bn_init(self.data_bn, 1)
         
@@ -148,7 +149,12 @@ class Model(nn.Module):
         x = x.reshape(N, M, 320, -1)
         x = x.mean(3).mean(1)
 
-        return self.fc(x)
+        action = self.fc(x)
+        actor = self.fc_ri(x)
+
+        return action, actor
+
+        
 
 
 

@@ -14,6 +14,10 @@ datasets = {
         'train_cameras': [2, 3],
         'test_cameras': [1],
         'train_actors': [1, 2, 4, 5, 8, 9, 13, 14, 15, 16, 17, 18, 19, 25, 27, 28, 31, 34, 35, 38, 45, 46, 47, 49, 50, 52, 53, 54, 55, 56, 57, 58, 59, 70, 74, 78, 80, 81, 82, 83, 84, 85, 86, 89, 91, 92, 93, 94, 95, 97, 98, 100, 103],
+        'num_class': 120,
+        'num_actor': 106,
+        'graph': 'graph.ntu_rgb_d.Graph',
+        'graph_args': {'labeling_mode': 'spatial'},
     },
     'ntu': {
         'path': 'data/ntu/ntu.pkl',
@@ -23,6 +27,10 @@ datasets = {
         'train_cameras': [2, 3],
         'test_cameras': [1],
         'train_actors': [1, 2, 4, 5, 8, 9, 13, 14, 15, 16, 17, 18, 19, 25, 27, 28, 31, 34, 35, 38],
+        'num_class': 60,
+        'num_actor': 40,
+        'graph': 'graph.ntu_rgb_d.Graph',
+        'graph_args': {'labeling_mode': 'spatial'},
     },
 }
 
@@ -165,6 +173,31 @@ def gen_samples(samples, data):
         print('Failed to sample enough data without duplicates')
     return d
 
+def process_trainining_data(X, setting='cs', dataset='ntu120'):
+    if dataset not in datasets:
+        raise ValueError(f'Dataset {dataset} not found')
+    
+    x_train, x_test, y_train, y_test = [], [], [], []
+    for file in X:
+        file_info = parse_file_name(file)
+        if setting == 'cs':
+            if file_info['P'] in datasets[dataset]['train_actors']:
+                x_train.append(X[file])
+                y_train.append([file_info['A']-1, file_info['P']-1])
+            else:
+                x_test.append(X[file])
+                y_test.append([file_info['A']-1, file_info['P']-1])
+        elif setting == 'cv':
+            if file_info['C'] in datasets[dataset]['train_cameras']:
+                x_train.append(X[file])
+                y_train.append([file_info['A']-1, file_info['P']-1])
+            else:
+                x_test.append(X[file])
+                y_test.append([file_info['A']-1, file_info['P']-1])
+
+    return torch.tensor(x_train, dtype=torch.float32), torch.tensor(y_train, dtype=torch.long), torch.tensor(x_test, dtype=torch.float32), torch.tensor(y_test, dtype=torch.long)
+
+
 class Cross_Data(Dataset):
     def __init__(self, sampled_data, X):
         self.X = X  # The dictionary with skeleton sequences
@@ -192,6 +225,17 @@ class Cross_Data(Dataset):
 
     def __len__(self):
         return len(self.sampled_data)
+    
+class PT_Data(Dataset):
+    def __init__(self, X, y):
+        self.X = X
+        self.y = y
+
+    def __getitem__(self, index):
+        return self.X[index], self.y[index]
+
+    def __len__(self):
+        return len(self.X)
 
 def get_cross_data(X, dataset, setting, batch_size=32, return_loader=True, train_samples=50000, test_samples=5000):
     organized_data_train, organized_data_test = organize_data(X, setting, dataset)

@@ -5,6 +5,7 @@ wandb/
 *.pkl
 *.skeleton
 *.npz
+*.pt
 
 data/ntu120/denoised_data/actors_info/*.txt
 data/ntu/denoised_data/actors_info/*.txt
