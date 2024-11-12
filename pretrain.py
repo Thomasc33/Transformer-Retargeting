@@ -115,8 +115,8 @@ for epoch in range(1, epochs+1):
 
     with torch.no_grad():
         for x, y in tqdm(test_loader, desc=f'Validation Epoch {epoch}'):
-            action, actor = y[:, 0], y[:, 1]
             x, y = x.cuda(), y.cuda()
+            action, actor = y[:, 0], y[:, 1]
 
             # Reshape input
             x = x.view(batch_size, T, num_person, joints, channels).permute(0, 4, 1, 3, 2).contiguous()
