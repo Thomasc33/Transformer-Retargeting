@@ -10,7 +10,7 @@ from .spa_mixf import Spatial_MixFormer
 from .ske_mixf import Ske_MixF, import_class, bn_init, conv_init
 
 class Encoder(nn.Module):
-    def __init__(self, num_class=60, num_point=25, num_person=1, graph=None, graph_args=dict(), in_channels=3, debug=False, dataset='ntu'):
+    def __init__(self, num_class=60, num_point=25, num_person=1, graph=None, graph_args=dict(), in_channels=3, debug=False, dataset='ntu', load_pretrained=True, freeze_layers=True):
         super(Encoder, self).__init__()
         if graph is None:
             raise ValueError()
@@ -67,23 +67,27 @@ class Encoder(nn.Module):
         bn_init(self.data_bn, 1)
 
         # Load pre-trained Skeleton-MixFormer weights
-        pretrained_state_dict = torch.load(f'eval/mixformer/pretrained/{self.dataset}/ar.pth')
-        model_state_dict = self.state_dict()
+        if load_pretrained:
+            pretrained_state_dict = torch.load(f'eval/mixformer/pretrained/{self.dataset}/ar.pth')
+            model_state_dict = self.state_dict()
 
-        # Remove 'module.' prefix if present in pretrained_state_dict keys
-        pretrained_state_dict = {k.replace('module.', ''): v for k, v in pretrained_state_dict.items()}
+            # Remove 'module.' prefix if present in pretrained_state_dict keys
+            pretrained_state_dict = {k.replace('module.', ''): v for k, v in pretrained_state_dict.items()}
 
-        # Filter out unnecessary keys
-        pretrained_state_dict = {k: v for k, v in pretrained_state_dict.items() if k in model_state_dict}
+            # Filter out unnecessary keys
+            pretrained_state_dict = {k: v for k, v in pretrained_state_dict.items() if k in model_state_dict}
 
-        # Update model's state_dict
-        model_state_dict.update(pretrained_state_dict)
-        self.load_state_dict(model_state_dict)
+            # Update model's state_dict
+            model_state_dict.update(pretrained_state_dict)
+            self.load_state_dict(model_state_dict)
 
         # Freeze the weights of the pre-trained layers
-        for layer in [self.l1, self.l2, self.l3, self.l4, self.l5, self.l6, self.l7, self.l8, self.l9, self.l10]:
-            for param in layer.parameters():
-                param.requires_grad = False
+        if freeze_layers:
+            for layer in [self.l1, self.l2, self.l3, self.l4, self.l5, self.l6, self.l7, self.l8, self.l9, self.l10]:
+                for param in layer.parameters():
+                    param.requires_grad = False
+
+        self.load_pretrained = load_pretrained
 
     def get_A(self, graph, k):
         Graph = import_class(graph)()
@@ -97,7 +101,7 @@ class Encoder(nn.Module):
         N, C, T, V, M = x.size()  # Extract sizes
 
         # Pad zeros for a second actor
-        if M == 1: 
+        if M == 1 and self.load_pretrained: 
             x = torch.cat([x, torch.zeros(N, C, T, V, 1).to(x.device)], dim=4)
             M = 2
         
@@ -152,3 +156,7 @@ class Encoder(nn.Module):
         return x
 
 
+def pre_process(input_tensor, batch_size, frames, joints, channels):
+    # Reshape the input tensor to (batch_size, channels, frames, joints, actor)
+    actor = 1  # Default to 1 actor
+    return input_tensor.view(batch_size, frames, joints, channels).permute(0, 3, 1, 2).contiguous().view(batch_size, channels, frames, joints, actor)

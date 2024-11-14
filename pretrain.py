@@ -1,149 +1,109 @@
-from data import load_data, process_trainining_data, PT_Data, datasets
-import os
 import torch
-from torch.utils.data import DataLoader
-from model.ske_mixf import Model
+import os
 from util import init_seed
-from tqdm import tqdm
+from data import load_data, process_mlm, Masked_AE_Data
+from model.encoder import Encoder, pre_process
+from model.mlm_decoder import MLMDecoder, post_process
+import torch.nn as nn
 
-# Turn these to argparse later
-batch_size = 32
-dataset = 'ntu120'
-setting = 'cs'
-lr = 1e-4
-seed = 42
-epochs = 100
-T = 64
-
-if dataset not in datasets:
-    raise ValueError(f'Dataset {dataset} not found')
+dataset='ntu120'
+setting='cs'
+T=64
+frame_masking_ratio=0.5
+joint_masking_ratio=0.5
+batch_size=32
+lr=1e-4
+seed=42
+epochs=100
+patience=10
+hpc=False
 
 init_seed(seed)
 
-num_class = datasets[dataset]['num_class']
-num_actor = datasets[dataset]['num_actor']
-joints = datasets[dataset]['joints']
-num_person = datasets[dataset]['max_actors']
-graph = datasets[dataset]['graph']
-graph_args = datasets[dataset]['graph_args']
-channels = datasets[dataset]['channels']
-load_dir = datasets[dataset]['path']
-
-# Load or generate data
-dataset_dir = f"data/{dataset}"
-dataset_file = os.path.join(dataset_dir, "pretraining_data.pt")
-os.makedirs(dataset_dir, exist_ok=True)
-if os.path.exists(dataset_file):
-    print(f"Loading dataset from {dataset_file}")
-    saved_data = torch.load(dataset_file)
+os.makedirs(f'data/{dataset}', exist_ok=True)
+if os.path.exists(f'data/{dataset}/pretraining_data.pt'):
+    print(f"Loading dataset from data/{dataset}/pretraining_data.pt")
+    saved_data = torch.load(f'data/{dataset}/pretraining_data.pt', weights_only=False)
     train_dataset = saved_data['train_dataset']
     test_dataset = saved_data['test_dataset']
-else:
+else:    
     print(f"Generating dataset for {dataset}")
-    X = load_data(dataset)
-    train_x, train_y, test_x, test_y = process_trainining_data(X, setting=setting, dataset=dataset)
-    train_dataset = PT_Data(train_x, train_y)
-    test_dataset = PT_Data(test_x, test_y)
+    X = load_data(dataset, T=T)
+    train_dataset, test_dataset = process_mlm(X, 'cs', dataset, T)
+    train_dataset = Masked_AE_Data(torch.tensor([X[f] for f in train_dataset], dtype=torch.float32), frame_masking_ratio, joint_masking_ratio)
+    test_dataset = Masked_AE_Data(torch.tensor([X[f] for f in test_dataset], dtype=torch.float32), frame_masking_ratio, joint_masking_ratio)
     torch.save({
         'train_dataset': train_dataset,
         'test_dataset': test_dataset
-    }, dataset_file)
-    print(f"Dataset saved to {dataset_file}")
-train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
+    }, f'data/{dataset}/pretraining_data.pt')
+    print(f"Saved dataset to data/{dataset}/pretraining_data.pt")
 
-print(f"{dataset} loaded")
+train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
-model = Model(num_class=num_class, num_actors=num_actor, num_point=joints, num_person=num_person, graph=graph, graph_args=graph_args, in_channels=channels).cuda()
+class AE(torch.nn.Module):
+    def __init__(self):
+        super(AE, self).__init__()
+        self.encoder = Encoder(
+            num_class=120 if dataset == 'ntu120' else 60,
+            num_point=25,
+            num_person=1,
+            graph='graph.ntu_rgb_d.Graph',
+            graph_args={'labeling_mode': 'spatial'},
+            in_channels=3,
+            debug=False,
+            dataset=dataset,
+            load_pretrained=False,
+            freeze_layers=False
+        )
+        self.decoder = MLMDecoder(d_model=320, nhead=8, num_layers=6, dim_feedforward=2048, dropout=0.1)
+        self.output_layer = nn.Linear(320, 3)  # Map d_model to channels
 
+    def forward(self, x):
+        x = pre_process(x, batch_size, T, 25, 3)
+        x = self.encoder(x)
+        x = self.decoder(x)
+        x = self.output_layer(x)  # Shape: (sequence_length, batch_size, channels)
+        return post_process(x, T, batch_size, 1, 25, 3)
+
+
+
+model = AE().cuda()
+criterion = torch.nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-criterion = torch.nn.CrossEntropyLoss()
 
+# Train the model
 for epoch in range(1, epochs+1):
     model.train()
-    total_action_loss, total_actor_loss = 0, 0
-    correct_action, correct_actor = 0, 0
-    total_samples = 0
-
-    # Training phase
-    for x, y in tqdm(train_loader, desc=f'Training Epoch {epoch}'):
+    train_loss = 0
+    for i, data in enumerate(train_loader):
+        data = data.cuda()
         optimizer.zero_grad()
-        x, y = x.cuda(), y.cuda()
-        action, actor = y[:, 0], y[:, 1]
-
-        # Reshape input
-        x = x.view(batch_size, T, num_person, joints, channels).permute(0, 4, 1, 3, 2).contiguous()
-        action_pred, actor_pred = model(x)
-
-        # Calculate losses
-        action_loss = criterion(action_pred, action)
-        actor_loss = criterion(actor_pred, actor)
-        loss = action_loss + actor_loss
-        
-        # Backpropagation
+        output = model(data)
+        # Reshape data to match output
+        data = data.view(data.size(0), data.size(1), 25, 3).unsqueeze(2)  # [batch_size, frames, 1, 25, 3]
+        loss = criterion(output, data)
         loss.backward()
         optimizer.step()
-        
-        # Accumulate losses
-        total_action_loss += action_loss.item()
-        total_actor_loss += actor_loss.item()
+        train_loss += loss.item()
+    train_loss /= len(train_loader)
 
-        # Calculate accuracies
-        _, action_pred_labels = torch.max(action_pred, 1)
-        _, actor_pred_labels = torch.max(actor_pred, 1)
-        
-        correct_action += (action_pred_labels == action).sum().item()
-        correct_actor += (actor_pred_labels == actor).sum().item()
-        total_samples += action.size(0)
-    
-    # Compute average losses and accuracies for the epoch
-    avg_action_loss = total_action_loss / len(train_loader)
-    avg_actor_loss = total_actor_loss / len(train_loader)
-    action_accuracy = 100 * correct_action / total_samples
-    actor_accuracy = 100 * correct_actor / total_samples
-
-    print(f'Epoch {epoch} - Train Action Loss: {avg_action_loss:.4f}, '
-          f'Train Actor Loss: {avg_actor_loss:.4f}, '
-          f'Train Action Accuracy: {action_accuracy:.2f}%, '
-          f'Train Actor Accuracy: {actor_accuracy:.2f}%')
-
-    # Validation phase
     model.eval()
-    val_action_loss, val_actor_loss = 0, 0
-    val_correct_action, val_correct_actor = 0, 0
-    val_total_samples = 0
-
+    test_loss = 0
     with torch.no_grad():
-        for x, y in tqdm(test_loader, desc=f'Validation Epoch {epoch}'):
-            x, y = x.cuda(), y.cuda()
-            action, actor = y[:, 0], y[:, 1]
+        for i, data in enumerate(test_loader):
+            data = data.cuda()
+            output = model(data)
+            # Reshape data to match output
+            data = data.view(data.size(0), data.size(1), 25, 3).unsqueeze(2)  # [batch_size, frames, 1, 25, 3]
+            loss = criterion(output, data)
+            test_loss += loss.item()
+        test_loss /= len(test_loader)
 
-            # Reshape input
-            x = x.view(batch_size, T, num_person, joints, channels).permute(0, 4, 1, 3, 2).contiguous()
-            action_pred, actor_pred = model(x)
-
-            # Accumulate validation losses
-            val_action_loss += criterion(action_pred, action).item()
-            val_actor_loss += criterion(actor_pred, actor).item()
-
-            # Calculate accuracies
-            _, action_pred_labels = torch.max(action_pred, 1)
-            _, actor_pred_labels = torch.max(actor_pred, 1)
-            
-            val_correct_action += (action_pred_labels == action).sum().item()
-            val_correct_actor += (actor_pred_labels == actor).sum().item()
-            val_total_samples += action.size(0)
-
-    # Compute average losses and accuracies for validation
-    avg_val_action_loss = val_action_loss / len(test_loader)
-    avg_val_actor_loss = val_actor_loss / len(test_loader)
-    val_action_accuracy = 100 * val_correct_action / val_total_samples
-    val_actor_accuracy = 100 * val_correct_actor / val_total_samples
-
-    print(f'Epoch {epoch} - Val Action Loss: {avg_val_action_loss:.4f}, '
-          f'Val Actor Loss: {avg_val_actor_loss:.4f}, '
-          f'Val Action Accuracy: {val_action_accuracy:.2f}%, '
-          f'Val Actor Accuracy: {val_actor_accuracy:.2f}%')
-    
-    # Save model
-    torch.save(model.state_dict(), f"eval/mixformer/pretrained/{dataset}/ar_ri.pth")
+    print(f"Epoch {epoch}/{epochs} | Train Loss: {train_loss:.6f} | Test Loss: {test_loss:.6f}")
+    if epoch % patience == 0:
+        print(f"Saving model to eval/mixformer/pretrained/{dataset}/ar.pth")
+        torch.save(model.state_dict(), f'eval/mixformer/pretrained/{dataset}/ar.pth')
+        print("Model saved successfully")
+        print("Exiting training loop")
+        break

@@ -197,6 +197,34 @@ def process_trainining_data(X, setting='cs', dataset='ntu120'):
 
     return torch.tensor(x_train, dtype=torch.float32), torch.tensor(y_train, dtype=torch.long), torch.tensor(x_test, dtype=torch.float32), torch.tensor(y_test, dtype=torch.long)
 
+def process_mlm(data, setting, dataset='ntu120', T=64):
+    train_data = []
+    test_data = []
+
+    assert dataset in datasets, f'Dataset {dataset} not found'
+    train_cameras = datasets[dataset]['train_cameras']
+    test_cameras = datasets[dataset]['test_cameras']
+    train_actors = datasets[dataset]['train_actors']
+
+    organized_data = defaultdict(list)
+    for file_name in data.keys():
+        parts = parse_file_name(file_name)
+        organized_data[parts['C']].append(file_name)
+        if setting == 'cs':
+            if parts['P'] in train_actors:
+                train_data.append(file_name)
+            else:
+                test_data.append(file_name)
+
+    if setting == 'cv':
+        for camera in train_cameras:
+            train_data.extend(organized_data[camera])
+
+        for camera in test_cameras:
+            test_data.extend(organized_data[camera])
+
+    return train_data, test_data
+
 
 class Cross_Data(Dataset):
     def __init__(self, sampled_data, X):
@@ -234,6 +262,38 @@ class PT_Data(Dataset):
     def __getitem__(self, index):
         return self.X[index], self.y[index]
 
+    def __len__(self):
+        return len(self.X)
+    
+class Masked_AE_Data(Dataset):
+    def __init__(self, X, frame_masking_ratio=0.5, joint_masking_ratio=0.5):
+        self.X = X
+        self.frame_masking_ratio = frame_masking_ratio
+        self.joint_masking_ratio = joint_masking_ratio
+
+    def __getitem__(self, index):
+        x = self.X[index]
+        # (frames, joints * 3)
+        frames, joints_dim = x.shape
+        joints = joints_dim // 3  # Assume joints * 3 for XYZ coordinates
+
+        # Masking frames
+        num_frames_to_mask = int(self.frame_masking_ratio * frames)
+        frame_indices = np.arange(frames)
+        masked_frame_indices = np.random.choice(frame_indices, size=num_frames_to_mask, replace=False)
+        x[masked_frame_indices, :] = 0  # Set masked frames to zero
+
+        # Masking joints
+        num_joints_to_mask = int(self.joint_masking_ratio * joints)
+        joint_indices = np.arange(joints)
+        masked_joint_indices = np.random.choice(joint_indices, size=num_joints_to_mask, replace=False)
+        
+        # Set masked joints to zero for all frames
+        for joint_idx in masked_joint_indices:
+            x[:, joint_idx * 3:(joint_idx + 1) * 3] = 0
+
+        return x
+    
     def __len__(self):
         return len(self.X)
 
