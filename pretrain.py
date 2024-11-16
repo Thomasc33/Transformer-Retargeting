@@ -10,6 +10,8 @@ from data import load_data, process_mlm, Masked_AE_Data
 from model.encoder import Encoder, pre_process
 from model.mlm_decoder import MLMDecoder, post_process
 
+torch.backends.cudnn.enabled = False
+
 # Parameters
 dataset = 'ntu120'
 setting = 'cs'
@@ -166,10 +168,4 @@ def main():
         dist.destroy_process_group()
 
 if __name__ == '__main__':
-    if hpc:
-        # For multi-GPU training, the script should be launched using torch.distributed.launch or torchrun
-        # Example: python -m torch.distributed.launch --nproc_per_node=4 your_script.py
-        main()
-    else:
-        # Single GPU or CPU
-        main()
+    main()
