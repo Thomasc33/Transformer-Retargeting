@@ -195,13 +195,13 @@ def worker(args):
                     return result
     return None
 
-def gen_samples(samples, data):
+def gen_samples(samples, data, threads=1):
     from multiprocessing import Pool, Manager
 
     manager = Manager()
     shared_seen_dict = manager.dict()
     lock = manager.Lock()
-    pool = Pool(processes=32)  # Adjust the number of processes as per your node's CPU cores
+    pool = Pool(processes=threads)  # Adjust the number of processes as per your node's CPU cores
 
     args = [(data, shared_seen_dict, lock) for _ in range(samples * 2)]  # Generate more to account for duplicates
     results = pool.map(worker, args)
@@ -339,10 +339,14 @@ class Masked_AE_Data(Dataset):
     def __len__(self):
         return len(self.X)
 
-def get_cross_data(X, dataset, setting, batch_size=32, return_loader=False, train_samples=50000, test_samples=5000):
+def get_cross_data(X, dataset, setting, batch_size=32, return_loader=False, train_samples=50000, test_samples=5000, threads=1):
     organized_data_train, organized_data_test = organize_data(X, setting, dataset)
-    train_data = gen_samples(train_samples, organized_data_train)
-    val_data = gen_samples(test_samples, organized_data_test)
+    if threads == 1:
+        train_data = gen_samples_single_threaded(train_samples, organized_data_train)
+        val_data = gen_samples_single_threaded(test_samples, organized_data_test)
+    else:
+        train_data = gen_samples(train_samples, organized_data_train, threads=threads)
+        val_data = gen_samples(test_samples, organized_data_test, threads=threads)
     train_dataset = Cross_Data(train_data, X)
     val_dataset = Cross_Data(val_data, X)
     if return_loader:

@@ -10,7 +10,12 @@ from model.autoencoder import Model
 from train import Trainer
 from data import get_cross_data, load_data
 from util import init_seed
-import wandb
+import argparse
+
+# Get dataset from argparse
+parser = argparse.ArgumentParser()
+parser.add_argument('--dataset', type=str, default='ntu120', help='Dataset to use (ntu or ntu120)')
+args = parser.parse_args()
 
 
 init_seed(42)
@@ -24,7 +29,7 @@ T = 64          # Number of frames (64)
 M = 1           # Number of persons
 V = 25          # Number of joints
 setting = 'cs'  # 'cs' or 'cv'
-dataset = 'ntu120' # 'ntu' or 'ntu120'
+dataset = args.dataset
 lr = 1e-4
 train_samples = 64
 test_samples = 32
@@ -61,14 +66,14 @@ def main():
             # Load data
             X = load_data(dataset, T)
             # Generate paired data and save to torch file
-            paired_train, paired_test = get_cross_data(X, dataset, setting, batch_size, return_loader=False, train_samples=train_samples, test_samples=test_samples)
+            paired_train, paired_test = get_cross_data(X, dataset, setting, batch_size, return_loader=False, train_samples=train_samples, test_samples=test_samples, threads=1)
             if save_samples:
                 torch.save({'train': paired_train, 'test': paired_test}, paired_file_path)
                 print('Paired data saved to torch file')
     else:
         # Load data
         X = load_data(dataset, T)
-        paired_train, paired_test = get_cross_data(X, dataset, setting, batch_size, return_loader=False, train_samples=train_samples, test_samples=test_samples)
+        paired_train, paired_test = get_cross_data(X, dataset, setting, batch_size, return_loader=False, train_samples=train_samples, test_samples=test_samples, threads=1)
 
     if save_samples:
         with open(f'data/{dataset}_{setting}_paired.pkl', 'wb') as f:
