@@ -4,6 +4,7 @@ from collections import defaultdict
 import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader
+from multiprocessing import Pool, Manager
 
 datasets = {
     'ntu120': {
@@ -152,7 +153,7 @@ def sample_data(organized_data):
     # If we reach here, no suitable pair found
     return None
 
-def gen_samples(samples, data):
+def gen_samples_single_threaded(samples, data):
     d = []
     seen = set()
     failed_attempts = 0
@@ -172,6 +173,47 @@ def gen_samples(samples, data):
     if failed_attempts >= max_failed_attempts:
         print('Failed to sample enough data without duplicates')
     return d
+
+def worker(args):
+    data, shared_seen_dict, lock = args
+    result = None
+    failed_attempts = 0
+    max_failed_attempts = 1000
+    while result is None and failed_attempts < max_failed_attempts:
+        result = sample_data(data)
+        if result is None:
+            failed_attempts += 1
+            continue
+        else:
+            key = tuple(sorted((p, a) for p, a, _ in result))
+            with lock:
+                if key in shared_seen_dict:
+                    failed_attempts += 1
+                    result = None
+                else:
+                    shared_seen_dict[key] = None  # Value can be anything
+                    return result
+    return None
+
+def gen_samples(samples, data):
+    from multiprocessing import Pool, Manager
+
+    manager = Manager()
+    shared_seen_dict = manager.dict()
+    lock = manager.Lock()
+    pool = Pool(processes=32)  # Adjust the number of processes as per your node's CPU cores
+
+    args = [(data, shared_seen_dict, lock) for _ in range(samples * 2)]  # Generate more to account for duplicates
+    results = pool.map(worker, args)
+    pool.close()
+    pool.join()
+
+    # Filter out None results and limit to the desired number of samples
+    unique_results = [res for res in results if res is not None]
+    if len(unique_results) < samples:
+        print('Failed to generate enough unique samples')
+    return unique_results[:samples]
+
 
 def process_trainining_data(X, setting='cs', dataset='ntu120'):
     if dataset not in datasets:
@@ -297,7 +339,7 @@ class Masked_AE_Data(Dataset):
     def __len__(self):
         return len(self.X)
 
-def get_cross_data(X, dataset, setting, batch_size=32, return_loader=True, train_samples=50000, test_samples=5000):
+def get_cross_data(X, dataset, setting, batch_size=32, return_loader=False, train_samples=50000, test_samples=5000):
     organized_data_train, organized_data_test = organize_data(X, setting, dataset)
     train_data = gen_samples(train_samples, organized_data_train)
     val_data = gen_samples(test_samples, organized_data_test)
