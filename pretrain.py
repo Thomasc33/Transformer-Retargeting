@@ -33,6 +33,8 @@ def main():
 
     if hpc:
         # Initialize the process group
+        os.environ['MASTER_ADDR'] = 'localhost'
+        os.environ['MASTER_PORT'] = '12355'
         dist.init_process_group(backend='nccl', init_method='env://')
         rank = dist.get_rank()
         world_size = dist.get_world_size()
@@ -46,7 +48,7 @@ def main():
 
     # Initialize wandb (only on rank 0)
     if rank == 0:
-        wandb.init(project='MLM_PT')
+        wandb.init(project=f'MLM_PT_{dataset}')
 
     # Data loading
     os.makedirs(f'data/{dataset}', exist_ok=True)
@@ -153,15 +155,18 @@ def main():
             print(f"Epoch {epoch}/{epochs} | Train Loss: {train_loss:.6f} | Test Loss: {test_loss:.6f}")
             wandb.log({'epoch': epoch, 'train_loss': train_loss, 'test_loss': test_loss})
 
-        # Saving model checkpoint (only on rank 0)
-        if epoch % patience == 0:
-            if rank == 0:
-                print(f"Saving model to eval/mixformer/pretrained/{dataset}/ar.pth")
-                os.makedirs(f'eval/mixformer/pretrained/{dataset}', exist_ok=True)
-                torch.save(model.state_dict(), f'eval/mixformer/pretrained/{dataset}/ar.pth')
-                print("Model saved successfully")
-                print("Exiting training loop")
-            break
+        # Save model checkpoint
+        if rank == 0:
+            os.makedirs(f'eval/mixformer/pretrained/{dataset}/epochs', exist_ok=True)
+            torch.save(model.encoder.state_dict(), f'eval/mixformer/pretrained/{dataset}/epochs/encoder_{epoch}.pth')
+
+    # Saving model checkpoint (only on rank 0)
+    if rank == 0:
+        print(f"Saving model to eval/mixformer/pretrained/{dataset}/encoder.pth")
+        os.makedirs(f'eval/mixformer/pretrained/{dataset}', exist_ok=True)
+        torch.save(model.encoder.state_dict(), f'eval/mixformer/pretrained/{dataset}/encoder.pth')
+        print("Model saved successfully")
+        print("Exiting training loop")
 
     # Clean up (only if using distributed training)
     if hpc:

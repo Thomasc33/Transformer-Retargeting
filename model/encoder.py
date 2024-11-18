@@ -68,7 +68,7 @@ class Encoder(nn.Module):
 
         # Load pre-trained Skeleton-MixFormer weights
         if load_pretrained:
-            pretrained_state_dict = torch.load(f'eval/mixformer/pretrained/{self.dataset}/ar.pth')
+            pretrained_state_dict = torch.load(f'eval/mixformer/pretrained/{self.dataset}/encoder.pth')
             model_state_dict = self.state_dict()
 
             # Remove 'module.' prefix if present in pretrained_state_dict keys
@@ -83,9 +83,8 @@ class Encoder(nn.Module):
 
         # Freeze the weights of the pre-trained layers
         if freeze_layers:
-            for layer in [self.l1, self.l2, self.l3, self.l4, self.l5, self.l6, self.l7, self.l8, self.l9, self.l10]:
-                for param in layer.parameters():
-                    param.requires_grad = False
+            for param in self.parameters():
+                param.requires_grad = False
 
         self.load_pretrained = load_pretrained
 
@@ -99,11 +98,6 @@ class Encoder(nn.Module):
 
     def forward(self, x):
         N, C, T, V, M = x.size()  # Extract sizes
-
-        # Pad zeros for a second actor
-        if M == 1 and self.load_pretrained: 
-            x = torch.cat([x, torch.zeros(N, C, T, V, 1).to(x.device)], dim=4)
-            M = 2
         
         x = rearrange(x, 'n c t v m -> (n m t) v c', m=M).contiguous()
 

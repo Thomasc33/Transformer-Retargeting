@@ -4,7 +4,7 @@ from loss import Loss
 class Trainer:
     def __init__(self, model, optimizer,
                  train_paired_loader, val_paired_loader,
-                 num_epochs=10, wandb_project=None, device='cuda', dataset='ntu'):
+                 num_epochs=10, wandb_project=None, device='cuda', dataset='ntu', rank=0):
         self.model = model.to(device)
         self.optimizer = optimizer
         self.train_paired_loader = train_paired_loader
@@ -13,6 +13,7 @@ class Trainer:
         self.wandb_project = wandb_project
         self.device = device
         self.dataset = dataset
+        self.rank = rank
 
         # Setup loss
         losses = {
@@ -29,20 +30,20 @@ class Trainer:
         }
         self.loss = Loss(losses, device=device, dataset=dataset, encoder=model.encoder)
 
-        if self.wandb_project is not None:
+        if self.wandb_project is not None and self.rank == 0:
             config = {
                 'lr': self.optimizer.param_groups[0]['lr'],
-                'batch_size': self.train_paired_loader.batch_size,
+                # 'batch_size': self.train_paired_loader.batch_size,
                 'num_epochs': self.num_epochs,
-                'train_samples': len(self.train_paired_loader.dataset),
-                'val_samples': len(self.val_paired_loader.dataset)
+                'train_samples': len(self.train_paired_loader),
+                'val_samples': len(self.val_paired_loader)
             }
             import wandb
             wandb.init(project=self.wandb_project, config=config)
             wandb.watch(self.model)
 
     def train(self):
-        print("Starting Training (Autoregressive Motion Retargeting)...")
+        if self.rank == 0: print("Starting Training (Autoregressive Motion Retargeting)...")
         self.model.train()
         for epoch in range(self.num_epochs):
             running_loss = 0.0
@@ -92,13 +93,14 @@ class Trainer:
 
             avg_loss = running_loss / len(self.train_paired_loader)
             losses = {key: value / len(self.train_paired_loader) for key, value in running_losses.items()}
-            print(f'Epoch [{epoch+1}/{self.num_epochs}], Loss: {avg_loss:.4f}')
-            print(losses)
+            if self.rank == 0:
+                print(f'Epoch [{epoch+1}/{self.num_epochs}], Loss: {avg_loss:.4f}')
+                print(losses)
 
             # Evaluate on validation data
             val_loss, val_losses = self.evaluate()
 
-            if self.wandb_project is not None:
+            if self.wandb_project is not None and self.rank == 0:
                 import wandb
                 loss_info = {key: value for key, value in losses.items()}
                 val_loss_info = {f"Val {key}": value for key, value in val_losses.items()}
@@ -148,7 +150,8 @@ class Trainer:
 
         avg_loss = total_loss / len(self.val_paired_loader)
         losses = {key: value / len(self.val_paired_loader) for key, value in losses.items()}
-        print(f'Validation Loss: {avg_loss:.4f}')
-        print(losses)
+        if self.rank == 0:
+            print(f'Validation Loss: {avg_loss:.4f}')
+            print(losses)
         self.model.train()
         return avg_loss, losses

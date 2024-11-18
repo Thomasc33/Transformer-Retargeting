@@ -27,7 +27,7 @@ class PositionalEncoding(nn.Module):
 class Model(nn.Module):
     def __init__(self, num_class=60, num_point=25, num_person=1, graph=None, graph_args=dict(), in_channels=3, debug=False, dataset='ntu'):
         super(Model, self).__init__()
-        self.encoder = Encoder(num_class=num_class, num_point=num_point, num_person=2,
+        self.encoder = Encoder(num_class=num_class, num_point=num_point, num_person=num_person,
                                graph=graph, graph_args=graph_args, in_channels=in_channels, debug=debug, dataset=dataset)
         self.decoder = Decoder(d_model=320, nhead=8, num_layers=6, dim_feedforward=2048, dropout=0.1)
         self.debug = debug
@@ -35,6 +35,8 @@ class Model(nn.Module):
         d_model = 320
         self.decoder_input_proj = nn.Linear(in_channels * num_point * num_person, d_model)
         self.positional_encoding = PositionalEncoding(d_model)
+        self.enc_dec_layer = nn.Linear(320, 320)
+        self.sty_tr_layer = nn.Linear(320, 320)
         self.output_linear = nn.Linear(d_model, in_channels * num_point * num_person)
         self.in_channels = in_channels
         self.num_point = num_point
@@ -47,6 +49,9 @@ class Model(nn.Module):
         # Encode the source motion and dummy skeleton
         motion_encoding = self.encoder(source_motion)      # (Seq_len, N, d_model)
         skeleton_encoding = self.encoder(dummy_skeleton)   # (Seq_len, N, d_model)
+
+        motion_encoding = self.enc_dec_layer(motion_encoding)
+        skeleton_encoding = self.enc_dec_layer(skeleton_encoding)
 
         # Prepare decoder inputs
         if self.training and target_motion is not None:
@@ -61,7 +66,7 @@ class Model(nn.Module):
             tgt_mask = self.generate_square_subsequent_mask(T-1).to(tgt_input.device)
 
             # Decoder output
-            output = self.decoder(tgt_input, skeleton_encoding[:-1], tgt_mask=tgt_mask)[0]
+            output = self.decoder(tgt_input, motion_encoding[:-1], memory_prime=skeleton_encoding[:-1], tgt_mask=tgt_mask)[0]
         else:
             # During evaluation or when teacher forcing ratio is zero
             outputs = []
@@ -75,7 +80,7 @@ class Model(nn.Module):
                 # Apply positional encoding to the current input
                 decoder_input_t = self.positional_encoding(decoder_input[-1:, :, :])  # (1, N, d_model)
                 # Decoder output with cache
-                output_t, cache = self.decoder(decoder_input_t, skeleton_encoding, cache=cache, use_cache=True)
+                output_t, cache = self.decoder(decoder_input_t, motion_encoding, memory_prime=skeleton_encoding, cache=cache, use_cache=True)
                 output_t = output_t[-1, :, :]              # Get the last time step
                 outputs.append(output_t)
                 # Prepare next input
