@@ -1,5 +1,6 @@
 import torch
 from loss import Loss
+import time
 
 class Trainer:
     def __init__(self, model, optimizer,
@@ -28,7 +29,13 @@ class Trainer:
             # 'triplet': 1,
             'inception': 1
         }
-        self.loss = Loss(losses, device=device, dataset=dataset, encoder=model.encoder)
+
+        if isinstance(model, torch.nn.parallel.DistributedDataParallel):
+            encoder = model.module.encoder
+        else:
+            encoder = model.encoder
+
+        self.loss = Loss(losses, device=device, dataset=dataset, encoder=encoder)
 
         if self.wandb_project is not None and self.rank == 0:
             config = {
@@ -46,6 +53,7 @@ class Trainer:
         if self.rank == 0: print("Starting Training (Autoregressive Motion Retargeting)...")
         self.model.train()
         for epoch in range(self.num_epochs):
+            start = time.time()
             running_loss = 0.0
             running_losses = {key: 0.0 for key in self.loss.loss_weights.keys()}
             for batch_idx, (x1, x2, y1, y2, actors, actions) in enumerate(self.train_paired_loader):
@@ -90,21 +98,26 @@ class Trainer:
                 running_loss += loss.item()
                 for key, value in losses.items():
                     running_losses[key] += value.item()
-
+            end = time.time()
             avg_loss = running_loss / len(self.train_paired_loader)
             losses = {key: value / len(self.train_paired_loader) for key, value in running_losses.items()}
             if self.rank == 0:
                 print(f'Epoch [{epoch+1}/{self.num_epochs}], Loss: {avg_loss:.4f}')
+                print(f'Time taken: {end - start:.2f} s')
                 print(losses)
 
             # Evaluate on validation data
+            vstart = time.time()
             val_loss, val_losses = self.evaluate()
+            vend = time.time()
+            if self.rank == 0:
+                print(f'Validation Time taken: {vend - vstart:.2f} s')
 
             if self.wandb_project is not None and self.rank == 0:
                 import wandb
                 loss_info = {key: value for key, value in losses.items()}
                 val_loss_info = {f"Val {key}": value for key, value in val_losses.items()}
-                wandb.log({'Loss': avg_loss, 'Val Loss': val_loss, **loss_info, **val_loss_info})
+                wandb.log({'Loss': avg_loss, 'Val Loss': val_loss, **loss_info, **val_loss_info, 'Train Time': end - start, 'Val Time': vend - vstart})
 
     @torch.no_grad()
     def evaluate(self):

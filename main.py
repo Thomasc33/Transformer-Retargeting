@@ -1,3 +1,4 @@
+print('in main.py')
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -23,35 +24,38 @@ init_seed(42)
 # Parameters
 # TODO: Change to argparse
 cache_samples=True
-save_samples=True
-batch_size = 32
+save_samples=False
+batch_size = 128
 T = 64          # Number of frames (64)
 M = 1           # Number of persons
 V = 25          # Number of joints
 setting = 'cs'  # 'cs' or 'cv'
 dataset = args.dataset
-lr = 1e-4
-train_samples = 64
-test_samples = 32
-hpc = False
+lr = 1e-5
+train_samples = 50000
+test_samples = 5000
+hpc = True
 
 def main():
     global hpc
-
-    if hpc:
-        # Initialize the process group
-        os.environ['MASTER_ADDR'] = 'localhost'
-        os.environ['MASTER_PORT'] = '12355'
-        dist.init_process_group(backend='nccl', init_method='env://')
-        rank = dist.get_rank()
-        world_size = dist.get_world_size()
-        torch.cuda.set_device(rank)
-        device = torch.device('cuda', rank)
-        print(f"Running on rank {rank}.")
-    else:
-        rank = 0
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        print(f"Running on device {device}.")
+    print('in main')
+    try:
+        if hpc:
+            print('Initializing distributed process group...')
+            dist.init_process_group(backend='nccl')
+            print('Process group initialized.')
+            rank = dist.get_rank()
+            world_size = dist.get_world_size()
+            torch.cuda.set_device(rank)
+            device = torch.device('cuda', rank)
+            print(f"Running on rank {rank}.")
+        else:
+            rank = 0
+            device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+            print(f"Running on device {device}.")
+        print(f'Rank: {rank}')
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
     # Load data
     if cache_samples:
@@ -75,6 +79,10 @@ def main():
         X = load_data(dataset, T)
         paired_train, paired_test = get_cross_data(X, dataset, setting, batch_size, return_loader=False, train_samples=train_samples, test_samples=test_samples, threads=1)
 
+    # Trim data to desired length
+    paired_train.sampled_data = paired_train.sampled_data[:train_samples]
+    paired_test.sampled_data = paired_test.sampled_data[:test_samples]
+
     if save_samples:
         with open(f'data/{dataset}_{setting}_paired.pkl', 'wb') as f:
             pickle.dump({'train': paired_train, 'test': paired_test}, f)
@@ -96,7 +104,7 @@ def main():
     model = model.to(device)
 
     if hpc:
-        model = DDP(model, device_ids=[rank], output_device=rank)
+        model = DDP(model, device_ids=[rank], output_device=rank, find_unused_parameters=True)
 
     # Define optimizer
     # Only optimize parameters that require gradients (unfrozen parameters)
@@ -124,3 +132,9 @@ def main():
     # Save model
     if rank == 0:
         torch.save(model.state_dict(), 'model.pth')
+
+    if hpc:
+        dist.destroy_process_group()
+
+if __name__ == '__main__':
+    main()
