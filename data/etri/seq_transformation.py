@@ -5,10 +5,7 @@ import os.path as osp
 import numpy as np
 import pickle
 import logging
-import h5py
 from sklearn.model_selection import train_test_split
-
-is_ar = False
 
 root_path = './'
 stat_path = osp.join(root_path, 'statistics')
@@ -16,8 +13,7 @@ setup_file = osp.join(stat_path, 'setup.txt')
 camera_file = osp.join(stat_path, 'camera.txt')
 performer_file = osp.join(stat_path, 'performer.txt')
 replication_file = osp.join(stat_path, 'replication.txt')
-if is_ar: label_file = osp.join(stat_path, 'label.txt')
-else: label_file = osp.join(stat_path, 'performer.txt')
+label_file = osp.join(stat_path, 'label.txt')
 skes_name_file = osp.join(stat_path, 'skes_available_name.txt')
 
 denoised_path = osp.join(root_path, 'denoised_data')
@@ -95,11 +91,9 @@ def frame_translation(skes_joints, skes_name, frames_cnt):
         for f in range(num_frames):
             origin = ske_joints[f, 3:6]  # new origin: middle of the spine (joint-2)
             if (ske_joints[f, 75:] == 0).all():
-                ske_joints[f, :75] = (ske_joints[f, :75] - np.tile(origin, 25)) / \
-                                      dist[f] + np.tile(origin, 25)
+                ske_joints[f, :75] = (ske_joints[f, :75] - np.tile(origin, 25)) / dist[f] + np.tile(origin, 25)
             else:
-                ske_joints[f] = (ske_joints[f] - np.tile(origin, 50)) / \
-                                 dist[f] + np.tile(origin, 50)
+                ske_joints[f] = (ske_joints[f] - np.tile(origin, 50)) / dist[f] + np.tile(origin, 50)
 
         ske_name = skes_name[idx]
         ske_joints = remove_nan_frames(ske_name, ske_joints, nan_logger)
@@ -122,8 +116,7 @@ def align_frames(skes_joints, frames_cnt):
         num_frames = ske_joints.shape[0]
         num_bodies = 1 if ske_joints.shape[1] == 75 else 2
         if num_bodies == 1:
-            aligned_skes_joints[idx, :num_frames] = np.hstack((ske_joints,
-                                                               np.zeros_like(ske_joints)))
+            aligned_skes_joints[idx, :num_frames] = np.hstack((ske_joints, np.zeros_like(ske_joints)))
         else:
             aligned_skes_joints[idx, :num_frames] = ske_joints
 
@@ -137,13 +130,6 @@ def one_hot_vector(labels):
         labels_vector[idx, l] = 1
 
     return labels_vector
-
-def filter_data(skes_joints, labels, performers, cameras, frames_cnt):
-    # Keep only the data with labels <= 49
-    filtered_indices = [i for i, l in enumerate(labels) if l <= 49]
-    return (skes_joints[filtered_indices], labels[filtered_indices],
-            performers[filtered_indices], cameras[filtered_indices],
-            frames_cnt[filtered_indices])
 
 
 def split_train_val(train_indices, method='sklearn', ratio=0.05):
@@ -164,33 +150,21 @@ def split_train_val(train_indices, method='sklearn', ratio=0.05):
 
 
 def split_dataset(skes_joints, label, performer, camera, evaluation, save_path):
+    # Select validation set from training set    
     train_indices, test_indices = get_indices(performer, camera, evaluation)
-    m = 'sklearn'  # 'sklearn' or 'numpy'
-    # Select validation set from training set
-    train_indices, val_indices = split_train_val(train_indices, m)
 
     # Save labels and num_frames for each sequence of each data set
     train_labels = label[train_indices]
-    val_labels = label[val_indices]
     test_labels = label[test_indices]
 
-    # Save data into a .h5 file
-    tag = 'ar' if is_ar else 'ri'
-    h5file = h5py.File(osp.join(save_path, f"ETRI_{evaluation}_{tag}.h5"), 'w')
-    # Training set
-    h5file.create_dataset('x', data=skes_joints[train_indices])
-    train_one_hot_labels = one_hot_vector(train_labels)
-    h5file.create_dataset('y', data=train_one_hot_labels)
-    # Validation set
-    h5file.create_dataset('valid_x', data=skes_joints[val_indices])
-    val_one_hot_labels = one_hot_vector(val_labels)
-    h5file.create_dataset('valid_y', data=val_one_hot_labels)
-    # Test set
-    h5file.create_dataset('test_x', data=skes_joints[test_indices])
-    test_one_hot_labels = one_hot_vector(test_labels)
-    h5file.create_dataset('test_y', data=test_one_hot_labels)
+    train_x = skes_joints[train_indices]
+    train_y = one_hot_vector(train_labels)
+    test_x = skes_joints[test_indices]
+    test_y = one_hot_vector(test_labels)
 
-    h5file.close()
+    save_name = 'etri_%s.npz' % evaluation
+    np.savez(save_name, x_train=train_x, y_train=train_y, x_test=test_x, y_test=test_y)
+
 
 
 def get_indices(performer, camera, evaluation='CS'):
@@ -233,7 +207,8 @@ def get_indices(performer, camera, evaluation='CS'):
 if __name__ == '__main__':
     camera = np.loadtxt(camera_file, dtype=np.int32)  # camera id: 1, 2, 3
     performer = np.loadtxt(performer_file, dtype=np.int32)  # subject id: 1~40
-    label = np.loadtxt(performer_file, dtype=np.int32) - 1  # action label: 0~59
+    label = np.loadtxt(label_file, dtype=np.int32) - 1  # action label: 0~59
+    setup = np.loadtxt(setup_file, dtype=np.int32)  # camera id: 1~32
 
     frames_cnt = np.loadtxt(frames_file, dtype=np.int32)  # frames_cnt
     skes_name = np.loadtxt(skes_name_file, dtype=np.string_)
@@ -244,16 +219,13 @@ if __name__ == '__main__':
     skes_joints = seq_translation(skes_joints)
 
     skes_joints = align_frames(skes_joints, frames_cnt)  # aligned to the same frame length
-    
-    # filter to remove 2 actor actions
-    # skes_joints, label, performer, camera, frames_cnt = filter_data(
-    #     skes_joints, label, performer, camera, frames_cnt
-    # )
 
-    # evaluations = ['CS', 'CV']
-    # for evaluation in evaluations:
-    #     split_dataset(skes_joints, label, performer, camera, evaluation, save_path)
+    evaluations = ['CS', 'CV']
+    for evaluation in evaluations:
+        split_dataset(skes_joints, label, performer, camera, evaluation, save_path)
 
-    X = {skes_name[i].decode('utf-8'): skes_joints[i] for i in range(skes_joints.shape[0])}
-    with open('etri.pkl', 'wb') as f:
-        pickle.dump(X, f)
+    # print(skes_joints.shape)
+    # assert skes_joints.shape[0] == skes_name.shape[0]
+    # X = {skes_name[i].decode('utf-8'): skes_joints[i] for i in range(skes_joints.shape[0])}
+    # with open('etri.pkl', 'wb') as f:
+    #     pickle.dump(X, f)

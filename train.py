@@ -16,20 +16,20 @@ class Trainer:
         self.dataset = dataset
         self.rank = rank
 
-        # Setup loss
+        # Example of how you might combine the new + old losses:
+        # By default we have MSE, end-effector, smoothing, inception. 
+        # We also turn ON fid_vel with weight=1, and keep bone & foot at 0 for demonstration.
         losses = {
-            'mse': 1,
-            # 'l1': 1,
-            # 'smoothl1': 1,
-            # 'kl': 1,
-            # 'ce': 1,
-            'ee': 1,
-            'smoothing': 1,
-            # 'latent': 1,
-            # 'triplet': 1,
-            'inception': 1
+            'mse': 7.0,
+            'ee': 5.0,
+            'smoothing': 0.075,
+            'inception': 0.05,
+            'fid_vel': 1.0,    
+            'bone': 10.0,      
+            'foot': 3.0,       
         }
 
+        # If you have a DDP model, the real "encoder" submodule is at model.module.encoder
         if isinstance(model, torch.nn.parallel.DistributedDataParallel):
             encoder = model.module.encoder
         else:
@@ -37,10 +37,10 @@ class Trainer:
 
         self.loss = Loss(losses, device=device, dataset=dataset, encoder=encoder)
 
+        # Optional: wandb
         if self.wandb_project is not None and self.rank == 0:
             config = {
                 'lr': self.optimizer.param_groups[0]['lr'],
-                # 'batch_size': self.train_paired_loader.batch_size,
                 'num_epochs': self.num_epochs,
                 'train_samples': len(self.train_paired_loader),
                 'val_samples': len(self.val_paired_loader)
@@ -50,12 +50,14 @@ class Trainer:
             wandb.watch(self.model)
 
     def train(self):
-        if self.rank == 0: print("Starting Training (Autoregressive Motion Retargeting)...")
+        if self.rank == 0:
+            print("Starting Training (Autoregressive Motion Retargeting)...")
         self.model.train()
         for epoch in range(self.num_epochs):
             start = time.time()
             running_loss = 0.0
             running_losses = {key: 0.0 for key in self.loss.loss_weights.keys()}
+
             for batch_idx, (x1, x2, y1, y2, actors, actions) in enumerate(self.train_paired_loader):
                 x1 = x1.float().to(self.device)  # P1 A1
                 x2 = x2.float().to(self.device)  # P2 A2
@@ -68,101 +70,108 @@ class Trainer:
                 targets = torch.cat([y2, x2, y1, x1], dim=0)
 
                 N_total = inputs.size(0)
-                N = N_total
                 T = inputs.size(1)
-                D = inputs.size(2)
+                # D = inputs.size(2)  # not always used
                 M = 1
                 V = 25
                 C_in = 3
 
-                # Reshape data
-                source_motion = inputs.view(N, T, M, V, C_in).permute(0, 4, 1, 3, 2).contiguous()
-                dummy_skeleton = dummy.view(N, T, M, V, C_in).permute(0, 4, 1, 3, 2).contiguous()
-                target_motion = targets.view(N, T, M, V, C_in).permute(0, 4, 1, 3, 2).contiguous()
+                # Reshape data => (N, C, T, V, M)
+                source_motion = inputs.view(N_total, T, M, V, C_in).permute(0, 4, 1, 3, 2).contiguous()
+                dummy_skeleton = dummy.view(N_total, T, M, V, C_in).permute(0, 4, 1, 3, 2).contiguous()
+                target_motion = targets.view(N_total, T, M, V, C_in).permute(0, 4, 1, 3, 2).contiguous()
 
                 # Forward pass with teacher forcing
                 output = self.model(source_motion, dummy_skeleton, target_motion=target_motion, teacher_forcing_ratio=1.0)
 
-                # Compute loss between predicted frames and ground truth next frames
-                # output: (N, C_in, T-1, V, M)
-                # target_motion: (N, C_in, T, V, M)
-                target = target_motion[:, :, 1:, :, :]  # Ground truth next frames
+                # Compare output vs ground truth next frames
+                # output => (N, C_in, T-1, V, M)
+                # target => target_motion => (N, C_in, T, V, M)
+                # so we align: ground truth next frames = target_motion[:, :, 1:, :, :]
+                target = target_motion[:, :, 1:, :, :]
 
-                loss, losses = self.loss.loss(output, target, source_motion[:, :, 1:, :, :])
+                loss_val, losses_dict = self.loss.loss(output, target, source_motion[:, :, 1:, :, :])
 
-                # Backward and optimize
+                # Backprop
                 self.optimizer.zero_grad()
-                loss.backward()
+                loss_val.backward()
                 self.optimizer.step()
 
-                running_loss += loss.item()
-                for key, value in losses.items():
+                running_loss += loss_val.item()
+                for key, value in losses_dict.items():
                     running_losses[key] += value.item()
+
             end = time.time()
             avg_loss = running_loss / len(self.train_paired_loader)
-            losses = {key: value / len(self.train_paired_loader) for key, value in running_losses.items()}
+            epoch_losses = {key: value / len(self.train_paired_loader) for key, value in running_losses.items()}
+
             if self.rank == 0:
                 print(f'Epoch [{epoch+1}/{self.num_epochs}], Loss: {avg_loss:.4f}')
                 print(f'Time taken: {end - start:.2f} s')
-                print(losses)
+                print(epoch_losses)
 
-            # Evaluate on validation data
+            # Validation
             vstart = time.time()
             val_loss, val_losses = self.evaluate()
             vend = time.time()
             if self.rank == 0:
                 print(f'Validation Time taken: {vend - vstart:.2f} s')
 
+            # Log
             if self.wandb_project is not None and self.rank == 0:
                 import wandb
-                loss_info = {key: value for key, value in losses.items()}
+                loss_info = {key: value for key, value in epoch_losses.items()}
                 val_loss_info = {f"Val {key}": value for key, value in val_losses.items()}
-                wandb.log({'Loss': avg_loss, 'Val Loss': val_loss, **loss_info, **val_loss_info, 'Train Time': end - start, 'Val Time': vend - vstart})
+                wandb.log({
+                    'Loss': avg_loss,
+                    'Val Loss': val_loss,
+                    **loss_info,
+                    **val_loss_info,
+                    'Train Time': end - start,
+                    'Val Time': vend - vstart
+                })
 
     @torch.no_grad()
     def evaluate(self):
         self.model.eval()
         total_loss = 0.0
         losses = {key: 0.0 for key in self.loss.loss_weights.keys()}
-        with torch.no_grad():
-            for batch_idx, (x1, x2, y1, y2, actors, actions) in enumerate(self.val_paired_loader):
-                x1 = x1.float().to(self.device)  # P1 A1
-                x2 = x2.float().to(self.device)  # P2 A2
-                y1 = y1.float().to(self.device)  # P1 A2
-                y2 = y2.float().to(self.device)  # P2 A1
 
-                # Combine inputs and targets using the four combinations
-                inputs  = torch.cat([x1, y1, x2, y2], dim=0)
-                dummy   = torch.cat([x2, y2, x1, y1], dim=0)
-                targets = torch.cat([y2, x2, y1, x1], dim=0)
+        for batch_idx, (x1, x2, y1, y2, actors, actions) in enumerate(self.val_paired_loader):
+            x1 = x1.float().to(self.device)  # P1 A1
+            x2 = x2.float().to(self.device)  # P2 A2
+            y1 = y1.float().to(self.device)  # P1 A2
+            y2 = y2.float().to(self.device)  # P2 A1
 
-                N_total = inputs.size(0)
-                N = N_total
-                T = inputs.size(1)
-                D = inputs.size(2)
-                M = 1
-                V = 25
-                C_in = 3
+            # Combine inputs and targets
+            inputs  = torch.cat([x1, y1, x2, y2], dim=0)
+            dummy   = torch.cat([x2, y2, x1, y1], dim=0)
+            targets = torch.cat([y2, x2, y1, x1], dim=0)
 
-                # Reshape data
-                source_motion = inputs.view(N, T, M, V, C_in).permute(0, 4, 1, 3, 2).contiguous()
-                dummy_skeleton = dummy.view(N, T, M, V, C_in).permute(0, 4, 1, 3, 2).contiguous()
-                target_motion = targets.view(N, T, M, V, C_in).permute(0, 4, 1, 3, 2).contiguous()
+            N_total = inputs.size(0)
+            T = inputs.size(1)
+            M = 1
+            V = 25
+            C_in = 3
 
-                # Forward pass without teacher forcing (autoregressive generation)
-                output = self.model(source_motion, dummy_skeleton, teacher_forcing_ratio=0.0)
+            source_motion = inputs.view(N_total, T, M, V, C_in).permute(0, 4, 1, 3, 2).contiguous()
+            dummy_skeleton = dummy.view(N_total, T, M, V, C_in).permute(0, 4, 1, 3, 2).contiguous()
+            target_motion = targets.view(N_total, T, M, V, C_in).permute(0, 4, 1, 3, 2).contiguous()
 
-                # Compute loss
-                target = target_motion[:, :, 1:, :, :]  # Ground truth next frames
+            # Forward pass, no teacher forcing
+            output = self.model(source_motion, dummy_skeleton, teacher_forcing_ratio=0.0)
 
-                loss, losses_ = self.loss.loss(output, target, source_motion[:, :, 1:, :, :])
-                total_loss += loss.item()
+            # GT next frames
+            target = target_motion[:, :, 1:, :, :]
 
-                for key, value in losses_.items():
-                    losses[key] += value.item()
+            loss_val, losses_dict = self.loss.loss(output, target, source_motion[:, :, 1:, :, :])
+            total_loss += loss_val.item()
+            for key, val in losses_dict.items():
+                losses[key] += val.item()
 
         avg_loss = total_loss / len(self.val_paired_loader)
-        losses = {key: value / len(self.val_paired_loader) for key, value in losses.items()}
+        losses = {key: val / len(self.val_paired_loader) for key, val in losses.items()}
+
         if self.rank == 0:
             print(f'Validation Loss: {avg_loss:.4f}')
             print(losses)
