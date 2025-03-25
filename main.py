@@ -22,7 +22,7 @@ def parse_bool_env(varname, default=False):
 
 # Get dataset from argparse
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataset', type=str, default='ntu120', help='Dataset to use (ntu or ntu120)')
+parser.add_argument('--dataset', type=str, default='ntu', help='Dataset to use (ntu or ntu120 or etri)')
 parser.add_argument('--hpc', action='store_true', help='Enable HPC distributed mode.')
 args = parser.parse_args()
 

@@ -87,6 +87,20 @@ def load_data(dataset, T=64):
     
     return processed_data
 
+def get_num_classes(dataset, type='ar'):
+    """
+    Returns the number of classes for the specified dataset and type.
+    'ar' for action recognition, 'pt' for pose tracking (if applicable).
+    """
+    assert dataset in datasets, f'Dataset {dataset} not found'
+    
+    if type == 'ar':
+        return datasets[dataset]['num_class']
+    elif type == 'ri':
+        return datasets[dataset]['num_actor']
+    else:
+        raise ValueError(f'Unknown type {type}. Use "ar" or "pt".')
+
 
 def parse_file_name(file_name, dataset='ntu'):
     """

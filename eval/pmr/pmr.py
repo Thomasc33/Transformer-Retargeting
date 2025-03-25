@@ -3,8 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.init as init
 
-from ...data import datasets
-
 encoded_channels = (128, 16)
 T=75
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -254,7 +252,7 @@ class Decoder2D(nn.Module):
 
 
 class PMR(nn.Module):
-    def __init__(self, adv_lr=1e-4, use_adv=True, dataset='ntu', batch_size=32):
+    def __init__(self, adv_lr=1e-4, use_adv=True, dataset='ntu', batch_size=32, datasets={}):
         super(PMR, self).__init__()
         self.batch_size = batch_size
 
@@ -265,8 +263,8 @@ class PMR(nn.Module):
 
         # Dataset info
         assert dataset in datasets.keys(), 'Dataset not found'
-        self.privacy_classes = datasets[dataset]['self.privacy_classes']
-        self.utility_classes = datasets[dataset]['self.utility_classes']
+        self.privacy_classes = datasets[dataset]['num_actor']
+        self.utility_classes = datasets[dataset]['num_class']
 
         # Adversarial Models
         self.use_adv = use_adv

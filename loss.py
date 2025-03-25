@@ -31,6 +31,7 @@ class Loss():
         self.fid_vel = 'fid_vel' in loss_weights       # FID on velocities
         self.bone = 'bone' in loss_weights             # Bone-length loss
         self.foot = 'foot' in loss_weights             # Foot-contact loss
+        self.joint_limit = 'joint_limit' in loss_weights
 
         # Loss weights dictionary
         self.loss_weights = loss_weights
@@ -38,6 +39,31 @@ class Loss():
         self.device = device
         self.dataset = dataset
         self.encoder = encoder
+
+        # Below is a full set of angle definitions for NTU's 25-joint skeleton
+        # Each entry = ((parent, joint, child) : (min_angle_deg, max_angle_deg))
+        # You can tweak these ranges as needed.
+        self.joint_angle_ranges_ntu = {
+            (0, 1, 20):  (-95,  95),   # HipCenter -> Spine -> SpineShoulder
+            (1, 20, 2):  (-120, 120), # Spine -> SpineShoulder -> Neck
+            (20, 2, 3):  (-45,  45),  # SpineShoulder -> Neck -> Head
+            (2, 3, 4):   (-95,  95),  # Neck -> Head -> LeftShoulder
+            (20, 8, 9):  (-120, 120), # SpineShoulder -> RightShoulder -> RightElbow
+            (8, 9, 10):  (-120, 120), # RightShoulder -> RightElbow -> RightWrist
+            (9, 10, 11): (-120, 120), # RightElbow -> RightWrist -> RightHand
+            (20, 16, 17):(-120, 120), # SpineShoulder -> RightHip -> RightKnee
+            (16, 17, 18):(-120, 120), # RightHip -> RightKnee -> RightAnkle
+            (17, 18, 19):(-120, 120), # RightKnee -> RightAnkle -> RightFoot
+            (1, 5, 6):   (-120, 120), # Spine -> LeftShoulder -> LeftElbow
+            (5, 6, 7):   (-120, 120), # LeftShoulder -> LeftElbow -> LeftWrist
+            (1, 12, 13): (-120, 120), # Spine -> LeftHip -> LeftKnee
+            (12, 13, 14):(-120, 120), # LeftHip -> LeftKnee -> LeftAnkle
+            (13, 14, 15):(-120, 120), # LeftKnee -> LeftAnkle -> LeftFoot
+            (8, 20, 21): (-120, 120), # RightShoulder -> SpineShoulder -> LeftHandTip
+            (20, 21, 22):(-120, 120), # SpineShoulder -> LeftHandTip -> LeftThumb
+            (8, 20, 23): (-120, 120), # RightShoulder -> SpineShoulder -> RightHandTip
+            (20, 23, 24):(-120, 120), # SpineShoulder -> RightHandTip -> RightThumb
+        }
 
     # -----------------
     # Standard losses
@@ -275,6 +301,51 @@ class Loss():
         loss = torch.mean(loss_mat)
         return loss
 
+    def _compute_angle_between(self, v1, v2):
+        """
+        Computes the angle (in degrees) between v1, v2 of shape (..., 3).
+        angle = arccos((v1 • v2) / (||v1|| * ||v2||)).
+        """
+        dot = (v1 * v2).sum(dim=-1)  # (...)
+        norm1 = torch.norm(v1, dim=-1)
+        norm2 = torch.norm(v2, dim=-1)
+        denom = norm1 * norm2 + 1e-6
+        cos_val = torch.clamp(dot / denom, -1.0, 1.0)
+        return torch.acos(cos_val) * (180.0 / math.pi)
+
+    def joint_limit_loss(self, output):
+        """
+        For each (parent, joint, child) in self.joint_angle_ranges_ntu, 
+        compute the angle at 'joint' and penalize angles outside [min_deg, max_deg].
+        """
+        if self.dataset != 'ntu':
+            return torch.tensor(0.0, device=self.device)
+
+        # (N, C=3, T, V, M=1) => (N, T, V, 3)
+        out = output.squeeze(-1).permute(0, 2, 3, 1)
+
+        angle_loss_accumulator = []
+        for (p, j, c), (min_deg, max_deg) in self.joint_angle_ranges_ntu.items():
+            # vectors: parent->joint, joint->child => (N, T, 3)
+            pj_vec = out[:, :, j, :] - out[:, :, p, :]
+            jc_vec = out[:, :, c, :] - out[:, :, j, :]
+            angles = self._compute_angle_between(pj_vec, jc_vec)  # (N, T)
+
+            # measure violation outside [min_deg, max_deg]
+            below_mask = (angles < min_deg).float()
+            above_mask = (angles > max_deg).float()
+
+            below_violation = (min_deg - angles) * below_mask
+            above_violation = (angles - max_deg) * above_mask
+            angle_loss_accumulator.append(below_violation + above_violation)
+
+        if not angle_loss_accumulator:
+            return torch.tensor(0.0, device=self.device)
+
+        # mean over all frames, joints, batch
+        angle_loss = torch.mean(torch.stack(angle_loss_accumulator, dim=0))
+        return angle_loss
+
     # -----------------
     # Helpers
     # -----------------
@@ -382,6 +453,8 @@ class Loss():
             losses['bone'] = self.bone_length_loss(output, target)
         if self.foot:
             losses['foot'] = self.foot_contact_loss(output, target)
+        if self.joint_limit:
+            losses['joint_limit'] = self.joint_limit_loss(output)
 
         # Weighted sum
         total_loss = sum([losses[k] * self.loss_weights[k] for k in self.loss_weights if k in losses])

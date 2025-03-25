@@ -26,7 +26,8 @@ class Trainer:
             'inception': 0.05,
             'fid_vel': 1.0,    
             'bone': 10.0,      
-            'foot': 3.0,       
+            'foot': 3.0,
+            'joint_limit': 1.0    
         }
 
         # If you have a DDP model, the real "encoder" submodule is at model.module.encoder

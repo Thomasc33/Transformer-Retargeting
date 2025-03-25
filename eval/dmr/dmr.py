@@ -3,8 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.init as init
 
-from ...data import datasets
-
 dmr_encoded_channels = (256, 32)
 T=75
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -309,14 +307,14 @@ class DMR_Decoder2D(nn.Module):
         return x
     
 class DMR(nn.Module):
-    def __init__(self, adv_lr=1e-4, use_adv=False, dataset='ntu60', batch_size=32):
+    def __init__(self, adv_lr=1e-4, use_adv=False, dataset='ntu60', batch_size=32, datasets={}):
         super(DMR, self).__init__()
         self.batch_size = batch_size
 
         # Dataset Info
         assert dataset in datasets.keys(), 'Dataset not found'
-        self.utility_classes = datasets[dataset]['self.utility_classes']
-        self.privacy_classes = datasets[dataset]['self.privacy_classes']
+        self.utility_classes = datasets[dataset]['num_class']
+        self.privacy_classes = datasets[dataset]['num_actor']
 
         # AutoEncoder Models
         if one_dimension_conv:
@@ -328,27 +326,6 @@ class DMR(nn.Module):
             self.dynamic_encoder = DMR_Encoder2D()
             self.decoder = DMR_Decoder1D()
 
-        # Adversarial Models
-        self.use_adv = use_adv
-        if use_adv:
-            self.priv_adv = Adversary_Emb(self.privacy_classes).to(device) # input = dynamic embedding, output = privacy class
-            self.priv_coop = Adversary_Emb(self.privacy_classes).to(device) # input = static embedding, output = privacy class
-            self.util_adv = Adversary_Emb(self.utility_classes).to(device) # input = static embedding, output = utility class
-            self.util_coop = Adversary_Emb(self.utility_classes).to(device) # input = dynamic embedding, output = utility class
-            self.discriminator = Discriminator().to(device)
-
-            self.priv_optim = torch.optim.AdamW(self.priv_adv.parameters(), lr=adv_lr)
-            self.priv_coop_optim = torch.optim.AdamW(self.priv_coop.parameters(), lr=adv_lr)
-            self.util_optim = torch.optim.AdamW(self.util_adv.parameters(), lr=adv_lr)
-            self.util_coop_optim = torch.optim.AdamW(self.util_coop.parameters(), lr=adv_lr)
-            self.discriminator_optim = torch.optim.AdamW(self.discriminator.parameters(), lr=adv_lr)
-
-            # Freeze Adversarial Models
-            self.priv_adv.eval()
-            self.priv_coop.eval()
-            self.util_adv.eval()
-            self.util_coop.eval()
-            self.discriminator.eval()
 
         # Loss Functions
         self.triplet_loss = nn.TripletMarginLoss()
@@ -534,61 +511,7 @@ class DMR(nn.Module):
             latent_consistency_loss = (self.latent_consistency_loss(d1, d12) + self.latent_consistency_loss(d2, d21) + self.latent_consistency_loss(s1, s21) + self.latent_consistency_loss(s2, s12)) / 4
             if verbose: print('Latent Consistency Loss: ', latent_consistency_loss.item())
 
-        # adversarial loss
-        if self.use_adv and emb_adv:
-            actor_y1, actor_y2 = actors[0] - 1, actors[1] - 1
-            actor_y1, actor_y2 = torch.eye(self.privacy_classes)[actor_y1.long()].to(device), torch.eye(self.privacy_classes)[actor_y2.long()].to(device)
-            action_y1, action_y2 = actions[0] - 1, actions[1] - 1
-            action_y1, action_y2 = torch.eye(self.utility_classes)[action_y1.long()].to(device), torch.eye(self.utility_classes)[action_y2.long()].to(device)
-
-            # x1 => d1 s1
-            # x2 => d2 s2
-
-            # d1 => p1
-            # d2 => p2
-            # s1 => a1
-            # s2 => a2
-            
-            # actor_y1 = p1
-            # actor_y2 = p2
-
-            # action_y1 = a1
-            # action_y2 = a2
-
-
-            # privacy loss (adversarial)
-            privacy_loss_adv = (-self.adv_loss(self.priv_adv, d1, actor_y1) -self.adv_loss(self.priv_adv, d2, actor_y2))/2
-            privacy_acc_adv = (self.adv_accuracy(self.priv_adv, d1, actor_y1) + self.adv_accuracy(self.priv_adv, d2, actor_y2))/2
-
-            # privacy loss (coop)
-            privacy_loss_coop = (self.adv_loss(self.priv_coop, s1, actor_y1) + self.adv_loss(self.priv_coop, s2, actor_y2))/2
-            privacy_acc_coop = (self.adv_accuracy(self.priv_coop, s1, actor_y1) + self.adv_accuracy(self.priv_coop, s2, actor_y2))/2
-
-            # utility loss (adversarial)
-            utility_loss_adv = (-self.adv_loss(self.util_adv, s1, action_y1) -self.adv_loss(self.util_adv, s2, action_y2))/2
-            utility_acc_adv = (self.adv_accuracy(self.util_adv, s1, action_y1) + self.adv_accuracy(self.util_adv, s2, action_y2))/2
-
-            # utility loss (coop)
-            utility_loss_coop = (self.adv_loss(self.util_coop, d1, action_y1) + self.adv_loss(self.util_coop, d2, action_y2))/2
-            utility_acc_coop = (self.adv_accuracy(self.util_coop, d1, action_y1) + self.adv_accuracy(self.util_coop, d2, action_y2))/2
-
-            privacy_loss = privacy_loss_adv * self.lambda_adv_priv_adv + privacy_loss_coop * self.lambda_adv_priv_coop
-            utility_loss = utility_loss_adv * self.lambda_adv_util_adv + utility_loss_coop * self.lambda_adv_util_coop
-
-            if verbose: 
-                print('Privacy Loss (Adversarial): ', privacy_loss_adv.item(), '\tPrivacy Loss (Coop): ', privacy_loss_coop.item())
-                print('Utility Loss (Adversarial): ', utility_loss_adv.item(), '\tUtility Loss (Coop): ', utility_loss_coop.item())
-                print('Privacy Accuracy (Adversarial): ', privacy_acc_adv.item(), '\tPrivacy Accuracy (Coop): ', privacy_acc_coop.item())
-                print('Utility Accuracy (Adversarial): ', utility_acc_adv.item(), '\tUtility Accuracy (Coop): ', utility_acc_coop.item())
-            
-
-        if self.use_adv and discrim_adv:
-            # discrimnator (adversarial)
-            discrim_out_fake = self.discriminator(torch.cat((x1_hat, x2_hat, y1_hat, y2_hat, x1_hat_, x2_hat_, y1_hat_, y2_hat_)))
-            discriminator_loss = self.bce_loss(discrim_out_fake, torch.ones_like(discrim_out_fake))
-            discriminator_acc = torch.sum(torch.round(discrim_out_fake) == 0).float() / (8 * self.batch_size)
-            if verbose: print('Discriminator Loss: ', discriminator_loss.item(), '\tDiscriminator Accuracy: ', discriminator_acc.item())
-
+        
         losses = {
             'rec_loss': rec_loss.item(),
             'cross_loss': cross_loss.item(),
@@ -667,45 +590,6 @@ class DMR(nn.Module):
             smoothing_loss = self.smoothing_loss(x, x_hat)
             if verbose: print('Smoothing Loss: ', smoothing_loss.item())
 
-        # Adversarial Loss
-        if self.use_adv and emb_adv:
-            actor_y = actors - 1
-            actor_y = torch.eye(self.privacy_classes)[actor_y.long()].to(device)
-            action_y = actions - 1
-            action_y = torch.eye(self.utility_classes)[action_y.long()].to(device)
-
-            # latent privacy loss (adv)
-            privacy_loss_adv = -self.adv_loss(self.priv_adv, d, actor_y)
-            privacy_acc_adv = self.adv_accuracy(self.priv_adv, d, actor_y)
-
-            # latent privacy loss (coop)
-            privacy_loss_coop = self.adv_loss(self.priv_coop, s, actor_y)
-            privacy_acc_coop = self.adv_accuracy(self.priv_coop, s, actor_y)
-
-            # latent utility loss (adv)
-            utility_loss_adv = -self.adv_loss(self.util_adv, s, action_y)
-            utility_acc_adv = self.adv_accuracy(self.util_adv, s, action_y)
-
-            # latent utility loss (coop)
-            utility_loss_coop = self.adv_loss(self.util_coop, d, action_y)
-            utility_acc_coop = self.adv_accuracy(self.util_coop, d, action_y)
-
-            privacy_loss = privacy_loss_adv * self.lambda_adv_priv_adv + privacy_loss_coop * self.lambda_adv_priv_coop
-            utility_loss = utility_loss_adv * self.lambda_adv_util_adv + utility_loss_coop * self.lambda_adv_util_coop
-
-            if verbose: 
-                print('Privacy Loss Adv: ', privacy_loss_adv.item(), '\tPrivacy Loss Coop: ', privacy_loss_coop.item(), '\tPrivacy Loss: ', privacy_loss.item())
-                print('Utility Loss Adv: ', utility_loss_adv.item(), '\tUtility Loss Coop: ', utility_loss_coop.item(), '\tUtility Loss: ', utility_loss.item())
-                print('Privacy Accuracy Adv: ', privacy_acc_adv.item(), '\tPrivacy Accuracy Coop: ', privacy_acc_coop.item())
-                print('Utility Accuracy Adv: ', utility_acc_adv.item(), '\tUtility Accuracy Coop: ', utility_acc_coop.item())
-
-
-        if self.use_adv and discrim_adv:
-            # discrimnator (adversarial)
-            discrim_out_fake = self.discriminator(x_hat)
-            discriminator_loss = self.bce_loss(discrim_out_fake, torch.ones_like(discrim_out_fake))
-            discriminator_acc = torch.sum(torch.round(discrim_out_fake) == 0).float() / (self.batch_size)
-            if verbose: print('Discriminator Loss: ', discriminator_loss.item(), '\tDiscriminator Accuracy: ', discriminator_acc.item())
 
         losses = {
             'rec_loss': rec_loss.item(),
@@ -796,11 +680,6 @@ class DMR(nn.Module):
             self.static_encoder.eval()
             self.dynamic_encoder.eval()
             self.decoder.eval()
-            self.priv_adv.eval()
-            self.priv_coop.eval()
-            self.util_adv.eval()
-            self.util_coop.eval()
-            self.discriminator.eval()
         else:
             self.static_encoder.train()
             self.dynamic_encoder.train()
