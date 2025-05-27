@@ -38,31 +38,45 @@ class SGN(nn.Module):
         # Dynamic Representation
         bs, step, dim = input.size()
 
+        # Create a tensor containing both spatial and temporal information
         self.spa = self.one_hot(bs, 25, self.seg)
-        self.spa = self.spa.permute(0, 3, 2, 1).cuda()
+        self.spa = self.spa.permute(0, 3, 2, 1)
         self.tem = self.one_hot(bs, self.seg, 25)
-        self.tem = self.tem.permute(0, 3, 1, 2).cuda()
+        self.tem = self.tem.permute(0, 3, 1, 2)
 
+        # Input dimensions expected: [batch_size, seg, num_joints*3]
+        # For a single actor, we have 25 joints * 3 channels = 75 dimensions
         num_joints = dim // 3
+
+        # Reshape to [batch_size, 3, num_joints, seg] for processing
         input = input.view((bs, step, num_joints, 3))
         input = input.permute(0, 3, 2, 1).contiguous()
+
+        # Compute differences between consecutive frames for motion features
         dif = input[:, :, :, 1:] - input[:, :, :, 0:-1]
         dif = torch.cat(
             [dif.new(bs, dif.size(1), num_joints, 1).zero_(), dif], dim=-1)
+
+        # Apply embeddings
         pos = self.joint_embed(input)
         tem1 = self.tem_embed(self.tem)
         spa1 = self.spa_embed(self.spa)
         dif = self.dif_embed(dif)
+
+        # Combine position and motion features
         dy = pos + dif
+
         # Joint-level Module
         input = torch.cat([dy, spa1], 1)
         g = self.compute_g1(input)
         input = self.gcn1(input, g)
         input = self.gcn2(input, g)
         input = self.gcn3(input, g)
+
         # Frame-level Module
         input = input + tem1
         input = self.cnn(input)
+
         # Classification
         output = self.maxpool(input)
         output = torch.flatten(output, 1)
@@ -71,23 +85,28 @@ class SGN(nn.Module):
         return output
 
     def one_hot(self, bs, spa, tem):
+        # Get the device from the model parameters
+        device = next(self.parameters()).device
 
-        y = torch.arange(spa).unsqueeze(-1)
-        y_onehot = torch.FloatTensor(spa, spa)
+        # Create tensors on the correct device
+        y = torch.arange(spa, device=device).unsqueeze(-1)
+        y_onehot = torch.zeros(spa, spa, device=device)
 
-        y_onehot.zero_()
+        # Create one-hot encoding
         y_onehot.scatter_(1, y, 1)
 
+        # Expand dimensions and repeat
         y_onehot = y_onehot.unsqueeze(0).unsqueeze(0)
         y_onehot = y_onehot.repeat(bs, tem, 1, 1)
 
         return y_onehot
-    
+
     def eval_single(self, x):
+        # This method handles the single-actor case for evaluation
         self.spa = self.one_hot(1, 25, self.seg)
-        self.spa = self.spa.permute(0, 3, 2, 1).cuda()
+        self.spa = self.spa.permute(0, 3, 2, 1)
         self.tem = self.one_hot(1, self.seg, 25)
-        self.tem = self.tem.permute(0, 3, 1, 2).cuda()
+        self.tem = self.tem.permute(0, 3, 1, 2)
 
         return self.forward(x)
 
@@ -193,4 +212,4 @@ class compute_g_spa(nn.Module):
         g3 = g1.matmul(g2)
         g = self.softmax(g3)
         return g
-    
+

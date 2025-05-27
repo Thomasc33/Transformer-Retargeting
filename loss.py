@@ -26,8 +26,6 @@ class Loss():
         self.latent = 'latent' in loss_weights
         self.triplet = 'triplet' in loss_weights
         self.inception = 'inception' in loss_weights
-
-        # Newly added toggles
         self.fid_vel = 'fid_vel' in loss_weights       # FID on velocities
         self.bone = 'bone' in loss_weights             # Bone-length loss
         self.foot = 'foot' in loss_weights             # Foot-contact loss
@@ -70,16 +68,16 @@ class Loss():
     # -----------------
     def mse_loss(self, output, target):
         return F.mse_loss(output, target)
-    
+
     def l1_loss(self, output, target):
         return F.l1_loss(output, target)
-    
+
     def smoothl1_loss(self, output, target):
         return F.smooth_l1_loss(output, target)
-    
+
     def kl_loss(self, output, target):
         return F.kl_div(output, target)
-    
+
     def ce_loss(self, output, target):
         return F.cross_entropy(output, target)
 
@@ -89,9 +87,9 @@ class Loss():
     def ee_loss(self, output, target):
         """
         An end-effector velocity loss for NTU/ETRI style skeletons.
-        Normalizes by chain lengths, measuring how different the end-effector 
+        Normalizes by chain lengths, measuring how different the end-effector
         velocities are from target velocities.
-        Reference: sometimes used in motion-retargeting tasks to ensure the 
+        Reference: sometimes used in motion-retargeting tasks to ensure the
         extremities (feet, hands, head) track well.
         """
         assert self.dataset in ee_chains, f"Dataset {self.dataset} not supported for end effector loss"
@@ -131,12 +129,16 @@ class Loss():
     # -----------------
     def smoothing_loss(self, output, target):
         """
-        Encourages smooth transitions, comparing frame-to-frame differences 
+        Encourages smooth transitions, comparing frame-to-frame differences
         in the target vs. the predicted output.
         """
         # (N, C, T, V, M) => remove M
         output = output.squeeze(-1)  # (N, C, T, V)
         target = target.squeeze(-1)  # (N, C, T, V)
+
+        # Check for degenerate cases
+        if target.size(2) <= 1:  # T dimension too small
+            return torch.tensor(0.0, device=self.device, requires_grad=True)
 
         # Compute squared differences along time dimension
         diff_y = torch.sum((target[:, :, 1:, :] - target[:, :, :-1, :]) ** 2, dim=1)  # (N, T-1, V)
@@ -145,8 +147,14 @@ class Loss():
         # L1 difference of these sums => shape (N, T-1, V)
         abs_diff = torch.abs(diff_y - diff_y_pred)
         # sum over all, then average
-        loss = abs_diff.sum()  
-        total_loss = torch.sqrt(loss) / (target.size(1) * target.size(3))  # Normalization
+        loss = abs_diff.sum()
+
+        # Safe normalization
+        normalizer = target.size(1) * target.size(3)
+        if normalizer == 0:
+            return torch.tensor(0.0, device=self.device, requires_grad=True)
+
+        total_loss = torch.sqrt(torch.clamp(loss, min=1e-12)) / normalizer
 
         return total_loss
 
@@ -156,29 +164,30 @@ class Loss():
     def latent_loss(self, output, target):
         """
         Placeholder for a style-latent or content-latent loss.
-        Could compare latent distributions of the motion. 
+        Could compare latent distributions of the motion.
         Not implemented.
         """
-        return torch.tensor(0.0, device=self.device)
+        return torch.tensor(0.0, device=self.device, requires_grad=True)
 
     def triplet_loss(self, output, target, input):
         """
         Placeholder for a standard triplet margin loss.
-        Typically used if you have anchor/positive/negative motions 
-        to enforce a margin in latent space. 
+        Typically used if you have anchor/positive/negative motions
+        to enforce a margin in latent space.
         Not implemented.
         """
-        return torch.tensor(0.0, device=self.device)
-    
+        return torch.tensor(0.0, device=self.device, requires_grad=True)
+
     # -----------------
     # Inception-like loss
     # -----------------
-    @torch.no_grad()
     def inception_loss(self, output, target):
         """
         Compares the features from self.encoder(output) and self.encoder(target).
-        This is like a naive version of 'inception distance' for motion, 
+        This is like a naive version of 'inception distance' for motion,
         but we rely on the 'encoder' to extract features.
+
+        Note: Removed @torch.no_grad() to allow gradient computation.
         """
         # Expand time dimension (fake) for alignment if needed
         output = torch.cat([output, torch.zeros_like(output[:, :, :1, :, :])], dim=2)
@@ -203,7 +212,7 @@ class Loss():
 
         # If T-1 < 2, can't compute cov meaningfully. Just return 0
         if out.size(1) < 2:
-            return torch.tensor(0.0, device=self.device)
+            return torch.tensor(0.0, device=self.device, requires_grad=True)
 
         # Compute velocity along time dimension
         # out[:, 1:, ...] - out[:, :-1, ...] => shape (N, T-2, V, 3)
@@ -227,21 +236,21 @@ class Loss():
         Enforces consistent bone lengths between generated motion and the target.
         For each dataset, we define a typical bone list. Then we compute
         the difference in bone length for each pair. Summation or average over them.
-        
+
         Inspired by typical skeleton constraints in e.g. [Holden et al. 2016, 2017].
         """
         # (N, C=3, T, V, M=1)
         out = output.squeeze(-1).permute(0, 2, 3, 1)  # (N, T, V, 3)
         tgt = target.squeeze(-1).permute(0, 2, 3, 1)
 
-        # We define adjacency of NTU (or ETRI) for "bones". 
-        # You can refine or load from the official graph. 
+        # We define adjacency of NTU (or ETRI) for "bones".
+        # You can refine or load from the official graph.
         # For brevity, let's define a small adjacency for 25-joint skeleton:
         bone_pairs = bone_pairs_dict.get(self.dataset, [])
 
         if len(bone_pairs) == 0:
             # If no bone pairs defined for this dataset, no penalty
-            return torch.tensor(0.0, device=self.device)
+            return torch.tensor(0.0, device=self.device, requires_grad=True)
 
         # We'll compute the MSE difference in bone lengths frame by frame
         # across all bones.
@@ -259,10 +268,10 @@ class Loss():
 
     def foot_contact_loss(self, output, target):
         """
-        A simplified foot-sliding penalty. 
-        We check frames in which the target's foot is presumably contacting 
+        A simplified foot-sliding penalty.
+        We check frames in which the target's foot is presumably contacting
         (velocity < threshold). Then we penalize the predicted foot velocity in those frames.
-        
+
         This approach is naive because it doesn't consider absolute foot height or ground plane,
         but it's a common trick in mocap foot contact constraints (ref. [Holden 2017]).
         """
@@ -277,7 +286,7 @@ class Loss():
         # Foot-joint indices (rough guess for NTU)
         foot_joints = foot_indices_dict.get(self.dataset, [])
         if len(foot_joints) == 0:
-            return torch.tensor(0.0, device=self.device)
+            return torch.tensor(0.0, device=self.device, requires_grad=True)
 
         # Subselect foot joints => shape (N, T-1, len(feet), 3)
         out_foot_vel = out_vel[:, :, foot_joints, :]
@@ -289,7 +298,7 @@ class Loss():
 
         # Threshold to decide "contact"
         threshold = 0.05
-        # Build a mask of shape (N, T-1, #feet). 
+        # Build a mask of shape (N, T-1, #feet).
         # True => foot contact in target
         contact_mask = (tgt_foot_speed < threshold).float()
 
@@ -315,11 +324,11 @@ class Loss():
 
     def joint_limit_loss(self, output):
         """
-        For each (parent, joint, child) in self.joint_angle_ranges_ntu, 
+        For each (parent, joint, child) in self.joint_angle_ranges_ntu,
         compute the angle at 'joint' and penalize angles outside [min_deg, max_deg].
         """
         if self.dataset != 'ntu':
-            return torch.tensor(0.0, device=self.device)
+            return torch.tensor(0.0, device=self.device, requires_grad=True)
 
         # (N, C=3, T, V, M=1) => (N, T, V, 3)
         out = output.squeeze(-1).permute(0, 2, 3, 1)
@@ -340,7 +349,7 @@ class Loss():
             angle_loss_accumulator.append(below_violation + above_violation)
 
         if not angle_loss_accumulator:
-            return torch.tensor(0.0, device=self.device)
+            return torch.tensor(0.0, device=self.device, requires_grad=True)
 
         # mean over all frames, joints, batch
         angle_loss = torch.mean(torch.stack(angle_loss_accumulator, dim=0))
@@ -356,11 +365,31 @@ class Loss():
           mu: (D,)
           sigma: (D, D)
         """
+        # Check for empty or invalid input
+        if arr.size(0) <= 1:
+            # Return zeros for degenerate case
+            D = arr.size(1)
+            mu = torch.zeros(D, device=arr.device, dtype=arr.dtype)
+            sigma = torch.eye(D, device=arr.device, dtype=arr.dtype) * 1e-6
+            return mu, sigma
+
         mu = torch.mean(arr, dim=0, keepdim=True)  # shape (1, D)
         diff = arr - mu
-        # Cov => E[xx^T]
-        cov = torch.matmul(diff.transpose(0, 1), diff) / (arr.size(0) - 1)
-        return mu.view(-1), cov
+
+        # Add numerical stability
+        N = arr.size(0)
+        if N <= 1:
+            # Fallback for edge case
+            D = arr.size(1)
+            sigma = torch.eye(D, device=arr.device, dtype=arr.dtype) * 1e-6
+        else:
+            # Cov => E[xx^T] with numerical stability
+            cov = torch.matmul(diff.transpose(0, 1), diff) / max(N - 1, 1)
+            # Add small regularization to diagonal for numerical stability
+            D = cov.size(0)
+            sigma = cov + torch.eye(D, device=arr.device, dtype=arr.dtype) * 1e-8
+
+        return mu.view(-1), sigma
 
     def _calculate_frechet_distance(self, mu1, sigma1, mu2, sigma2, eps=1e-6):
         """
@@ -368,6 +397,11 @@ class Loss():
            d^2 = ||mu1 - mu2||^2 + Tr(sigma1 + sigma2 - 2*sqrt(sigma1 * sigma2))
         We'll do a matrix-sqrt using a custom function.
         """
+        # Check for NaN inputs
+        if not (torch.isfinite(mu1).all() and torch.isfinite(mu2).all() and
+                torch.isfinite(sigma1).all() and torch.isfinite(sigma2).all()):
+            return torch.tensor(0.0, device=self.device, requires_grad=True)
+
         diff = mu1 - mu2
         diff_sq = diff.dot(diff)
 
@@ -375,40 +409,70 @@ class Loss():
         sigma1_eps = sigma1 + torch.eye(sigma1.size(0), device=self.device) * eps
         sigma2_eps = sigma2 + torch.eye(sigma2.size(0), device=self.device) * eps
 
-        # sqrt of product
-        covmean = self._matrix_sqrt(sigma1_eps.mm(sigma2_eps))
+        try:
+            # sqrt of product
+            covmean = self._matrix_sqrt(sigma1_eps.mm(sigma2_eps))
 
-        # Might fail if rank is deficient
-        if not torch.isfinite(covmean).all():
-            # fallback
-            return diff_sq
+            # Check if matrix sqrt failed
+            if not torch.isfinite(covmean).all():
+                # fallback to simpler distance
+                return torch.sqrt(torch.clamp(diff_sq, min=1e-12))
 
-        fid = diff_sq + torch.trace(sigma1_eps + sigma2_eps - 2*covmean)
-        return torch.sqrt(torch.clamp(fid, min=1e-12))
+            fid = diff_sq + torch.trace(sigma1_eps + sigma2_eps - 2*covmean)
+            result = torch.sqrt(torch.clamp(fid, min=1e-12))
+
+            # Final NaN check
+            if not torch.isfinite(result):
+                return torch.sqrt(torch.clamp(diff_sq, min=1e-12))
+
+            return result
+        except Exception:
+            # Fallback to simple distance if anything fails
+            return torch.sqrt(torch.clamp(diff_sq, min=1e-12))
 
     def _matrix_sqrt(self, x):
         """
         Compute the matrix square root via repeated (Newton-Schulz) method.
         x: (D, D)
         """
+        # Check for invalid input
+        if not torch.isfinite(x).all():
+            dim = x.size(0)
+            return torch.eye(dim, device=x.device, dtype=x.dtype)
+
         # Some minimal checks
         dim = x.size(0)
         I = torch.eye(dim, device=x.device, dtype=x.dtype)
         norm_x = x.norm()
+
+        # Handle zero norm case
+        if norm_x < 1e-12:
+            return torch.eye(dim, device=x.device, dtype=x.dtype) * 1e-6
+
         # Scale to improve conditioning
         x = x / norm_x
 
         y = torch.clone(x)
         z = I.clone()
-        for _ in range(5):
+        for i in range(5):
             y2 = y.matmul(y)
             z2 = z.matmul(z)
             # Newton-Schulz iteration
             numerator = 0.5 * (3*I - z2)
             y = y.matmul(numerator)
             z = numerator.matmul(z)
+
+            # Check for convergence issues
+            if not torch.isfinite(y).all() or not torch.isfinite(z).all():
+                return torch.eye(dim, device=x.device, dtype=x.dtype) * torch.sqrt(norm_x)
+
         # Unscale
         y = y * torch.sqrt(norm_x)
+
+        # Final check
+        if not torch.isfinite(y).all():
+            return torch.eye(dim, device=x.device, dtype=x.dtype) * torch.sqrt(norm_x)
+
         return y
 
     # -----------------
@@ -416,7 +480,7 @@ class Loss():
     # -----------------
     def loss(self, output, target, input):
         """
-        Aggregates all requested losses. 
+        Aggregates all requested losses.
         :param output: (N, C_in, T-1, V, M)
         :param target: (N, C_in, T-1, V, M)
         :param input:  (N, C_in, T-1, V, M) - sometimes used for certain losses
@@ -424,40 +488,73 @@ class Loss():
         total_loss = 0
         losses = {key: 0 for key in self.loss_weights}
 
-        # Standard losses
+        # Check for NaN/inf in inputs
+        if not (torch.isfinite(output).all() and torch.isfinite(target).all()):
+            print("Warning: NaN/inf detected in loss inputs!")
+            # Return zero losses to avoid propagating NaN, but maintain gradient tracking
+            zero_loss = torch.tensor(0.0, device=self.device, requires_grad=True)
+            for key in self.loss_weights:
+                losses[key] = zero_loss.clone()
+            return zero_loss, losses
+
+        # Helper function to create zero loss with gradients
+        def zero_loss_with_grad():
+            return torch.tensor(0.0, device=self.device, requires_grad=True)
+
+        # Standard losses with NaN checking
         if self.mse:
-            losses['mse'] = self.mse_loss(output, target)
+            loss_val = self.mse_loss(output, target)
+            losses['mse'] = loss_val if torch.isfinite(loss_val) else zero_loss_with_grad()
         if self.l1:
-            losses['l1'] = self.l1_loss(output, target)
+            loss_val = self.l1_loss(output, target)
+            losses['l1'] = loss_val if torch.isfinite(loss_val) else zero_loss_with_grad()
         if self.smoothl1:
-            losses['smoothl1'] = self.smoothl1_loss(output, target)
+            loss_val = self.smoothl1_loss(output, target)
+            losses['smoothl1'] = loss_val if torch.isfinite(loss_val) else zero_loss_with_grad()
         if self.kl:
-            losses['kl'] = self.kl_loss(output, target)
+            loss_val = self.kl_loss(output, target)
+            losses['kl'] = loss_val if torch.isfinite(loss_val) else zero_loss_with_grad()
         if self.ce:
-            losses['ce'] = self.ce_loss(output, target)
+            loss_val = self.ce_loss(output, target)
+            losses['ce'] = loss_val if torch.isfinite(loss_val) else zero_loss_with_grad()
         if self.ee:
-            losses['ee'] = self.ee_loss(output, target)
+            loss_val = self.ee_loss(output, target)
+            losses['ee'] = loss_val if torch.isfinite(loss_val) else zero_loss_with_grad()
         if self.smoothing:
-            losses['smoothing'] = self.smoothing_loss(output, target)
+            loss_val = self.smoothing_loss(output, target)
+            losses['smoothing'] = loss_val if torch.isfinite(loss_val) else zero_loss_with_grad()
         if self.latent:
-            losses['latent'] = self.latent_loss(output, target)
+            loss_val = self.latent_loss(output, target)
+            losses['latent'] = loss_val if torch.isfinite(loss_val) else zero_loss_with_grad()
         if self.triplet:
-            losses['triplet'] = self.triplet_loss(output, target, input)
+            loss_val = self.triplet_loss(output, target, input)
+            losses['triplet'] = loss_val if torch.isfinite(loss_val) else zero_loss_with_grad()
         if self.inception:
-            losses['inception'] = self.inception_loss(output, target)
+            loss_val = self.inception_loss(output, target)
+            losses['inception'] = loss_val if torch.isfinite(loss_val) else zero_loss_with_grad()
 
-        # New losses
+        # New losses with NaN checking
         if self.fid_vel:
-            losses['fid_vel'] = self.fid_velocity_loss(output, target)
+            loss_val = self.fid_velocity_loss(output, target)
+            losses['fid_vel'] = loss_val if torch.isfinite(loss_val) else zero_loss_with_grad()
         if self.bone:
-            losses['bone'] = self.bone_length_loss(output, target)
+            loss_val = self.bone_length_loss(output, target)
+            losses['bone'] = loss_val if torch.isfinite(loss_val) else zero_loss_with_grad()
         if self.foot:
-            losses['foot'] = self.foot_contact_loss(output, target)
+            loss_val = self.foot_contact_loss(output, target)
+            losses['foot'] = loss_val if torch.isfinite(loss_val) else zero_loss_with_grad()
         if self.joint_limit:
-            losses['joint_limit'] = self.joint_limit_loss(output)
+            loss_val = self.joint_limit_loss(output)
+            losses['joint_limit'] = loss_val if torch.isfinite(loss_val) else zero_loss_with_grad()
 
-        # Weighted sum
+        # Weighted sum with NaN checking
         total_loss = sum([losses[k] * self.loss_weights[k] for k in self.loss_weights if k in losses])
+
+        # Final NaN check
+        if not torch.isfinite(total_loss):
+            print("Warning: NaN detected in total loss! Setting to 0.")
+            total_loss = torch.tensor(0.0, device=self.device, requires_grad=True)
+
         return total_loss, losses
 
 
@@ -480,7 +577,7 @@ ee_chain_lengths = {
 # Bone pairs for bone-length loss
 # (You can refine these for your dataset)
 # Example pairs for NTU-type skeleton
-#  (joint indices) 
+#  (joint indices)
 #  same as the adjacency from official NTU, but truncated
 # -----------------------------------
 bone_pairs_dict = {
@@ -513,7 +610,7 @@ bone_pairs_dict = {
 #   Some sets also include foot tips or toes if using 30-joint expansions.
 # -----------------------------------
 foot_indices_dict = {
-    'ntu': [15, 19], 
+    'ntu': [15, 19],
     'ntu120': [15, 19],
     'etri': [15, 19]
 }

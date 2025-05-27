@@ -1,0 +1,13 @@
+# Pretraining Experiment Results Comparison
+
+| Metric                          | Better   | Pretrained + Frozen      | Pretrained + Unfrozen   | No Pretraining            |
+|:--------------------------------|:---------|:-------------------------|:------------------------|:--------------------------|
+| Action Recognition Accuracy (%) | higher   | **8.35**                 | 8.1375                  | 5.475                     |
+| Re-identification Accuracy (%)  | lower    | 7.5875                   | **7.3125**              | 7.9625                    |
+| MSE with Ground Truth           | lower    | 0.0411754319681786       | 0.04088523109597736     | **0.03131708886154229**   |
+| Bone Length Consistency         | lower    | 0.00787580667099865      | 0.007911891354317016    | **0.006475384656541058**  |
+| Joint Angle Limits (%)          | higher   | 99.46390269886328        | 99.46097301136334       | **99.93648792613561**     |
+| Temporal Smoothness             | lower    | 0.002520812236587517     | 0.0025263449749036225   | **0.0023489634138386464** |
+| Velocity Consistency            | higher   | 0.042407775704987515     | 0.042856449362163915    | **0.059415165214338046**  |
+| Foot Contact Consistency (%)    | higher   | **82.27003938611597**    | 81.90416639205068       | 81.57251956127584         |
+| FID Score                       | lower    | **0.026280198709407166** | 0.026584583770668562    | 0.02795974046605059       |

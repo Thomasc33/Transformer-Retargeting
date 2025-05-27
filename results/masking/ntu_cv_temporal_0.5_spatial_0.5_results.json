@@ -1,0 +1,18 @@
+{
+    "dataset": "ntu",
+    "setting": "cv",
+    "temporal_masking_ratio": 0.5,
+    "spatial_masking_ratio": 0.5,
+    "reconstruction_mse": 0.0017480727673566396,
+    "ar_accuracy": 0.015,
+    "ri_accuracy": 0.0295,
+    "gc_accuracy": -1,
+    "utility_metrics": {
+        "bone_len": 0.014140173270367085,
+        "joint_angle": 0.061971093750000025,
+        "smoothness": 0.004039722601126414,
+        "vel_cons": 0.001029318685803446,
+        "foot_contact": 0.09077734375
+    },
+    "fid_score": 0.012824937563412558
+}

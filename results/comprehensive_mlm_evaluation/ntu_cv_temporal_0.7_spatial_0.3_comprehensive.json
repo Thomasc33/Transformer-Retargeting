@@ -1,0 +1,28 @@
+{
+  "dataset": "ntu",
+  "setting": "cv",
+  "temporal_ratio": 0.7,
+  "spatial_ratio": 0.3,
+  "model_dir": "eval/mixformer/pretrained/ntu/epochs_cv_comprehensive_temporal_0.7_spatial_0.3",
+  "results": {
+    "classification": {
+      "action_recognition": {
+        "accuracy": 0.02130952380952381,
+        "f1_score": 0.0083498418588344
+      },
+      "re_identification": {
+        "accuracy": 0.11357142857142857,
+        "f1_score": 0.023165948868322184
+      }
+    },
+    "physical_plausibility": {
+      "reconstruction_mse": 0.0017073145704343915,
+      "bone_length_consistency": 0.015977173839752494,
+      "joint_angle_violation": 95.49694602272729,
+      "temporal_smoothness": 0.0040380210672446995,
+      "velocity_consistency": 0.4470092842265359,
+      "foot_contact_consistency": 83.92222189456224,
+      "fid_score": 0.012877023438466332
+    }
+  }
+}

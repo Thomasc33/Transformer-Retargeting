@@ -1,0 +1,78 @@
+{
+  "timestamp": "2025-05-27T15:53:17.252151",
+  "jobs": {
+    "4725367": {
+      "name": "loss_ablation_no_fid_vel",
+      "type": "training",
+      "submit_time": "2025-05-27T13:38:03.356020",
+      "estimated_completion": "2025-05-27T17:38:03.356028",
+      "output_model": false,
+      "status": "RUNNING"
+    },
+    "4725374": {
+      "name": "privacy_utility_sgn",
+      "type": "evaluation",
+      "submit_time": "2025-05-27T13:38:03.480214",
+      "dependencies": [
+        "4725367",
+        "4725368",
+        "4725369",
+        "4725370",
+        "4725371",
+        "4725372",
+        "4725373"
+      ],
+      "status": "CANCELLED by 3642"
+    },
+    "4725375": {
+      "name": "privacy_utility_mixformer",
+      "type": "evaluation",
+      "submit_time": "2025-05-27T13:38:03.490843",
+      "dependencies": [
+        "4725367",
+        "4725368",
+        "4725369",
+        "4725370",
+        "4725371",
+        "4725372",
+        "4725373"
+      ],
+      "status": "CANCELLED by 3642"
+    },
+    "4725376": {
+      "name": "baseline_comparison",
+      "type": "evaluation",
+      "submit_time": "2025-05-27T13:38:03.501417",
+      "dependencies": [
+        "4725367",
+        "4725368",
+        "4725369",
+        "4725370",
+        "4725371",
+        "4725372",
+        "4725373"
+      ],
+      "status": "CANCELLED by 3642"
+    },
+    "4725377": {
+      "name": "physical_plausibility",
+      "type": "evaluation",
+      "submit_time": "2025-05-27T13:38:03.512019",
+      "dependencies": [
+        "4725367",
+        "4725368",
+        "4725369",
+        "4725370",
+        "4725371",
+        "4725372",
+        "4725373"
+      ],
+      "status": "CANCELLED by 3642"
+    }
+  },
+  "errors": [
+    "Job teacher_forcing_full failed with status: FAILED",
+    "Job teacher_forcing_decay failed with status: FAILED",
+    "Job teacher_forcing_none failed with status: FAILED"
+  ]
+}

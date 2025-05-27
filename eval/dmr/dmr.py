@@ -382,8 +382,8 @@ class DMR(nn.Module):
     def cross(self, x1, x1_rot, x2, x2_rot):
         d1 = self.dynamic_encoder(x1_rot)
         d2 = self.dynamic_encoder(x2_rot)
-        s1 = self.static_encoder(x1)
-        s2 = self.static_encoder(x2)
+        s1 = self.static_encoder(x1_rot)
+        s2 = self.static_encoder(x2_rot)
         
         x1_hat = self.decoder(torch.cat((d1, s1), dim=1))
         x2_hat = self.decoder(torch.cat((d2, s2), dim=1))
@@ -399,7 +399,7 @@ class DMR(nn.Module):
 
     def rec_loss(self, x, x_rot):
         d = self.dynamic_encoder(x_rot)
-        s = self.static_encoder(x)
+        s = self.static_encoder(x_rot)
         x_hat = self.decoder(torch.cat((d, s), dim=1))
         if not one_dimension_conv:
             x_ = x.reshape(x.size(0), T, -1)
@@ -408,8 +408,8 @@ class DMR(nn.Module):
     def loss_paired(self, x1, x1_rot, x2, x2_rot, y1, y1_rot, y2, y2_rot, actors, actions, cross = True, reconstruction = True, emb_adv = True, discrim_adv = True, verbose = False):
         d1 = self.dynamic_encoder(x1_rot) # A1
         d2 = self.dynamic_encoder(x2_rot) # A2
-        s1 = self.static_encoder(x1) # P1
-        s2 = self.static_encoder(x2) # P2
+        s1 = self.static_encoder(x1_rot) # P1 - Use preprocessed data
+        s2 = self.static_encoder(x2_rot) # P2 - Use preprocessed data
 
         x1_hat = self.decoder(torch.cat((d1, s1), dim=1)) # P1, A1
         x2_hat = self.decoder(torch.cat((d2, s2), dim=1)) # P2, A2
@@ -418,8 +418,8 @@ class DMR(nn.Module):
 
         d12 = self.dynamic_encoder(y1_rot) # A1
         d21 = self.dynamic_encoder(y2_rot) # A2
-        s12 = self.static_encoder(y1) # P2
-        s21 = self.static_encoder(y2) # P1
+        s12 = self.static_encoder(y1_rot) # P2 - Use preprocessed data
+        s21 = self.static_encoder(y2_rot) # P1 - Use preprocessed data
 
         x1_hat_ = self.decoder(torch.cat((d12, s21), dim=1)) # P1, A1
         x2_hat_ = self.decoder(torch.cat((d21, s12), dim=1)) # P2, A2
@@ -546,7 +546,7 @@ class DMR(nn.Module):
 
     def loss_unpaired(self, x_pos, x_rot, actors, actions, reconstruction = True, emb_adv = False, discrim_adv = False, ee = False, triplet = False, verbose = False):
         d = self.dynamic_encoder(x_rot)
-        s = self.static_encoder(x_pos)
+        s = self.static_encoder(x_rot) # Use preprocessed data
         x_hat = self.decoder(torch.cat((d, s), dim=1))
 
         if not one_dimension_conv:
@@ -671,7 +671,7 @@ class DMR(nn.Module):
 
     def forward(self, x, x_rot):
         dyn = self.dynamic_encoder(x_rot)
-        sta = self.static_encoder(x)
+        sta = self.static_encoder(x_rot)
         x = self.decoder(torch.cat((dyn, sta), dim=1))
         return x
     

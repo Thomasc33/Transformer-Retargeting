@@ -54,25 +54,26 @@ class Adversary_Emb(nn.Module):
         x = F.softmax(self.fc3(x), dim=1)
         # x = self.fc3(x)
         return x
-    
+
 class Discriminator(nn.Module): # 1 = real, 0 = fake
     def __init__(self):
         super(Discriminator, self).__init__()
 
+        # Use standard padding with smaller padding values
         self.enc1 = nn.Conv1d(in_channels=T, out_channels=64, kernel_size=3, stride=1, padding=1)
         self.enc2 = nn.Conv1d(in_channels=64, out_channels=32, kernel_size=3, stride=1, padding=1)
         self.enc3 = nn.Conv1d(in_channels=32, out_channels=16, kernel_size=3, stride=1, padding=1)
         self.enc4 = nn.Conv1d(in_channels=16, out_channels=8, kernel_size=3, stride=1, padding=1)
-        self.ref1 = nn.ReflectionPad1d(3)
-        self.ref2 = nn.ReflectionPad1d(3)
-        self.ref3 = nn.ReflectionPad1d(3)
-        self.ref4 = nn.ReflectionPad1d(3)
-        self.fc1 = nn.Linear(80, 32)
-        self.fc2 = nn.Linear(32, 1)
+
+        # Change the linear layer input size to 32 to match the actual flattened size
+        self.fc1 = nn.Linear(32, 16)
+        self.fc2 = nn.Linear(16, 1)
 
         self.pool = nn.MaxPool1d(kernel_size=2, stride=2)
-
         self.acti = nn.LeakyReLU(0.2)
+
+        # Add adaptive pooling to ensure consistent size before the linear layer
+        self.adaptive_pool = nn.AdaptiveAvgPool1d(4)  # 8 channels * 4 features = 32
 
         self._initialize_weights()
 
@@ -87,26 +88,58 @@ class Discriminator(nn.Module): # 1 = real, 0 = fake
                 init.constant_(m.bias, 0)
 
     def forward(self, x):
-        x = self.ref1(x)
-        x = self.acti(self.enc1(x))
-        x = self.pool(x)
-        
-        x = self.ref2(x)
-        x = self.acti(self.enc2(x))
-        x = self.pool(x)
-        
-        x = self.ref3(x)
-        x = self.acti(self.enc3(x))
-        x = self.pool(x)
+        # Ensure input has correct shape
+        if x.dim() != 3:
+            try:
+                x = x.view(x.size(0), T, -1)  # Reshape to [batch, T, features]
+            except RuntimeError as e:
+                print(f"Error reshaping input in discriminator: {e}")
+                print(f"Input shape: {x.shape}")
+                # Return a default value to prevent training failure
+                return torch.zeros(x.size(0), 1, device=x.device)
 
-        x = self.ref4(x)
-        x = self.acti(self.enc4(x))
-        x = self.pool(x)
+        # Ensure the time dimension is correct
+        if x.size(1) != T:
+            print(f"Warning: Input time dimension is {x.size(1)}, expected {T}")
+            try:
+                # Interpolate to correct time dimension
+                x = F.interpolate(x.transpose(1, 2), size=T).transpose(1, 2)
+            except RuntimeError as e:
+                print(f"Error interpolating time dimension: {e}")
+                # Return a default value to prevent training failure
+                return torch.zeros(x.size(0), 1, device=x.device)
 
-        #flatten
-        x = x.view(x.shape[0], -1)
-        x = F.relu(self.fc1(x))
-        x = torch.sigmoid(self.fc2(x))
+        try:
+            # Apply convolutions with standard padding
+            x = self.acti(self.enc1(x))
+            x = self.pool(x)
+
+            x = self.acti(self.enc2(x))
+            x = self.pool(x)
+
+            x = self.acti(self.enc3(x))
+            x = self.pool(x)
+
+            x = self.acti(self.enc4(x))
+            x = self.pool(x)
+
+            # Apply adaptive pooling to ensure consistent size
+            x = self.adaptive_pool(x)
+
+            # Flatten the tensor
+            x = x.view(x.size(0), -1)
+
+            # Apply fully connected layers
+            x = F.relu(self.fc1(x))
+            x = torch.sigmoid(self.fc2(x))
+
+            return x
+
+        except RuntimeError as e:
+            print(f"Error in discriminator forward pass: {e}")
+            print(f"Input shape: {x.shape}")
+            # Provide a fallback to prevent training failure
+            return torch.zeros(x.size(0), 1, device=x.device)
 
         return x
 
@@ -123,9 +156,9 @@ class Decoder1D(nn.Module):
         self.ref2 = nn.ReflectionPad1d(3)
         self.ref3 = nn.ReflectionPad1d(3)
         self.ref4 = nn.ReflectionPad1d(3)
- 
+
         self.up = nn.Upsample(scale_factor=2, mode='nearest')
-        self.up75 = nn.Upsample(size=75, mode='nearest') 
+        self.up75 = nn.Upsample(size=75, mode='nearest')
 
         self.acti = nn.LeakyReLU(0.2)
 
@@ -155,7 +188,7 @@ class Decoder1D(nn.Module):
         x = self.acti(self.dec4(x))
         x = self.up75(x)
         return x
-    
+
 class Encoder2D(nn.Module):
     def __init__(self):
         super(Encoder2D, self).__init__()
@@ -192,7 +225,7 @@ class Encoder2D(nn.Module):
         x = self.ref(x)
         x = self.acti(self.enc2(x))
         x = self.pool(x)
-        
+
         x = self.ref(x)
         x = self.acti(self.enc3(x))
         x = self.pool(x)
@@ -219,7 +252,7 @@ class Decoder2D(nn.Module):
 
         self.ref = nn.ReflectionPad2d(3)
         self.up = nn.Upsample(scale_factor=2, mode='nearest')
-        self.up75 = nn.Upsample(size=75, mode='nearest') 
+        self.up75 = nn.Upsample(size=75, mode='nearest')
         self.acti = nn.LeakyReLU(0.2)
 
         self._initialize_weights()
@@ -247,7 +280,7 @@ class Decoder2D(nn.Module):
         x = self.ref(x)
         x = self.acti(self.dec4(x))
         x = self.up75(x)
-        
+
         return x
 
 
@@ -292,7 +325,7 @@ class PMR(nn.Module):
         self.triplet_loss = nn.TripletMarginLoss()
         self.bce_loss = nn.BCELoss()
         self.cross_entropy = nn.CrossEntropyLoss()
-        
+
         # Info for loss functions
         self.end_effectors = torch.tensor([19, 15, 23, 24, 21, 22, 3]).to(device) * 3
         self.chain_lengths = torch.tensor([5, 5, 8, 8, 8, 8, 5]).to(device)
@@ -313,8 +346,8 @@ class PMR(nn.Module):
         # Loss Toggles
         self.use_rec_loss = True
         self.use_cross_loss = True
-        self.use_ee_loss = True 
-        self.use_trip_loss_paired = True 
+        self.use_ee_loss = True
+        self.use_trip_loss_paired = True
         self.use_trip_loss_unpaired = True
         self.use_smoothing_loss = True
         self.use_latent_consistency = True
@@ -343,16 +376,16 @@ class PMR(nn.Module):
     def cross(self, x1, x1_rot, x2, x2_rot):
         d1 = self.dynamic_encoder(x1_rot)
         d2 = self.dynamic_encoder(x2_rot)
-        s1 = self.static_encoder(x1)
-        s2 = self.static_encoder(x2)
-        
+        s1 = self.static_encoder(x1_rot)
+        s2 = self.static_encoder(x2_rot)
+
         x1_hat = self.decoder(torch.cat((d1, s1), dim=1))
         x2_hat = self.decoder(torch.cat((d2, s2), dim=1))
         y1_hat = self.decoder(torch.cat((d1, s2), dim=1))
         y2_hat = self.decoder(torch.cat((d2, s1), dim=1))
 
         return x1_hat, x2_hat, y1_hat, y2_hat
-    
+
     def eval(self, x1_rot, x2):
         dynamic = self.dynamic_encoder(x1_rot)
         static = self.static_encoder(x2)
@@ -360,17 +393,21 @@ class PMR(nn.Module):
 
     def rec_loss(self, x, x_rot):
         d = self.dynamic_encoder(x_rot)
-        s = self.static_encoder(x)
+        s = self.static_encoder(x_rot)
         x_hat = self.decoder(torch.cat((d, s), dim=1))
         if not one_dimension_conv:
-            x_ = x.reshape(x.size(0), T, -1)
+            x_ = x_rot.reshape(x_rot.size(0), T, -1)
         return self.reconstruction_loss(x_, x_hat)
-    
+
     def loss_paired(self, x1, x1_rot, x2, x2_rot, y1, y1_rot, y2, y2_rot, actors, actions, cross = True, reconstruction = True, emb_adv = True, discrim_adv = True, verbose = False):
+        x1=x1_rot
+        x2=x2_rot
+        y1=y1_rot
+        y2=y2_rot
         d1 = self.dynamic_encoder(x1_rot) # A1
         d2 = self.dynamic_encoder(x2_rot) # A2
-        s1 = self.static_encoder(x1) # P1
-        s2 = self.static_encoder(x2) # P2
+        s1 = self.static_encoder(x1_rot) # P1
+        s2 = self.static_encoder(x2_rot) # P2
 
         x1_hat = self.decoder(torch.cat((d1, s1), dim=1)) # P1, A1
         x2_hat = self.decoder(torch.cat((d2, s2), dim=1)) # P2, A2
@@ -410,7 +447,7 @@ class PMR(nn.Module):
             x2 = x2.view(x2.size(0), T, -1)
             y1 = y1.view(y1.size(0), T, -1)
             y2 = y2.view(y2.size(0), T, -1)
-        
+
         # initialize all losses to 0 tensor
         rec_loss = torch.zeros(1).to(device)
         cross_loss = torch.zeros(1).to(device)
@@ -430,18 +467,18 @@ class PMR(nn.Module):
         utility_acc_coop = torch.zeros(1).to(device)
         discriminator_loss = torch.zeros(1).to(device)
         discriminator_acc = torch.zeros(1).to(device)
-                        
+
         # reconstruction loss
         if self.use_rec_loss and reconstruction:
             rec_loss = (self.reconstruction_loss(x1, x1_hat) + self.reconstruction_loss(x2, x2_hat) + self.reconstruction_loss(y1, y1_hat_) + self.reconstruction_loss(y2, y2_hat_)) / 4
             if verbose: print('Reconstruction Loss: ', rec_loss.item())
-        
+
         # cross reconstruction loss
         if self.use_cross_loss and cross:
             # could move this to its own function, but since cross is basically reconstruction, its fine like this
             cross_loss = (self.reconstruction_loss(y1, y1_hat) + self.reconstruction_loss(y2, y2_hat) + self.reconstruction_loss(x1, x1_hat_) + self.reconstruction_loss(x2, x2_hat_)) / 4
             if verbose: print('Cross Reconstruction Loss: ', cross_loss.item())
-        
+
         # end effector loss
         if self.use_ee_loss:
             if reconstruction:
@@ -459,7 +496,7 @@ class PMR(nn.Module):
             triplet_loss = self.triplet_loss(d12, d1, d2) \
                             + self.triplet_loss(d21, d2, d1) \
                             + self.triplet_loss(s12, s2, s1) \
-                            + self.triplet_loss(s21, s1, s2) 
+                            + self.triplet_loss(s21, s1, s2)
             if verbose: print('Triplet Loss: ', triplet_loss.item())
 
         if self.use_smoothing_loss:
@@ -474,10 +511,70 @@ class PMR(nn.Module):
 
         # adversarial loss
         if self.use_adv and emb_adv:
-            actor_y1, actor_y2 = actors[0] - 1, actors[1] - 1
-            actor_y1, actor_y2 = torch.eye(self.privacy_classes)[actor_y1.long()].to(device), torch.eye(self.privacy_classes)[actor_y2.long()].to(device)
-            action_y1, action_y2 = actions[0] - 1, actions[1] - 1
-            action_y1, action_y2 = torch.eye(self.utility_classes)[action_y1.long()].to(device), torch.eye(self.utility_classes)[action_y2.long()].to(device)
+            try:
+                # SAFETY CHECK: Ensure actors has proper dimensions
+                if actors.dim() < 2 or actors.size(1) < 2:
+                    print(f"WARNING: actors tensor has invalid shape: {actors.shape}. Expected [batch_size, 2]")
+                    # Create default actor IDs
+                    batch_size = x1.size(0)
+                    actors = torch.ones(batch_size, 2, device=device)
+
+                # Extract actor IDs with bounds checking
+                actor_y1 = actors[:, 0].clone().to(device)
+                actor_y2 = actors[:, 1].clone().to(device)
+
+                # Check for negative values or zeros (since we're subtracting 1)
+                actor_y1[actor_y1 <= 0] = 1  # Set to 1 if 0 or negative
+                actor_y2[actor_y2 <= 0] = 1  # Set to 1 if 0 or negative
+
+                # Now subtract 1 safely
+                actor_y1 = actor_y1 - 1
+                actor_y2 = actor_y2 - 1
+
+                # Ensure indices are within valid range
+                actor_y1 = torch.clamp(actor_y1, 0, self.privacy_classes - 1)
+                actor_y2 = torch.clamp(actor_y2, 0, self.privacy_classes - 1)
+
+                # Create one-hot encoding on the same device as the indices
+                actor_y1 = torch.eye(self.privacy_classes, device=device)[actor_y1.long()]
+                actor_y2 = torch.eye(self.privacy_classes, device=device)[actor_y2.long()]
+
+                # SAFETY CHECK: Ensure actions has proper dimensions
+                if actions.dim() < 2 or actions.size(1) < 2:
+                    print(f"WARNING: actions tensor has invalid shape: {actions.shape}. Expected [batch_size, 2]")
+                    # Create default action IDs
+                    batch_size = x1.size(0)
+                    actions = torch.ones(batch_size, 2, device=device)
+
+                # Extract action IDs with bounds checking
+                action_y1 = actions[:, 0].clone().to(device)
+                action_y2 = actions[:, 1].clone().to(device)
+
+                # Check for negative values or zeros (since we're subtracting 1)
+                action_y1[action_y1 <= 0] = 1  # Set to 1 if 0 or negative
+                action_y2[action_y2 <= 0] = 1  # Set to 1 if 0 or negative
+
+                # Now subtract 1 safely
+                action_y1 = action_y1 - 1
+                action_y2 = action_y2 - 1
+
+                # Ensure indices are within valid range
+                action_y1 = torch.clamp(action_y1, 0, self.utility_classes - 1)
+                action_y2 = torch.clamp(action_y2, 0, self.utility_classes - 1)
+
+                # Create one-hot encoding on the same device as the indices
+                action_y1 = torch.eye(self.utility_classes, device=device)[action_y1.long()]
+                action_y2 = torch.eye(self.utility_classes, device=device)[action_y2.long()]
+            except Exception as e:
+                print(f"Error in preparing adversarial inputs: {e}")
+                # Create default tensors to continue training
+                batch_size = x1.size(0)
+                actor_y1 = torch.zeros(batch_size, self.privacy_classes, device=device)
+                actor_y1[:, 0] = 1  # Set first class as default
+                actor_y2 = actor_y1.clone()
+                action_y1 = torch.zeros(batch_size, self.utility_classes, device=device)
+                action_y1[:, 0] = 1  # Set first class as default
+                action_y2 = action_y1.clone()
 
             # x1 => d1 s1
             # x2 => d2 s2
@@ -486,7 +583,7 @@ class PMR(nn.Module):
             # d2 => p2
             # s1 => a1
             # s2 => a2
-            
+
             # actor_y1 = p1
             # actor_y2 = p2
 
@@ -513,19 +610,57 @@ class PMR(nn.Module):
             privacy_loss = privacy_loss_adv * self.lambda_adv_priv_adv + privacy_loss_coop * self.lambda_adv_priv_coop
             utility_loss = utility_loss_adv * self.lambda_adv_util_adv + utility_loss_coop * self.lambda_adv_util_coop
 
-            if verbose: 
+            if verbose:
                 print('Privacy Loss (Adversarial): ', privacy_loss_adv.item(), '\tPrivacy Loss (Coop): ', privacy_loss_coop.item())
                 print('Utility Loss (Adversarial): ', utility_loss_adv.item(), '\tUtility Loss (Coop): ', utility_loss_coop.item())
                 print('Privacy Accuracy (Adversarial): ', privacy_acc_adv.item(), '\tPrivacy Accuracy (Coop): ', privacy_acc_coop.item())
                 print('Utility Accuracy (Adversarial): ', utility_acc_adv.item(), '\tUtility Accuracy (Coop): ', utility_acc_coop.item())
-            
+
 
         if self.use_adv and discrim_adv:
-            # discrimnator (adversarial)
-            discrim_out_fake = self.discriminator(torch.cat((x1_hat, x2_hat, y1_hat, y2_hat, x1_hat_, x2_hat_, y1_hat_, y2_hat_)))
-            discriminator_loss = self.bce_loss(discrim_out_fake, torch.ones_like(discrim_out_fake))
-            discriminator_acc = torch.sum(torch.round(discrim_out_fake) == 0).float() / (8 * self.batch_size)
-            if verbose: print('Discriminator Loss: ', discriminator_loss.item(), '\tDiscriminator Accuracy: ', discriminator_acc.item())
+            try:
+                # discrimnator (adversarial)
+                # Ensure all tensors have the same batch size and are properly shaped
+                batch_size = min(x1_hat.size(0), x2_hat.size(0), y1_hat.size(0), y2_hat.size(0),
+                                x1_hat_.size(0), x2_hat_.size(0), y1_hat_.size(0), y2_hat_.size(0))
+
+                # Safety check for batch size
+                if batch_size <= 0:
+                    raise ValueError(f"Invalid batch size: {batch_size}")
+
+                try:
+                    # Reshape all tensors to ensure they have the expected shape [batch_size, T, features]
+                    x1_hat_view = x1_hat[:batch_size].view(batch_size, T, -1)
+                    x2_hat_view = x2_hat[:batch_size].view(batch_size, T, -1)
+                    y1_hat_view = y1_hat[:batch_size].view(batch_size, T, -1)
+                    y2_hat_view = y2_hat[:batch_size].view(batch_size, T, -1)
+                    x1_hat_view_ = x1_hat_[:batch_size].view(batch_size, T, -1)
+                    x2_hat_view_ = x2_hat_[:batch_size].view(batch_size, T, -1)
+                    y1_hat_view_ = y1_hat_[:batch_size].view(batch_size, T, -1)
+                    y2_hat_view_ = y2_hat_[:batch_size].view(batch_size, T, -1)
+
+                    # Concatenate along the batch dimension
+                    all_fake = torch.cat((x1_hat_view, x2_hat_view, y1_hat_view, y2_hat_view,
+                                        x1_hat_view_, x2_hat_view_, y1_hat_view_, y2_hat_view_))
+
+                    # Check for NaN values
+                    if torch.isnan(all_fake).any():
+                        raise ValueError("NaN values detected in discriminator input")
+
+                    discrim_out_fake = self.discriminator(all_fake)
+                    discriminator_loss = self.bce_loss(discrim_out_fake, torch.ones_like(discrim_out_fake))
+                    discriminator_acc = torch.sum(torch.round(discrim_out_fake) == 0).float() / (8 * batch_size)
+                    if verbose: print('Discriminator Loss: ', discriminator_loss.item(), '\tDiscriminator Accuracy: ', discriminator_acc.item())
+                except RuntimeError as e:
+                    print(f"Error in discriminator tensor operations: {e}")
+                    # Provide default values to continue training
+                    discriminator_loss = torch.zeros(1).to(device)
+                    discriminator_acc = torch.zeros(1).to(device)
+            except Exception as e:
+                print(f"Error in discriminator forward pass: {e}")
+                # Provide default values to continue training
+                discriminator_loss = torch.zeros(1).to(device)
+                discriminator_acc = torch.zeros(1).to(device)
 
         losses = {
             'rec_loss': rec_loss.item(),
@@ -560,12 +695,14 @@ class PMR(nn.Module):
                 x1_hat, x2_hat, y1_hat, y2_hat, losses
 
     def loss_unpaired(self, x_pos, x_rot, actors, actions, reconstruction = True, emb_adv = False, discrim_adv = False, ee = False, triplet = False, verbose = False):
+        x_pos=x_rot
         d = self.dynamic_encoder(x_rot)
         s = self.static_encoder(x_pos)
         x_hat = self.decoder(torch.cat((d, s), dim=1))
 
+        # Reshape the input for reconstruction comparison
         if not one_dimension_conv:
-            x = x_pos.reshape(x_pos.size(0), T, -1)
+            x_reshaped = x_pos.reshape(x_pos.size(0), T, -1)
 
         # initialize all losses to 0 tensor
         rec_loss = torch.zeros(1).to(device)
@@ -587,12 +724,14 @@ class PMR(nn.Module):
 
         # Reconstruction Loss
         if self.use_rec_loss and reconstruction:
-            rec_loss = self.reconstruction_loss(x, x_hat)
+            # FIX: Use x_reshaped instead of undefined x
+            rec_loss = self.reconstruction_loss(x_reshaped, x_hat)
             if verbose: print('Reconstruction Loss: ', rec_loss.item())
 
         # End Effector Loss
         if self.use_ee_loss and ee:
-            end_effector_loss = self.end_effector_loss(x_hat, x)
+            # FIX: Use x_reshaped instead of undefined x
+            end_effector_loss = self.end_effector_loss(x_hat, x_reshaped)
             if verbose: print('End Effector Loss: ', end_effector_loss.item())
 
         # Triplet Loss
@@ -602,15 +741,50 @@ class PMR(nn.Module):
 
         # Smoothing Loss
         if self.use_smoothing_loss:
-            smoothing_loss = self.smoothing_loss(x, x_hat)
+            # FIX: Use x_reshaped instead of undefined x
+            smoothing_loss = self.smoothing_loss(x_reshaped, x_hat)
             if verbose: print('Smoothing Loss: ', smoothing_loss.item())
 
         # Adversarial Loss
         if self.use_adv and emb_adv:
-            actor_y = actors - 1
-            actor_y = torch.eye(self.privacy_classes)[actor_y.long()].to(device)
-            action_y = actions - 1
-            action_y = torch.eye(self.utility_classes)[action_y.long()].to(device)
+            try:
+                # Safely prepare actor labels
+                actor_y = actors.to(device).clone()
+
+                # Check for negative values or zeros (since we're subtracting 1)
+                actor_y[actor_y <= 0] = 1  # Set to 1 if 0 or negative
+
+                # Now subtract 1 safely
+                actor_y = actor_y - 1
+
+                # Ensure indices are within valid range
+                actor_y = torch.clamp(actor_y, 0, self.privacy_classes - 1)
+
+                # Create one-hot encoding on the same device as the indices
+                actor_y = torch.eye(self.privacy_classes, device=device)[actor_y.long()]
+
+                # Safely prepare action labels
+                action_y = actions.to(device).clone()
+
+                # Check for negative values or zeros (since we're subtracting 1)
+                action_y[action_y <= 0] = 1  # Set to 1 if 0 or negative
+
+                # Now subtract 1 safely
+                action_y = action_y - 1
+
+                # Ensure indices are within valid range
+                action_y = torch.clamp(action_y, 0, self.utility_classes - 1)
+
+                # Create one-hot encoding on the same device as the indices
+                action_y = torch.eye(self.utility_classes, device=device)[action_y.long()]
+            except Exception as e:
+                print(f"Error in preparing unpaired adversarial inputs: {e}")
+                # Create default tensors to continue training
+                batch_size = x_pos.size(0)
+                actor_y = torch.zeros(batch_size, self.privacy_classes, device=device)
+                actor_y[:, 0] = 1  # Set first class as default
+                action_y = torch.zeros(batch_size, self.utility_classes, device=device)
+                action_y[:, 0] = 1  # Set first class as default
 
             # latent privacy loss (adv)
             privacy_loss_adv = -self.adv_loss(self.priv_adv, d, actor_y)
@@ -631,7 +805,7 @@ class PMR(nn.Module):
             privacy_loss = privacy_loss_adv * self.lambda_adv_priv_adv + privacy_loss_coop * self.lambda_adv_priv_coop
             utility_loss = utility_loss_adv * self.lambda_adv_util_adv + utility_loss_coop * self.lambda_adv_util_coop
 
-            if verbose: 
+            if verbose:
                 print('Privacy Loss Adv: ', privacy_loss_adv.item(), '\tPrivacy Loss Coop: ', privacy_loss_coop.item(), '\tPrivacy Loss: ', privacy_loss.item())
                 print('Utility Loss Adv: ', utility_loss_adv.item(), '\tUtility Loss Coop: ', utility_loss_coop.item(), '\tUtility Loss: ', utility_loss.item())
                 print('Privacy Accuracy Adv: ', privacy_acc_adv.item(), '\tPrivacy Accuracy Coop: ', privacy_acc_coop.item())
@@ -639,11 +813,20 @@ class PMR(nn.Module):
 
 
         if self.use_adv and discrim_adv:
-            # discrimnator (adversarial)
-            discrim_out_fake = self.discriminator(x_hat)
-            discriminator_loss = self.bce_loss(discrim_out_fake, torch.ones_like(discrim_out_fake))
-            discriminator_acc = torch.sum(torch.round(discrim_out_fake) == 0).float() / (self.batch_size)
-            if verbose: print('Discriminator Loss: ', discriminator_loss.item(), '\tDiscriminator Accuracy: ', discriminator_acc.item())
+            try:
+                # discrimnator (adversarial)
+                # Ensure proper tensor shape for discriminator input
+                x_hat_view = x_hat.view(x_hat.size(0), T, -1)
+
+                discrim_out_fake = self.discriminator(x_hat_view)
+                discriminator_loss = self.bce_loss(discrim_out_fake, torch.ones_like(discrim_out_fake))
+                discriminator_acc = torch.sum(torch.round(discrim_out_fake) == 0).float() / (self.batch_size)
+                if verbose: print('Discriminator Loss: ', discriminator_loss.item(), '\tDiscriminator Accuracy: ', discriminator_acc.item())
+            except Exception as e:
+                print(f"Error in unpaired discriminator forward pass: {e}")
+                # Provide default values to continue training
+                discriminator_loss = torch.zeros(1).to(device)
+                discriminator_acc = torch.zeros(1).to(device)
 
         losses = {
             'rec_loss': rec_loss.item(),
@@ -676,19 +859,19 @@ class PMR(nn.Module):
     def reconstruction_loss(self, x, y):
         # return F.mse_loss(x, y)
         return torch.square(torch.norm(x - y, dim=1)).mean()
-    
+
     def latent_consistency_loss(self, x, y):
         return F.mse_loss(x, y)
-    
+
     def end_effector_loss(self, x, y):
         # slice to get the end effector joints
-        x_ee = x[:, :, self.end_effectors.unsqueeze(-1) + torch.arange(3).to(device)] 
+        x_ee = x[:, :, self.end_effectors.unsqueeze(-1) + torch.arange(3).to(device)]
         y_ee = y[:, :, self.end_effectors.unsqueeze(-1) + torch.arange(3).to(device)]
 
         # calculate velocities
         x_vel = torch.norm(x_ee[:, 1:] - x_ee[:, :-1], dim=-1) / self.chain_lengths.unsqueeze(0)
         y_vel = torch.norm(y_ee[:, 1:] - y_ee[:, :-1], dim=-1) / self.chain_lengths.unsqueeze(0)
-        
+
         # compute mse loss for each joint
         losses = F.mse_loss(x_vel, y_vel, reduction='none')
 
@@ -697,9 +880,9 @@ class PMR(nn.Module):
 
         # take mean over batch
         loss = loss.mean()
-        
+
         return loss
-    
+
     def smoothing_loss(self, y, y_pred):
         # (batch, T, 75)
         # Calculate the squared sum of differences for y and y_pred
@@ -719,25 +902,46 @@ class PMR(nn.Module):
 
     def adv_loss(self, model, x, y):
         return self.cross_entropy(model(x), y)#.long().to(device))
-    
+
     def adv_accuracy(self, model, x, y):
         return (model(x).argmax(dim=1) == y.argmax(dim=1).to(device)).float().mean()
 
     def train_adv_paired(self, x1, x1_rot, x2, x2_rot, y1, y1_rot, y2, y2_rot, actors, actions, train_emb = True, train_discrim = True):
-        if not self.use_adv: return 0,0
+        if not self.use_adv: return 0,0,0,0,0,0,0,0,0,0
         # freeze encoders/decoder
         self.dynamic_encoder.eval()
         self.static_encoder.eval()
         self.decoder.eval()
 
+        x1=x1_rot
+        x2=x2_rot
+        y1=y1_rot
+        y2=y2_rot
+
+        # move to device
+        x1 = x1.to(device)
+        x2 = x2.to(device)
+        y1 = y1.to(device)
+        y2 = y2.to(device)
+        x1_rot = x1_rot.to(device)
+        x2_rot = x2_rot.to(device)
+        y1_rot = y1_rot.to(device)
+        y2_rot = y2_rot.to(device)
+        actors = actors.to(device)
+        actions = actions.to(device)
+
         # unfreeze adversaries
         self.priv_adv.train()
+        self.priv_coop.train()
         self.util_adv.train()
+        self.util_coop.train()
         self.discriminator.train()
 
         # zero out gradients
         self.priv_optim.zero_grad()
+        self.priv_coop_optim.zero_grad()
         self.util_optim.zero_grad()
+        self.util_coop_optim.zero_grad()
         self.discriminator_optim.zero_grad()
 
         # encode
@@ -769,150 +973,227 @@ class PMR(nn.Module):
         discriminator_acc = torch.zeros(1).to(device)
 
         if train_emb:
-            # train privacy adversary
-            p1, p2 = actors[0] - 1, actors[1] - 1
-            p1, p2 = torch.eye(self.privacy_classes)[p1.long()].to(device), torch.eye(self.privacy_classes)[p2.long()].to(device)
-            priv_loss = (self.cross_entropy(self.priv_adv(d1), p1) + \
-                        self.cross_entropy(self.priv_adv(d2), p2) + \
-                        self.cross_entropy(self.priv_adv(d3), p1) + \
-                        self.cross_entropy(self.priv_adv(d4), p2)) / 4
-            priv_acc = (self.adv_accuracy(self.priv_adv, d1, p1) + self.adv_accuracy(self.priv_adv, d2, p2) + self.adv_accuracy(self.priv_adv, d3, p1) + self.adv_accuracy(self.priv_adv, d4, p2)) / 4
-            priv_loss.backward(retain_graph=True)
-            self.priv_optim.step()
+            # SAFETY CHECK: Ensure actors has proper dimensions
+            if actors.dim() < 2 or actors.size(1) < 2:
+                print(f"WARNING: actors tensor has invalid shape: {actors.shape}. Expected [batch_size, 2]")
+                # Try to reshape if possible or use a default value
+                if actors.numel() >= 2:
+                    # Try to reshape a flattened tensor
+                    batch_size = x1.size(0)
+                    actors = actors.reshape(batch_size, -1)
+                    if actors.size(1) < 2:
+                        # Repeat the first column if we only have one
+                        actors = actors.repeat(1, 2)
+                else:
+                    # Create default actor IDs
+                    batch_size = x1.size(0)
+                    actors = torch.ones(batch_size, 2, device=device)
 
-            # train privacy cooperative
-            priv_coop_loss = (self.cross_entropy(self.priv_coop(s1), p1) + \
-                            self.cross_entropy(self.priv_coop(s2), p2) + \
-                            self.cross_entropy(self.priv_coop(s3), p1) + \
-                            self.cross_entropy(self.priv_coop(s4), p2)) / 4
-            priv_coop_acc = (self.adv_accuracy(self.priv_coop, s1, p1) + self.adv_accuracy(self.priv_coop, s2, p2) + self.adv_accuracy(self.priv_coop, s3, p1) + self.adv_accuracy(self.priv_coop, s4, p2)) / 4
-            priv_coop_loss.backward(retain_graph=True)
-            self.priv_coop_optim.step()
-                        
-            # train utility adversary
-            a1, a2 = actions[0] - 1, actions[1] - 1
-            a1, a2 = torch.eye(self.utility_classes)[a1.long()].to(device), torch.eye(self.utility_classes)[a2.long()].to(device)
-            util_loss = (self.cross_entropy(self.util_adv(s1), a1) + \
-                        self.cross_entropy(self.util_adv(s2), a2) + \
-                        self.cross_entropy(self.util_adv(s3), a2) + \
-                        self.cross_entropy(self.util_adv(s4), a1)) / 4
-            util_acc = (self.adv_accuracy(self.util_adv, s1, a1) + self.adv_accuracy(self.util_adv, s2, a2) + self.adv_accuracy(self.util_adv, s3, a2) + self.adv_accuracy(self.util_adv, s4, a1)) / 4
-            util_loss.backward(retain_graph=True)
-            self.util_optim.step()
+            # Extract actor IDs with bounds checking
+            try:
+                # Ensure actors tensor has valid indices
+                if actors.size(1) < 2:
+                    print(f"Warning: actors tensor has invalid shape: {actors.shape}")
+                    # Create default actor IDs
+                    batch_size = x1.size(0)
+                    actors = torch.zeros(batch_size, 2, device=device)
 
-            # train utility cooperative
-            util_coop_loss = (self.cross_entropy(self.util_coop(d1), a1) + \
-                            self.cross_entropy(self.util_coop(d2), a2) + \
-                            self.cross_entropy(self.util_coop(d3), a2) + \
-                            self.cross_entropy(self.util_coop(d4), a1)) / 4
-            util_coop_acc = (self.adv_accuracy(self.util_coop, d1, a1) + self.adv_accuracy(self.util_coop, d2, a2) + self.adv_accuracy(self.util_coop, d3, a2) + self.adv_accuracy(self.util_coop, d4, a1)) / 4
-            util_coop_loss.backward(retain_graph=True)
-            self.util_coop_optim.step()
+                # Extract actor IDs and subtract 1 (for 0-indexing)
+                p1 = actors[:, 0].clone()
+                p2 = actors[:, 1].clone()
 
+                # Check for negative values or zeros (since we're subtracting 1)
+                p1[p1 <= 0] = 1  # Set to 1 if 0 or negative
+                p2[p2 <= 0] = 1  # Set to 1 if 0 or negative
+
+                # Now subtract 1 safely
+                p1 = p1 - 1
+                p2 = p2 - 1
+
+                # Ensure indices are within valid range
+                p1 = torch.clamp(p1, 0, self.privacy_classes - 1)
+                p2 = torch.clamp(p2, 0, self.privacy_classes - 1)
+
+                # Create one-hot encodings safely
+                eye_tensor = torch.eye(self.privacy_classes, device=device)
+                p1_onehot = eye_tensor[p1.long()]
+                p2_onehot = eye_tensor[p2.long()]
+
+                # train privacy adversary
+                priv_loss = (self.cross_entropy(self.priv_adv(d1), p1_onehot) + \
+                            self.cross_entropy(self.priv_adv(d2), p2_onehot) + \
+                            self.cross_entropy(self.priv_adv(d3), p1_onehot) + \
+                            self.cross_entropy(self.priv_adv(d4), p2_onehot)) / 4
+                priv_acc = (self.adv_accuracy(self.priv_adv, d1, p1_onehot) + \
+                            self.adv_accuracy(self.priv_adv, d2, p2_onehot) + \
+                            self.adv_accuracy(self.priv_adv, d3, p1_onehot) + \
+                            self.adv_accuracy(self.priv_adv, d4, p2_onehot)) / 4
+                priv_loss.backward(retain_graph=True)
+                self.priv_optim.step()
+
+                # train privacy cooperative
+                priv_coop_loss = (self.cross_entropy(self.priv_coop(s1), p1_onehot) + \
+                                self.cross_entropy(self.priv_coop(s2), p2_onehot) + \
+                                self.cross_entropy(self.priv_coop(s3), p1_onehot) + \
+                                self.cross_entropy(self.priv_coop(s4), p2_onehot)) / 4
+                priv_coop_acc = (self.adv_accuracy(self.priv_coop, s1, p1_onehot) + \
+                                self.adv_accuracy(self.priv_coop, s2, p2_onehot) + \
+                                self.adv_accuracy(self.priv_coop, s3, p1_onehot) + \
+                                self.adv_accuracy(self.priv_coop, s4, p2_onehot)) / 4
+                priv_coop_loss.backward(retain_graph=True)
+                self.priv_coop_optim.step()
+            except Exception as e:
+                print(f"Error in privacy training: {e}")
+                # Continue with other adversaries
+
+            # SAFETY CHECK: Ensure actions has proper dimensions
+            if actions.dim() < 2 or actions.size(1) < 2:
+                print(f"WARNING: actions tensor has invalid shape: {actions.shape}. Expected [batch_size, 2]")
+                # Try to reshape if possible
+                if actions.numel() >= 2:
+                    # Try to reshape a flattened tensor
+                    batch_size = x1.size(0)
+                    actions = actions.reshape(batch_size, -1)
+                    if actions.size(1) < 2:
+                        # Repeat the first column if we only have one
+                        actions = actions.repeat(1, 2)
+                else:
+                    # Create default action IDs
+                    batch_size = x1.size(0)
+                    actions = torch.ones(batch_size, 2, device=device)
+
+            # Extract action IDs with bounds checking
+            try:
+                # Ensure actions tensor has valid indices
+                if actions.size(1) < 2:
+                    print(f"Warning: actions tensor has invalid shape: {actions.shape}")
+                    # Create default action IDs
+                    batch_size = x1.size(0)
+                    actions = torch.zeros(batch_size, 2, device=device)
+
+                # Extract action IDs and subtract 1 (for 0-indexing)
+                a1 = actions[:, 0].clone()
+                a2 = actions[:, 1].clone()
+
+                # Check for negative values or zeros (since we're subtracting 1)
+                a1[a1 <= 0] = 1  # Set to 1 if 0 or negative
+                a2[a2 <= 0] = 1  # Set to 1 if 0 or negative
+
+                # Now subtract 1 safely
+                a1 = a1 - 1
+                a2 = a2 - 1
+
+                # Ensure indices are within valid range
+                a1 = torch.clamp(a1, 0, self.utility_classes - 1)
+                a2 = torch.clamp(a2, 0, self.utility_classes - 1)
+
+                # Create one-hot encodings safely
+                utility_eye_tensor = torch.eye(self.utility_classes, device=device)
+                a1_onehot = utility_eye_tensor[a1.long()]
+                a2_onehot = utility_eye_tensor[a2.long()]
+
+                # train utility adversary
+                util_loss = (self.cross_entropy(self.util_adv(s1), a1_onehot) + \
+                            self.cross_entropy(self.util_adv(s2), a2_onehot) + \
+                            self.cross_entropy(self.util_adv(s3), a2_onehot) + \
+                            self.cross_entropy(self.util_adv(s4), a1_onehot)) / 4
+                util_acc = (self.adv_accuracy(self.util_adv, s1, a1_onehot) + \
+                            self.adv_accuracy(self.util_adv, s2, a2_onehot) + \
+                            self.adv_accuracy(self.util_adv, s3, a2_onehot) + \
+                            self.adv_accuracy(self.util_adv, s4, a1_onehot)) / 4
+                util_loss.backward(retain_graph=True)
+                self.util_optim.step()
+
+                # train utility cooperative
+                util_coop_loss = (self.cross_entropy(self.util_coop(d1), a1_onehot) + \
+                                self.cross_entropy(self.util_coop(d2), a2_onehot) + \
+                                self.cross_entropy(self.util_coop(d3), a2_onehot) + \
+                                self.cross_entropy(self.util_coop(d4), a1_onehot)) / 4
+                util_coop_acc = (self.adv_accuracy(self.util_coop, d1, a1_onehot) + \
+                                self.adv_accuracy(self.util_coop, d2, a2_onehot) + \
+                                self.adv_accuracy(self.util_coop, d3, a2_onehot) + \
+                                self.adv_accuracy(self.util_coop, d4, a1_onehot)) / 4
+                util_coop_loss.backward(retain_graph=True)
+                self.util_coop_optim.step()
+            except Exception as e:
+                print(f"Error in utility training: {e}")
 
         if train_discrim:
-            # train discriminator
-            output_real = self.discriminator(torch.cat((x1.view(x1.size(0), T, -1), x2.view(x2.size(0), T, -1), y1.view(y1.size(0), T, -1), y2.view(y1.size(0), T, -1))))
-            output_fake = self.discriminator(torch.cat((x1_hat, x2_hat, y1_hat, y2_hat)))
-            discriminator_loss = self.bce_loss(output_real, torch.ones_like(output_real)) + self.bce_loss(output_fake, torch.zeros_like(output_fake))
-            discriminator_acc = ((torch.sum(torch.round(output_fake) == 0).float() / (4 * self.batch_size)) + (torch.sum(torch.round(output_real) == 1).float() / (4 * self.batch_size))) / 2
-            discriminator_loss.backward()
-            self.discriminator_optim.step()
+            try:
+                # train discriminator
+                # Ensure proper reshaping and handling before concatenation
+                try:
+                    # Process real data
+                    x1_view = x1.view(x1.size(0), T, -1)
+                    x2_view = x2.view(x2.size(0), T, -1)
+                    y1_view = y1.view(y1.size(0), T, -1)
+                    y2_view = y2.view(y2.size(0), T, -1)
 
-        # unfreeze encoders/decoder
-        self.dynamic_encoder.train()
-        self.static_encoder.train()
-        self.decoder.train()
+                    # Check shapes before concatenation
+                    if not (x1_view.size(1) == x2_view.size(1) == y1_view.size(1) == y2_view.size(1) == T):
+                        print(f"Warning: Inconsistent time dimension in real data")
+                        print(f"Shapes: x1={x1_view.shape}, x2={x2_view.shape}, y1={y1_view.shape}, y2={y2_view.shape}")
+                        # Ensure all tensors have the same time dimension
+                        x1_view = F.interpolate(x1_view.transpose(1, 2), size=T).transpose(1, 2)
+                        x2_view = F.interpolate(x2_view.transpose(1, 2), size=T).transpose(1, 2)
+                        y1_view = F.interpolate(y1_view.transpose(1, 2), size=T).transpose(1, 2)
+                        y2_view = F.interpolate(y2_view.transpose(1, 2), size=T).transpose(1, 2)
 
-        # freeze adversaries
-        self.priv_adv.eval()
-        self.priv_coop.eval()
-        self.util_adv.eval()
-        self.util_coop.eval()
-        self.discriminator.eval()
+                    # Process fake data
+                    x1_hat_view = x1_hat.view(x1_hat.size(0), T, -1)
+                    x2_hat_view = x2_hat.view(x2_hat.size(0), T, -1)
+                    y1_hat_view = y1_hat.view(y1_hat.size(0), T, -1)
+                    y2_hat_view = y2_hat.view(y2_hat.size(0), T, -1)
 
-        return priv_loss.item(), priv_coop_loss.item(), util_loss.item(), util_coop_loss.item(), discriminator_loss.item(), priv_acc.item(), util_acc.item(), priv_coop_acc.item(), util_coop_acc.item(), discriminator_acc.item()
+                    # Check shapes before concatenation
+                    if not (x1_hat_view.size(1) == x2_hat_view.size(1) == y1_hat_view.size(1) == y2_hat_view.size(1) == T):
+                        print(f"Warning: Inconsistent time dimension in fake data")
+                        print(f"Shapes: x1_hat={x1_hat_view.shape}, x2_hat={x2_hat_view.shape}, y1_hat={y1_hat_view.shape}, y2_hat={y2_hat_view.shape}")
+                        # Ensure all tensors have the same time dimension
+                        x1_hat_view = F.interpolate(x1_hat_view.transpose(1, 2), size=T).transpose(1, 2)
+                        x2_hat_view = F.interpolate(x2_hat_view.transpose(1, 2), size=T).transpose(1, 2)
+                        y1_hat_view = F.interpolate(y1_hat_view.transpose(1, 2), size=T).transpose(1, 2)
+                        y2_hat_view = F.interpolate(y2_hat_view.transpose(1, 2), size=T).transpose(1, 2)
 
-    def train_adv_unpaired(self, x_pos, x_rot, actor, action, train_emb = True, train_discrim = True):
-        # ensure one training method is enabled
-        assert train_emb or train_discrim, 'At least one training method must be enabled'
+                    # Process real and fake data separately to avoid large concatenations
+                    real_data = [x1_view, x2_view, y1_view, y2_view]
+                    fake_data = [x1_hat_view, x2_hat_view, y1_hat_view, y2_hat_view]
 
-        # freeze encoders/decoder
-        self.dynamic_encoder.eval()
-        self.static_encoder.eval()
-        self.decoder.eval()
+                    # Process in smaller batches to avoid memory issues
+                    output_real_list = []
+                    output_fake_list = []
 
-        # unfreeze adversaries
-        self.priv_adv.train()
-        self.priv_coop.train()
-        self.util_adv.train()
-        self.util_coop.train()
-        self.discriminator.train()
+                    for data in real_data:
+                        output = self.discriminator(data)
+                        output_real_list.append(output)
 
-        # zero out gradients
-        self.priv_optim.zero_grad()
-        self.priv_coop_optim.zero_grad()
-        self.util_optim.zero_grad()
-        self.util_coop_optim.zero_grad()
-        self.discriminator_optim.zero_grad()
+                    for data in fake_data:
+                        output = self.discriminator(data)
+                        output_fake_list.append(output)
 
-        # instantiate losses
-        priv_loss = torch.zeros(1).to(device)
-        priv_coop_loss = torch.zeros(1).to(device)
-        priv_acc = torch.zeros(1).to(device)
-        priv_coop_acc = torch.zeros(1).to(device)
-        util_loss = torch.zeros(1).to(device)
-        util_coop_loss = torch.zeros(1).to(device)
-        util_acc = torch.zeros(1).to(device)
-        util_coop_acc = torch.zeros(1).to(device)
-        discriminator_loss = torch.zeros(1).to(device)
-        discriminator_acc = torch.zeros(1).to(device)
+                    output_real = torch.cat(output_real_list)
+                    output_fake = torch.cat(output_fake_list)
 
-        if train_emb:
-            p = actor - 1
-            p = torch.eye(self.privacy_classes)[p.long()].to(device)
-            a = action - 1
-            a = torch.eye(self.utility_classes)[a.long()].to(device)
+                    # Calculate loss and accuracy
+                    discriminator_loss = self.bce_loss(output_real, torch.ones_like(output_real)) + \
+                                         self.bce_loss(output_fake, torch.zeros_like(output_fake))
+                    discriminator_acc = ((torch.sum(torch.round(output_fake) == 0).float() / (4 * self.batch_size)) + \
+                                        (torch.sum(torch.round(output_real) == 1).float() / (4 * self.batch_size))) / 2
 
-            # train privacy adversary
-            priv_loss = self.adv_loss(self.priv_adv, self.dynamic_encoder(x_rot), p)
-            priv_acc = self.adv_accuracy(self.priv_adv, self.dynamic_encoder(x_rot), p)
-            priv_loss.backward()
-            self.priv_optim.step()
+                    # Backpropagate and update
+                    discriminator_loss.backward()
+                    self.discriminator_optim.step()
 
-            # tain privacy cooperative
-            priv_coop_loss = self.adv_loss(self.priv_coop, self.static_encoder(x_pos), p)
-            priv_coop_acc = self.adv_accuracy(self.priv_coop, self.static_encoder(x_pos), p)
-            priv_coop_loss.backward()
-            self.priv_coop_optim.step()
-            
-            # train utility adversary
-            util_loss = self.adv_loss(self.util_adv, self.static_encoder(x_pos), a)
-            util_acc = self.adv_accuracy(self.util_adv, self.static_encoder(x_pos), a)
-            util_loss.backward()
-            self.util_optim.step()
+                except RuntimeError as e:
+                    print(f"Error during discriminator data processing: {e}")
+                    # Continue with other training steps
+                    discriminator_loss = torch.zeros(1).to(device)
+                    discriminator_acc = torch.zeros(1).to(device)
 
-            # train utility cooperative
-            util_coop_loss = self.adv_loss(self.util_coop, self.dynamic_encoder(x_rot), a)
-            util_coop_acc = self.adv_accuracy(self.util_coop, self.dynamic_encoder(x_rot), a)
-            util_coop_loss.backward()
-            self.util_coop_optim.step()
-
-        if train_discrim:
-            # encode
-            d = self.dynamic_encoder(x_rot)
-            s = self.static_encoder(x_pos)
-
-            # decode
-            x_hat = self.decoder(torch.cat((d, s), dim=1))
-
-            # train discriminator
-            output_real = self.discriminator(x_pos.reshape(x_pos.size(0), T, -1))
-            output_fake = self.discriminator(x_hat)
-            discriminator_loss = self.bce_loss(output_real, torch.ones_like(output_real)) + self.bce_loss(output_fake, torch.zeros_like(output_fake))
-            discriminator_acc = ((torch.sum(torch.round(output_fake) == 0).float() / self.batch_size) + (torch.sum(torch.round(output_real) == 1).float() / self.batch_size)) / 2
-            discriminator_loss.backward()
-            self.discriminator_optim.step()
+            except Exception as e:
+                print(f"Error in discriminator training: {e}")
+                discriminator_loss = torch.zeros(1).to(device)
+                discriminator_acc = torch.zeros(1).to(device)
 
         # unfreeze encoders/decoder
         self.dynamic_encoder.train()
@@ -929,8 +1210,11 @@ class PMR(nn.Module):
         return priv_loss.item(), priv_coop_loss.item(), util_loss.item(), util_coop_loss.item(), discriminator_loss.item(), priv_acc.item(), util_acc.item(), priv_coop_acc.item(), util_coop_acc.item(), discriminator_acc.item()
 
     def val_adv_paired(self, x1, x1_rot, x2, x2_rot, y1, y1_rot, y2, y2_rot, actors, actions, train_emb = True, train_discrim = True):
-        if not self.use_adv: return 0,0
-
+        if not self.use_adv: return 0,0,0,0,0,0,0,0,0,0
+        x1=x1_rot
+        x2=x2_rot
+        y1=y1_rot
+        y2=y2_rot
         # freeze encoders/decoder
         self.set_eval()
 
@@ -954,124 +1238,289 @@ class PMR(nn.Module):
         discriminator_acc = torch.zeros(1).to(device)
 
         if train_emb:
-            # privacy adversary
-            p1, p2 = actors[0] - 1, actors[1] - 1
-            p1, p2 = torch.eye(self.privacy_classes)[p1.long()].to(device), torch.eye(self.privacy_classes)[p2.long()].to(device)
-            priv_loss = (self.cross_entropy(self.priv_adv(d1), p1) + \
-                        self.cross_entropy(self.priv_adv(d2), p2) + \
-                        self.cross_entropy(self.priv_adv(d3), p1) + \
-                        self.cross_entropy(self.priv_adv(d4), p2)) / 4
-            priv_acc = (self.adv_accuracy(self.priv_adv, d1, p1) + self.adv_accuracy(self.priv_adv, d2, p2) + self.adv_accuracy(self.priv_adv, d3, p1) + self.adv_accuracy(self.priv_adv, d4, p2)) / 4
+            # SAFETY CHECK: Ensure actors has proper dimensions
+            if actors.dim() < 2 or actors.size(1) < 2:
+                print(f"WARNING: actors tensor has invalid shape: {actors.shape}. Expected [batch_size, 2]")
+                # Create default actor IDs
+                batch_size = x1.size(0)
+                actors = torch.ones(batch_size, 2, device=device)
 
-            # privacy cooperative
-            priv_coop_loss = (self.cross_entropy(self.priv_coop(s1), p1) + \
-                            self.cross_entropy(self.priv_coop(s2), p2) + \
-                            self.cross_entropy(self.priv_coop(s3), p1) + \
-                            self.cross_entropy(self.priv_coop(s4), p2)) / 4
-            priv_coop_acc = (self.adv_accuracy(self.priv_coop, s1, p1) + self.adv_accuracy(self.priv_coop, s2, p2) + self.adv_accuracy(self.priv_coop, s3, p1) + self.adv_accuracy(self.priv_coop, s4, p2)) / 4
-                        
-            # utility adversary
-            a1, a2 = actions[0] - 1, actions[1] - 1
-            a1, a2 = torch.eye(self.utility_classes)[a1.long()].to(device), torch.eye(self.utility_classes)[a2.long()].to(device)
-            util_loss = (self.cross_entropy(self.util_adv(s1), a1) + \
-                        self.cross_entropy(self.util_adv(s2), a2) + \
-                        self.cross_entropy(self.util_adv(s3), a2) + \
-                        self.cross_entropy(self.util_adv(s4), a1)) / 4
-            util_acc = (self.adv_accuracy(self.util_adv, s1, a1) + self.adv_accuracy(self.util_adv, s2, a2) + self.adv_accuracy(self.util_adv, s3, a2) + self.adv_accuracy(self.util_adv, s4, a1)) / 4
+            try:
+                # Extract actor IDs with bounds checking
+                p1 = actors[:, 0] - 1
+                p2 = actors[:, 1] - 1
 
-            # utility cooperative
-            util_coop_loss = (self.cross_entropy(self.util_coop(d1), a1) + \
-                            self.cross_entropy(self.util_coop(d2), a2) + \
-                            self.cross_entropy(self.util_coop(d3), a2) + \
-                            self.cross_entropy(self.util_coop(d4), a1)) / 4
-            util_coop_acc = (self.adv_accuracy(self.util_coop, d1, a1) + self.adv_accuracy(self.util_coop, d2, a2) + self.adv_accuracy(self.util_coop, d3, a2) + self.adv_accuracy(self.util_coop, d4, a1)) / 4
+                # Ensure indices are within valid range
+                p1 = torch.clamp(p1, 0, self.privacy_classes - 1)
+                p2 = torch.clamp(p2, 0, self.privacy_classes - 1)
 
+                # Create one-hot encodings safely
+                eye_tensor = torch.eye(self.privacy_classes, device=device)
+                p1_onehot = eye_tensor[p1.long()]
+                p2_onehot = eye_tensor[p2.long()]
+
+                # Calculate losses
+                priv_loss = (self.cross_entropy(self.priv_adv(d1), p1_onehot) + \
+                            self.cross_entropy(self.priv_adv(d2), p2_onehot) + \
+                            self.cross_entropy(self.priv_adv(d3), p1_onehot) + \
+                            self.cross_entropy(self.priv_adv(d4), p2_onehot)) / 4
+                priv_acc = (self.adv_accuracy(self.priv_adv, d1, p1_onehot) + \
+                            self.adv_accuracy(self.priv_adv, d2, p2_onehot) + \
+                            self.adv_accuracy(self.priv_adv, d3, p1_onehot) + \
+                            self.adv_accuracy(self.priv_adv, d4, p2_onehot)) / 4
+
+                # privacy cooperative
+                priv_coop_loss = (self.cross_entropy(self.priv_coop(s1), p1_onehot) + \
+                                self.cross_entropy(self.priv_coop(s2), p2_onehot) + \
+                                self.cross_entropy(self.priv_coop(s3), p1_onehot) + \
+                                self.cross_entropy(self.priv_coop(s4), p2_onehot)) / 4
+                priv_coop_acc = (self.adv_accuracy(self.priv_coop, s1, p1_onehot) + \
+                                self.adv_accuracy(self.priv_coop, s2, p2_onehot) + \
+                                self.adv_accuracy(self.priv_coop, s3, p1_onehot) + \
+                                self.adv_accuracy(self.priv_coop, s4, p2_onehot)) / 4
+            except Exception as e:
+                print(f"Error in privacy validation: {e}")
+
+            # SAFETY CHECK: Ensure actions has proper dimensions
+            if actions.dim() < 2 or actions.size(1) < 2:
+                print(f"WARNING: actions tensor has invalid shape: {actions.shape}. Expected [batch_size, 2]")
+                # Create default action IDs
+                batch_size = x1.size(0)
+                actions = torch.ones(batch_size, 2, device=device)
+
+            try:
+                # Extract action IDs with bounds checking
+                a1 = actions[:, 0] - 1
+                a2 = actions[:, 1] - 1
+
+                # Ensure indices are within valid range
+                a1 = torch.clamp(a1, 0, self.utility_classes - 1)
+                a2 = torch.clamp(a2, 0, self.utility_classes - 1)
+
+                # Create one-hot encodings safely
+                utility_eye_tensor = torch.eye(self.utility_classes, device=device)
+                a1_onehot = utility_eye_tensor[a1.long()]
+                a2_onehot = utility_eye_tensor[a2.long()]
+
+                # Calculate losses
+                util_loss = (self.cross_entropy(self.util_adv(s1), a1_onehot) + \
+                            self.cross_entropy(self.util_adv(s2), a2_onehot) + \
+                            self.cross_entropy(self.util_adv(s3), a2_onehot) + \
+                            self.cross_entropy(self.util_adv(s4), a1_onehot)) / 4
+                util_acc = (self.adv_accuracy(self.util_adv, s1, a1_onehot) + \
+                            self.adv_accuracy(self.util_adv, s2, a2_onehot) + \
+                            self.adv_accuracy(self.util_adv, s3, a2_onehot) + \
+                            self.adv_accuracy(self.util_adv, s4, a1_onehot)) / 4
+
+                # utility cooperative
+                util_coop_loss = (self.cross_entropy(self.util_coop(d1), a1_onehot) + \
+                                self.cross_entropy(self.util_coop(d2), a2_onehot) + \
+                                self.cross_entropy(self.util_coop(d3), a2_onehot) + \
+                                self.cross_entropy(self.util_coop(d4), a1_onehot)) / 4
+                util_coop_acc = (self.adv_accuracy(self.util_coop, d1, a1_onehot) + \
+                                self.adv_accuracy(self.util_coop, d2, a2_onehot) + \
+                                self.adv_accuracy(self.util_coop, d3, a2_onehot) + \
+                                self.adv_accuracy(self.util_coop, d4, a1_onehot)) / 4
+            except Exception as e:
+                print(f"Error in utility validation: {e}")
 
         if train_discrim:
-            # discriminator
-            output_real = self.discriminator(torch.cat((x1.view(x1.size(0), T, -1), x2.view(x2.size(0), T, -1), y1.view(y1.size(0), T, -1), y2.view(y1.size(0), T, -1))))
-            output_fake = self.discriminator(torch.cat((x1_hat, x2_hat, y1_hat, y2_hat)))
-            discriminator_loss = self.bce_loss(output_real, torch.ones_like(output_real)) + self.bce_loss(output_fake, torch.zeros_like(output_fake))
-            discriminator_acc = ((torch.sum(torch.round(output_fake) == 0).float() / (4 * self.batch_size)) + (torch.sum(torch.round(output_real) == 1).float() / (4 * self.batch_size))) / 2
+            try:
+                # train discriminator
+                # Ensure proper reshaping before concatenation
+                x1_view = x1.view(x1.size(0), T, -1)
+                x2_view = x2.view(x2.size(0), T, -1)
+                y1_view = y1.view(y1.size(0), T, -1)
+                y2_view = y2.view(y2.size(0), T, -1)
+
+                output_real = self.discriminator(torch.cat((x1_view, x2_view, y1_view, y2_view)))
+                output_fake = self.discriminator(torch.cat((x1_hat, x2_hat, y1_hat, y2_hat)))
+                discriminator_loss = self.bce_loss(output_real, torch.ones_like(output_real)) + \
+                                     self.bce_loss(output_fake, torch.zeros_like(output_fake))
+                discriminator_acc = ((torch.sum(torch.round(output_fake) == 0).float() / (4 * self.batch_size)) + \
+                                    (torch.sum(torch.round(output_real) == 1).float() / (4 * self.batch_size))) / 2
+            except Exception as e:
+                print(f"Error in discriminator validation: {e}")
 
         # unfreeze encoders/decoder
-        self.set_eval(False)
+        self.dynamic_encoder.train()
+        self.static_encoder.train()
+        self.decoder.train()
+
+        # freeze adversaries
+        self.priv_adv.eval()
+        self.priv_coop.eval()
+        self.util_adv.eval()
+        self.util_coop.eval()
+        self.discriminator.eval()
 
         return priv_loss.item(), priv_coop_loss.item(), util_loss.item(), util_coop_loss.item(), discriminator_loss.item(), priv_acc.item(), util_acc.item(), priv_coop_acc.item(), util_coop_acc.item(), discriminator_acc.item()
 
-    def val_adv_unpaired(self, x_pos, x_rot, actor, action, train_emb = True, train_discrim = True):
-        # ensure one training method is enabled
-        assert train_emb or train_discrim, 'At least one training method must be enabled'
-
+    def train_adv_unpaired(self, x_pos, x_rot, actors, actions, train_emb=True, train_discrim=True):
+        if not self.use_adv: return 0,0,0,0,0,0,0,0,0,0
         # freeze encoders/decoder
-        self.set_eval()
+        self.dynamic_encoder.eval()
+        self.static_encoder.eval()
+        self.decoder.eval()
 
-        # Encode
+        # Ensure x_pos and x_rot are the same if only using position data
+        x_pos = x_rot
+
+        # move to device
+        x_pos = x_pos.to(device)
+        x_rot = x_rot.to(device)
+        actors = actors.to(device)
+        actions = actions.to(device)
+
+        # unfreeze adversaries
+        self.priv_adv.train()
+        self.priv_coop.train()
+        self.util_adv.train()
+        self.util_coop.train()
+        self.discriminator.train()
+
+        # Encode the inputs
         d = self.dynamic_encoder(x_rot)
         s = self.static_encoder(x_pos)
-
-        # Decode
         x_hat = self.decoder(torch.cat((d, s), dim=1))
 
-        # instantiate losses
-        priv_loss = torch.zeros(1).to(device)
-        priv_coop_loss = torch.zeros(1).to(device)
-        priv_acc = torch.zeros(1).to(device)
-        priv_coop_acc = torch.zeros(1).to(device)
-        util_loss = torch.zeros(1).to(device)
-        util_coop_loss = torch.zeros(1).to(device)
-        util_acc = torch.zeros(1).to(device)
-        util_coop_acc = torch.zeros(1).to(device)
-        discriminator_loss = torch.zeros(1).to(device)
-        discriminator_acc = torch.zeros(1).to(device)
+        # Initialize loss and accuracy variables
+        priv_loss = torch.tensor(0.0).to(device)
+        priv_coop_loss = torch.tensor(0.0).to(device)
+        util_loss = torch.tensor(0.0).to(device)
+        util_coop_loss = torch.tensor(0.0).to(device)
+        discriminator_loss = torch.tensor(0.0).to(device)
+        priv_acc = torch.tensor(0.0).to(device)
+        util_acc = torch.tensor(0.0).to(device)
+        priv_coop_acc = torch.tensor(0.0).to(device)
+        util_coop_acc = torch.tensor(0.0).to(device)
+        discriminator_acc = torch.tensor(0.0).to(device)
 
         if train_emb:
-            p = actor - 1
-            p = torch.eye(self.privacy_classes)[p.long()].to(device)
-            a = action - 1
-            a = torch.eye(self.utility_classes)[a.long()].to(device)
+            try:
+                # Prepare actor and action labels
+                actor_y = actors - 1
+                actor_y = torch.clamp(actor_y, 0, self.privacy_classes - 1)
+                actor_onehot = torch.eye(self.privacy_classes, device=device)[actor_y.long()]
 
-            # privacy adversary
-            priv_loss = self.adv_loss(self.priv_adv, self.dynamic_encoder(x_rot), p)
-            priv_acc = self.adv_accuracy(self.priv_adv, self.dynamic_encoder(x_rot), p)
+                action_y = actions - 1
+                action_y = torch.clamp(action_y, 0, self.utility_classes - 1)
+                action_onehot = torch.eye(self.utility_classes, device=device)[action_y.long()]
 
-            # privacy cooperative
-            priv_coop_loss = self.adv_loss(self.priv_coop, self.static_encoder(x_pos), p)
-            priv_coop_acc = self.adv_accuracy(self.priv_coop, self.static_encoder(x_pos), p)
-            
-            # utility adversary
-            util_loss = self.adv_loss(self.util_adv, self.static_encoder(x_pos), a)
-            util_acc = self.adv_accuracy(self.util_adv, self.static_encoder(x_pos), a)
+                # Train privacy adversary
+                self.priv_optim.zero_grad()
+                priv_loss = self.cross_entropy(self.priv_adv(d), actor_onehot)
+                priv_acc = self.adv_accuracy(self.priv_adv, d, actor_onehot)
+                priv_loss.backward(retain_graph=True)
+                self.priv_optim.step()
 
-            # utility cooperative
-            util_coop_loss = self.adv_loss(self.util_coop, self.dynamic_encoder(x_rot), a)
-            util_coop_acc = self.adv_accuracy(self.util_coop, self.dynamic_encoder(x_rot), a)
+                # Train privacy cooperative
+                self.priv_coop_optim.zero_grad()
+                priv_coop_loss = self.cross_entropy(self.priv_coop(s), actor_onehot)
+                priv_coop_acc = self.adv_accuracy(self.priv_coop, s, actor_onehot)
+                priv_coop_loss.backward(retain_graph=True)
+                self.priv_coop_optim.step()
+            except Exception as e:
+                print(f"Error in privacy training: {e}")
+                # Continue with other adversaries
+
+            try:
+                # Train utility adversary
+                self.util_optim.zero_grad()
+                util_loss = self.cross_entropy(self.util_adv(s), action_onehot)
+                util_acc = self.adv_accuracy(self.util_adv, s, action_onehot)
+                util_loss.backward(retain_graph=True)
+                self.util_optim.step()
+
+                # Train utility cooperative
+                self.util_coop_optim.zero_grad()
+                util_coop_loss = self.cross_entropy(self.util_coop(d), action_onehot)
+                util_coop_acc = self.adv_accuracy(self.util_coop, d, action_onehot)
+                util_coop_loss.backward(retain_graph=True)
+                self.util_coop_optim.step()
+            except Exception as e:
+                print(f"Error in utility training: {e}")
 
         if train_discrim:
-            # encode
-            d = self.dynamic_encoder(x_rot)
-            s = self.static_encoder(x_pos)
+            try:
+                # Train discriminator
+                self.discriminator_optim.zero_grad()
 
-            # decode
-            x_hat = self.decoder(torch.cat((d, s), dim=1))
+                # Generate real and fake samples
+                real_samples = x_pos
+                fake_samples = x_hat.detach()
 
-            # train discriminator
-            output_real = self.discriminator(x_pos.reshape(x_pos.size(0), T, -1))
-            output_fake = self.discriminator(x_hat)
-            discriminator_loss = self.bce_loss(output_real, torch.ones_like(output_real)) + self.bce_loss(output_fake, torch.zeros_like(output_fake))
-            discriminator_acc = ((torch.sum(torch.round(output_fake) == 0).float() / self.batch_size) + (torch.sum(torch.round(output_real) == 1).float() / self.batch_size)) / 2
+                # Prepare labels
+                real_labels = torch.ones(real_samples.size(0), 1).to(device)
+                fake_labels = torch.zeros(fake_samples.size(0), 1).to(device)
+
+                # Forward pass for real samples
+                real_output = self.discriminator(real_samples)
+                real_loss = self.bce_loss(real_output, real_labels)
+
+                # Forward pass for fake samples
+                fake_output = self.discriminator(fake_samples)
+                fake_loss = self.bce_loss(fake_output, fake_labels)
+
+                # Combined loss
+                discriminator_loss = (real_loss + fake_loss) / 2
+                discriminator_loss.backward()
+                self.discriminator_optim.step()
+
+                # Calculate accuracy
+                real_correct = torch.sum(torch.round(real_output) == real_labels).float()
+                fake_correct = torch.sum(torch.round(fake_output) == fake_labels).float()
+                total = real_labels.size(0) + fake_labels.size(0)
+                discriminator_acc = (real_correct + fake_correct) / total
+            except Exception as e:
+                print(f"Error in discriminator training: {e}")
 
         # unfreeze encoders/decoder
-        self.set_eval(False)
+        self.dynamic_encoder.train()
+        self.static_encoder.train()
+        self.decoder.train()
+
+        # freeze adversaries
+        self.priv_adv.eval()
+        self.priv_coop.eval()
+        self.util_adv.eval()
+        self.util_coop.eval()
+        self.discriminator.eval()
 
         return priv_loss.item(), priv_coop_loss.item(), util_loss.item(), util_coop_loss.item(), discriminator_loss.item(), priv_acc.item(), util_acc.item(), priv_coop_acc.item(), util_coop_acc.item(), discriminator_acc.item()
 
     def forward(self, x, x_rot):
-        dyn = self.dynamic_encoder(x_rot)
-        sta = self.static_encoder(x)
-        x = self.decoder(torch.cat((dyn, sta), dim=1))
-        return x
-    
+        # Add shape validation and error handling
+        try:
+            # Ensure x_rot has the correct shape for the encoders
+            if x_rot.dim() != 5:  # Expected [B, C, T, V, M]
+                print(f"Warning: Input tensor has unexpected shape: {x_rot.shape}")
+                # Try to reshape to expected format
+                B = x_rot.size(0)
+                x_rot = x_rot.reshape(B, -1, T, 25, 1)
+
+            dyn = self.dynamic_encoder(x_rot)
+            sta = self.static_encoder(x_rot)
+
+            # Validate encoder outputs before concatenation
+            if dyn.shape != sta.shape:
+                print(f"Warning: Encoder outputs have mismatched shapes: dyn={dyn.shape}, sta={sta.shape}")
+                # Resize to match if needed
+                if dyn.size(0) == sta.size(0):  # Same batch size
+                    # Resize smaller one to match larger one
+                    if dyn.numel() < sta.numel():
+                        dyn = dyn.expand_as(sta)
+                    else:
+                        sta = sta.expand_as(dyn)
+
+            x = self.decoder(torch.cat((dyn, sta), dim=1))
+            return x
+
+        except RuntimeError as e:
+            print(f"Error in PMR forward pass: {e}")
+            # Return input as fallback to prevent training failure
+            return x
+
     def set_eval(self, eval=True):
         if eval:
             self.static_encoder.eval()

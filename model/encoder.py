@@ -10,7 +10,7 @@ from .spa_mixf import Spatial_MixFormer
 from .ske_mixf import Ske_MixF, import_class, bn_init, conv_init
 
 class Encoder(nn.Module):
-    def __init__(self, num_class=60, num_point=25, num_person=1, graph=None, graph_args=dict(), in_channels=3, debug=False, dataset='ntu', load_pretrained=True, freeze_layers=True):
+    def __init__(self, num_class=60, num_point=25, num_person=1, graph=None, graph_args=dict(), in_channels=3, debug=False, dataset='ntu', load_pretrained=True, freeze_layers=True, device='cuda'):
         super(Encoder, self).__init__()
         if graph is None:
             raise ValueError()
@@ -67,19 +67,29 @@ class Encoder(nn.Module):
         bn_init(self.data_bn, 1)
 
         # Load pre-trained Skeleton-MixFormer weights
-        if load_pretrained:
-            pretrained_state_dict = torch.load(f'eval/mixformer/pretrained/{self.dataset}/encoder.pth')
-            model_state_dict = self.state_dict()
+        # Store the device and dataset
+        self.device = device
+        self.dataset = dataset
 
-            # Remove 'module.' prefix if present in pretrained_state_dict keys
-            pretrained_state_dict = {k.replace('module.', ''): v for k, v in pretrained_state_dict.items()}
-
-            # Filter out unnecessary keys
-            pretrained_state_dict = {k: v for k, v in pretrained_state_dict.items() if k in model_state_dict}
-
-            # Update model's state_dict
-            model_state_dict.update(pretrained_state_dict)
-            self.load_state_dict(model_state_dict)
+        # Skip loading pretrained weights when we're loading the transformer directly
+        try:
+            # Check if we're in the context of loading the transformer model
+            # If args.loading_transformer exists and is True, skip loading pretrained weights
+            import __main__ as main
+            if hasattr(main, 'args') and hasattr(main.args, 'loading_transformer') and main.args.loading_transformer:
+                print("Skipping pretrained encoder weights loading (will load full model weights later)")
+            else:
+                print(f"Loading pretrained encoder weights for {self.dataset}")
+                pretrained_path = f'eval/mixformer/pretrained/{self.dataset}/encoder.pth'
+                # Load with proper device mapping
+                pretrained_state_dict = torch.load(pretrained_path, map_location=self.device)
+                self.load_state_dict(pretrained_state_dict, strict=False)
+                if debug:
+                    print("Pretrained encoder weights loaded.")
+        except (FileNotFoundError, RuntimeError) as e:
+            if debug:
+                print(f"Failed to load pretrained encoder weights: {e}")
+                print(f"Continuing with random initialization...")
 
         # Freeze the weights of the pre-trained layers
         if freeze_layers:
@@ -98,7 +108,7 @@ class Encoder(nn.Module):
 
     def forward(self, x):
         N, C, T, V, M = x.size()  # Extract sizes
-        
+
         x = rearrange(x, 'n c t v m -> (n m t) v c', m=M).contiguous()
 
         p = self.A_vector.to(x.device).expand(N * M * T, -1, -1)
@@ -151,6 +161,48 @@ class Encoder(nn.Module):
 
 
 def pre_process(input_tensor, batch_size, frames, joints, channels):
-    # Reshape the input tensor to (batch_size, channels, frames, joints, actor)
+    """
+    Reshape the input tensor to (batch_size, channels, frames, joints, actor)
+
+    Args:
+        input_tensor: Input tensor with various possible shapes
+        batch_size: Expected batch size
+        frames: Expected number of frames
+        joints: Expected number of joints (typically 25)
+        channels: Expected number of channels (typically 3)
+
+    Returns:
+        Tensor with shape (batch_size, channels, frames, joints, actor)
+    """
     actor = 1  # Default to 1 actor
-    return input_tensor.view(batch_size, frames, joints, channels).permute(0, 3, 1, 2).contiguous().view(batch_size, channels, frames, joints, actor)
+
+    # Handle different input shapes
+    if len(input_tensor.shape) == 5 and input_tensor.shape[2] == 1:  # (batch, frames, 1, joints, channels)
+        # This is the output format from post_process
+        # Permute to (batch, channels, frames, joints, actor)
+        return input_tensor.permute(0, 4, 1, 3, 2).contiguous()
+    elif len(input_tensor.shape) == 4:  # (batch, frames, joints, channels)
+        # Permute to (batch, channels, frames, joints) and add actor dimension
+        return input_tensor.permute(0, 3, 1, 2).contiguous().unsqueeze(-1)
+    elif len(input_tensor.shape) == 3 and input_tensor.shape[2] == joints * channels:  # (batch, frames, joints*channels)
+        # Reshape to (batch, frames, joints, channels), then permute and add actor dimension
+        return input_tensor.view(batch_size, frames, joints, channels).permute(0, 3, 1, 2).contiguous().unsqueeze(-1)
+    elif len(input_tensor.shape) == 2 and input_tensor.shape[1] == joints * channels:  # (frames, joints*channels)
+        # Add batch dimension, reshape, permute, and add actor dimension
+        return input_tensor.unsqueeze(0).view(1, frames, joints, channels).permute(0, 3, 1, 2).contiguous().unsqueeze(-1)
+    else:
+        # Default case: try to reshape as in the original function
+        try:
+            return input_tensor.view(batch_size, frames, joints, channels).permute(0, 3, 1, 2).contiguous().view(batch_size, channels, frames, joints, actor)
+        except RuntimeError as e:
+            print(f"Error in pre_process: {e}")
+            print(f"Input tensor shape: {input_tensor.shape}, Expected: ({batch_size}, {frames}, {joints}, {channels})")
+            # Try to infer the correct reshaping based on total elements
+            total_elements = input_tensor.numel()
+            expected_elements = batch_size * frames * joints * channels
+            if total_elements == expected_elements:
+                # If total elements match, try a different reshape approach
+                return input_tensor.view(batch_size, channels, frames, joints, actor)
+            else:
+                # If we can't reshape, return the original tensor and let the caller handle the error
+                raise

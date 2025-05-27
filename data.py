@@ -1,10 +1,104 @@
 import random
 import pickle
+import logging
 from collections import defaultdict
 import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader
 from multiprocessing import Pool, Manager
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
+#------------------------------------------------------------------------------
+# Data Augmentation Functions
+#------------------------------------------------------------------------------
+
+def _rot(rot):
+    """
+    Create rotation matrices from rotation angles
+    """
+    cos_r, sin_r = rot.cos(), rot.sin()
+    zeros = rot.new(rot.size()[:2] + (1,)).zero_()
+    ones = rot.new(rot.size()[:2] + (1,)).fill_(1)
+
+    r1 = torch.stack((ones, zeros, zeros), dim=-1)
+    rx2 = torch.stack((zeros, cos_r[:, :, 0:1], sin_r[:, :, 0:1]), dim=-1)
+    rx3 = torch.stack((zeros, -sin_r[:, :, 0:1], cos_r[:, :, 0:1]), dim=-1)
+    rx = torch.cat((r1, rx2, rx3), dim=2)
+
+    ry1 = torch.stack((cos_r[:, :, 1:2], zeros, -sin_r[:, :, 1:2]), dim=-1)
+    r2 = torch.stack((zeros, ones, zeros), dim=-1)
+    ry3 = torch.stack((sin_r[:, :, 1:2], zeros, cos_r[:, :, 1:2]), dim=-1)
+    ry = torch.cat((ry1, r2, ry3), dim=2)
+
+    rz1 = torch.stack((cos_r[:, :, 2:3], sin_r[:, :, 2:3], zeros), dim=-1)
+    r3 = torch.stack((zeros, zeros, ones), dim=-1)
+    rz2 = torch.stack((-sin_r[:, :, 2:3], cos_r[:, :, 2:3], zeros), dim=-1)
+    rz = torch.cat((rz1, rz2, r3), dim=2)
+
+    rot = rz.matmul(ry).matmul(rx)
+    return rot
+
+def _transform(x, theta):
+    """
+    Apply random rotations for data augmentation
+    """
+    x = x.contiguous().view(x.size()[:2] + (-1, 3))
+    rot = x.new(x.size()[0], 3).uniform_(-theta, theta)
+    rot = rot.repeat(1, x.size()[1])
+    rot = rot.contiguous().view((-1, x.size()[1], 3))
+    rot = _rot(rot)
+    x = torch.transpose(x, 2, 3)
+    x = torch.matmul(rot, x)
+    x = torch.transpose(x, 2, 3)
+
+    x = x.contiguous().view(x.size()[:2] + (-1,))
+    return x
+
+def sample_frames(sequence, seg):
+    """
+    Sample frames from a sequence using the same technique as in eval_loader.py
+
+    Args:
+        sequence: numpy array of shape (frames, features)
+        seg: number of frames to sample
+
+    Returns:
+        numpy array of shape (seg, features)
+    """
+    # Remove zero frames (frames where all values are zero)
+    non_zero_mask = ~np.all(sequence == 0, axis=1)
+    non_zero_frames = sequence[non_zero_mask]
+
+    # If sequence is shorter than seg frames, repeat the last frame
+    if len(non_zero_frames) < seg:
+        if len(non_zero_frames) > 0:
+            # Get the last frame and repeat it
+            last_frame = non_zero_frames[-1:]
+            num_repeats = seg - len(non_zero_frames)
+            repeated_frames = np.repeat(last_frame, num_repeats, axis=0)
+            processed_seq = np.concatenate([non_zero_frames, repeated_frames], axis=0)
+        else:
+            # Handle edge case: if non_zero_frames is empty
+            processed_seq = np.zeros((seg, sequence.shape[1]), dtype=np.float32)
+    else:
+        # Sample frames with equal spacing as in the original SGN implementation
+        num_frames = len(non_zero_frames)
+        ave_duration = num_frames // seg
+
+        # Sample frames at regular intervals with small random offset
+        offsets = np.multiply(list(range(seg)), ave_duration) + np.random.randint(ave_duration, size=seg)
+
+        # Ensure we don't go out of bounds
+        offsets = np.clip(offsets, 0, num_frames-1)
+        processed_seq = non_zero_frames[offsets]
+
+    return processed_seq
+
+#------------------------------------------------------------------------------
+# Dataset Configurations
+#------------------------------------------------------------------------------
 
 datasets = {
     'ntu120': {
@@ -48,27 +142,45 @@ datasets = {
     }
 }
 
+#------------------------------------------------------------------------------
+# Data Loading Functions
+#------------------------------------------------------------------------------
 
 def load_data(dataset, T=64):
     """
-    Loads the raw data from the dataset pickle, truncates/pads each sequence to length T,
-    and returns a dictionary: filename -> (frames x (joints*channels)).
+    Loads the raw data from the dataset pickle, truncates/pads each sequence to length T.
+
+    Args:
+        dataset: str - Name of the dataset ('ntu', 'ntu120', 'etri')
+        T: int - Target sequence length
+
+    Returns:
+        dict - Mapping of filename to processed skeleton data (frames x joints*channels)
     """
     assert dataset in datasets, f'Dataset {dataset} not found'
-    
+
     # Load the data file
     with open(datasets[dataset]['path'], 'rb') as f:
         data = pickle.load(f)
-    
+
     processed_data = {}
     for k, v in data.items():
+        # Remove 2 actor actions (50-60 and 106-120)
+        if dataset in ['ntu', 'ntu120']:
+            remove = set([50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60,
+                        106, 107, 108, 109, 110, 111, 112, 113, 114,
+                        115, 116, 117, 118, 119, 120])
+            action = parse_file_name(k, dataset)['A']
+            if action in remove:
+                continue
+
         # Keep only the relevant joint and channel data if max_actors is 1
         if datasets[dataset]['max_actors'] == 1:
             v = v[:, :datasets[dataset]['joints'] * datasets[dataset]['channels']]
-        
+
         # Remove zero frames (frames that are all zeros)
         non_zero_frames = v[~np.all(v == 0, axis=1)]
-        
+
         # Adjust the sequence length to T
         if len(non_zero_frames) < T:
             # If shorter than T, repeat the last frame until reaching T frames
@@ -82,73 +194,94 @@ def load_data(dataset, T=64):
         else:
             # Clip to T frames
             padded_sequence = non_zero_frames[:T]
-        
+
         processed_data[k] = padded_sequence
-    
+
     return processed_data
 
 def get_num_classes(dataset, type='ar'):
     """
     Returns the number of classes for the specified dataset and type.
-    'ar' for action recognition, 'pt' for pose tracking (if applicable).
+
+    Args:
+        dataset: str - Name of the dataset
+        type: str - 'ar' for action recognition, 'ri' for re-identification
+
+    Returns:
+        int - Number of classes
     """
     assert dataset in datasets, f'Dataset {dataset} not found'
-    
+
     if type == 'ar':
         return datasets[dataset]['num_class']
     elif type == 'ri':
         return datasets[dataset]['num_actor']
     else:
-        raise ValueError(f'Unknown type {type}. Use "ar" or "pt".')
+        raise ValueError(f'Unknown type {type}. Use "ar" or "ri".')
 
+#------------------------------------------------------------------------------
+# Filename Parsing Functions
+#------------------------------------------------------------------------------
 
 def parse_file_name(file_name, dataset='ntu'):
     """
     Parses the filename into a dictionary of parts.
-    For NTU/NTU120: S##, C##, P##, R##, A##.
-    For ETRI: A###, P###, G###, C###.
+
+    Args:
+        file_name: str - Filename to parse
+        dataset: str - Dataset name to determine parsing format
+
+    Returns:
+        dict - Parsed components of the filename
     """
     file_name = str(file_name)
     if dataset in ['ntu', 'ntu120']:
-        S = int(file_name[1:4])
-        C = int(file_name[5:8])
-        P = int(file_name[9:12])
-        R = int(file_name[13:16])  # ignore
-        A = int(file_name[17:20])
+        S = int(file_name[1:4])  # Setup
+        C = int(file_name[5:8])  # Camera
+        P = int(file_name[9:12])  # Person/Actor
+        R = int(file_name[13:16])  # Replication
+        A = int(file_name[17:20])  # Action
         return {'S': S, 'C': C, 'P': P, 'R': R, 'A': A}
     elif dataset == 'etri':
-        A = int(file_name[1:4])
-        P = int(file_name[5:8])
-        G = int(file_name[9:12])  # ignore
-        C = int(file_name[13:16])
+        A = int(file_name[1:4])  # Action
+        P = int(file_name[5:8])  # Person/Actor
+        G = int(file_name[9:12])  # Group (ignored)
+        C = int(file_name[13:16])  # Camera
         return {'A': A, 'P': P, 'G': G, 'C': C}
 
 
 def build_group_key(parts, dataset):
     """
-    Builds the grouping key. 
-    For NTU/NTU120: key = (S, C).
-    For ETRI: key = C.
+    Builds the grouping key for organizing data.
+
+    Args:
+        parts: dict - Parsed filename parts
+        dataset: str - Dataset name
+
+    Returns:
+        tuple or int - Grouping key (S,C) for NTU datasets, C for ETRI
     """
     if dataset in ['ntu', 'ntu120']:
         return (parts['S'], parts['C'])
     elif dataset == 'etri':
         return parts['C']
 
+#------------------------------------------------------------------------------
+# Data Organization Functions
+#------------------------------------------------------------------------------
 
 def organize_data(data, setting, dataset='ntu120', T=64):
     """
-    Organizes data into train_data and test_data, grouped by either (S, C) or C,
-    depending on dataset. Then precomputes actor->actions and file maps for sampling.
-    
+    Organizes data into train and test sets based on dataset and setting.
+
+    Args:
+        data: dict - Raw data mapping filenames to sequences
+        setting: str - 'cs' for cross-subject, 'cv' for cross-view
+        dataset: str - Dataset name
+        T: int - Target sequence length
+
     Returns:
-        train_data, test_data
-        where train_data[group_key] and test_data[group_key] each contain:
-            {
-              'actor_to_actions': {actor: set_of_actions, ...},
-              'pa_map': {(p, a): [list_of_fnames_for_that_p_a], ...},
-              'actors_with_2plus': [actor1, actor2, ...]
-            }
+        tuple - (train_data, test_data) dictionaries organized by group keys
     """
     assert dataset in datasets, f'Dataset {dataset} not found'
     train_cameras = datasets[dataset]['train_cameras']
@@ -194,25 +327,6 @@ def organize_data(data, setting, dataset='ntu120', T=64):
                 test_data_raw[gk].extend(organized_data_raw[gk])
 
     # Step 2: Convert these raw lists into summary dictionaries
-    def build_summary(pa_list):
-        actor_to_actions = defaultdict(set)
-        pa_map = defaultdict(list)
-
-        for p, a, fname in pa_list:
-            actor_to_actions[p].add(a)
-            # Keep a list of possible filenames in case duplicates exist
-            pa_map[(p, a)].append(fname)
-
-        # Find all actors that have at least 2 distinct actions
-        actors_with_2plus = [p for p, actions in actor_to_actions.items() if len(actions) >= 2]
-
-        summary = {
-            'actor_to_actions': actor_to_actions,
-            'pa_map': pa_map,
-            'actors_with_2plus': actors_with_2plus
-        }
-        return summary
-
     train_data = {}
     for gk, pa_list in train_data_raw.items():
         if len(pa_list) == 0:
@@ -227,15 +341,48 @@ def organize_data(data, setting, dataset='ntu120', T=64):
 
     return train_data, test_data
 
+def build_summary(pa_list):
+    """
+    Convert raw (person, action, filename) lists into organized dictionaries.
+
+    Args:
+        pa_list: list - List of (person, action, filename) tuples
+
+    Returns:
+        dict - Summary containing actor_to_actions, pa_map, and actors_with_2plus
+    """
+    actor_to_actions = defaultdict(set)
+    pa_map = defaultdict(list)
+
+    for p, a, fname in pa_list:
+        actor_to_actions[p].add(a)
+        # Keep a list of possible filenames in case duplicates exist
+        pa_map[(p, a)].append(fname)
+
+    # Find all actors that have at least 2 distinct actions
+    actors_with_2plus = [p for p, actions in actor_to_actions.items() if len(actions) >= 2]
+
+    summary = {
+        'actor_to_actions': actor_to_actions,
+        'pa_map': pa_map,
+        'actors_with_2plus': actors_with_2plus
+    }
+    return summary
+
+#------------------------------------------------------------------------------
+# Data Sampling Functions
+#------------------------------------------------------------------------------
 
 def sample_data(organized_dict):
     """
-    Randomly samples from the summarized dictionary (group_key -> summary).
-    We look for 2 different actors that share at least 2 common actions.
-    
-    Returns a 4-tuple list of:
-        (p1, a1, fname), (p1, a2, fname), (p2, a1, fname), (p2, a2, fname)
-    or None if unsuccessful.
+    Randomly samples data to find pairs of different actors with common actions.
+
+    Args:
+        organized_dict: dict - Organized data dictionary
+
+    Returns:
+        list or None - List of (p1, a1, fname), (p1, a2, fname), (p2, a1, fname), (p2, a2, fname)
+                      or None if no valid sample found
     """
     if not organized_dict:
         return None
@@ -277,12 +424,14 @@ def sample_data(organized_dict):
                     p1_a2_fname = random.choice(pa_map[(p1, a2)])
                     p2_a1_fname = random.choice(pa_map[(p2, a1)])
                     p2_a2_fname = random.choice(pa_map[(p2, a2)])
-                    return [
+                    sample_result = [
                         (p1, a1, p1_a1_fname),
                         (p1, a2, p1_a2_fname),
                         (p2, a1, p2_a1_fname),
                         (p2, a2, p2_a2_fname)
                     ]
+                    logger.info(f"Found sample: actors [{p1}, {p2}], actions [{a1}, {a2}], group {group_key}")
+                    return sample_result
     return None
 
 
@@ -295,6 +444,10 @@ def gen_samples_single_threaded(samples, organized_dict):
     seen = set()
     failed_attempts = 0
     max_failed_attempts = 10000
+    last_log_count = 0
+    log_interval = max(1, samples // 10)  # Log progress at 10% intervals
+
+    logger.info(f"Starting single-threaded sampling to find {samples} samples")
 
     while len(results) < samples and failed_attempts < max_failed_attempts:
         result = sample_data(organized_dict)
@@ -307,11 +460,20 @@ def gen_samples_single_threaded(samples, organized_dict):
         if key not in seen:
             seen.add(key)
             results.append(result)
+
+            # Log progress at intervals
+            if len(results) - last_log_count >= log_interval:
+                last_log_count = len(results)
+                progress_pct = (len(results) / samples) * 100
+                logger.info(f"Sampling progress: {len(results)}/{samples} samples ({progress_pct:.1f}%)")
         else:
             failed_attempts += 1
 
     if failed_attempts >= max_failed_attempts:
-        print('Failed to sample enough data without duplicates (single-thread).')
+        logger.warning('Failed to sample enough data without duplicates (single-thread).')
+    else:
+        logger.info(f"Successfully sampled {len(results)} samples (single-threaded)")
+
     return results
 
 
@@ -353,6 +515,8 @@ def gen_samples(samples, organized_dict, threads=1):
         # Just do single-threaded if only 1 thread is requested
         return gen_samples_single_threaded(samples, organized_dict)
 
+    logger.info(f"Starting multi-threaded sampling with {threads} threads to find {samples} samples")
+
     from multiprocessing import Pool, Manager
     manager = Manager()
     shared_seen_dict = manager.dict()
@@ -367,8 +531,13 @@ def gen_samples(samples, organized_dict, threads=1):
 
     # Filter out None results
     unique_results = [res for res in results if res is not None]
-    if len(unique_results) < samples:
-        print('Failed to generate enough unique samples (multi-thread).')
+    found_count = len(unique_results)
+
+    if found_count < samples:
+        logger.warning(f"Found only {found_count}/{samples} unique samples (multi-thread).")
+    else:
+        logger.info(f"Successfully sampled {min(found_count, samples)}/{samples} samples (multi-threaded)")
+
     return unique_results[:samples]
 
 
@@ -379,7 +548,7 @@ def process_trainining_data(X, setting='cs', dataset='ntu120'):
     """
     if dataset not in datasets:
         raise ValueError(f'Dataset {dataset} not found')
-    
+
     x_train, x_test, y_train, y_test = [], [], [], []
 
     for file in X:
@@ -442,23 +611,23 @@ class Cross_Data(Dataset):
     """
     For a list of 4-tuples:
       [
-        (p1, a1, fname1), 
+        (p1, a1, fname1),
         (p1, a2, fname2),
         (p2, a1, fname3),
         (p2, a2, fname4),
       ]
-    We'll load x1 from fname1, x2 from fname4, y1 from fname2, y2 from fname3, 
+    We'll load x1 from fname1, x2 from fname4, y1 from fname2, y2 from fname3,
     and also store actor/action labels as needed.
     """
-    def __init__(self, sampled_data, X):
+    def __init__(self, sampled_data, X, seg=64, augment=True, theta=0.3):
         self.X = X  # The dictionary: fname -> skeleton array
         self.sampled_data = sampled_data  # List of 4-tuples
-        # Extract actor pairs and action pairs for fast retrieval
-        # Index 0 and 2 are the "same action" pairs in a sense, but 
-        # typically we track p1, p2 or a1, a2. 
-        # We'll store them in arrays for convenience:
+        self.seg = seg  # Number of frames to sample
+        self.augment = augment  # Whether to apply data augmentation
+        self.theta = theta  # Rotation angle for augmentation
+
         self.actors = np.array([[sample[0][0], sample[2][0]] for sample in sampled_data], dtype=float)
-        self.actions = np.array([[sample[0][1], sample[2][1]] for sample in sampled_data], dtype=float)
+        self.actions = np.array([[sample[0][1], sample[1][1]] for sample in sampled_data], dtype=float)
 
     def __getitem__(self, index):
         sample = self.sampled_data[index]
@@ -466,10 +635,31 @@ class Cross_Data(Dataset):
         # 1: (p1, a2, fname)
         # 2: (p2, a1, fname)
         # 3: (p2, a2, fname)
-        x1 = self.X[sample[0][2]]  # P1, A1
-        x2 = self.X[sample[3][2]]  # P2, A2
-        y1 = self.X[sample[1][2]]  # P1, A2
-        y2 = self.X[sample[2][2]]  # P2, A1
+
+        # Get raw sequences
+        x1_raw = self.X[sample[0][2]]  # P1, A1
+        x2_raw = self.X[sample[3][2]]  # P2, A2
+        y1_raw = self.X[sample[1][2]]  # P1, A2
+        y2_raw = self.X[sample[2][2]]  # P2, A1
+
+        # Apply frame sampling
+        x1 = sample_frames(x1_raw, self.seg)
+        x2 = sample_frames(x2_raw, self.seg)
+        y1 = sample_frames(y1_raw, self.seg)
+        y2 = sample_frames(y2_raw, self.seg)
+
+        # Convert to torch tensors
+        x1 = torch.from_numpy(x1).float()
+        x2 = torch.from_numpy(x2).float()
+        y1 = torch.from_numpy(y1).float()
+        y2 = torch.from_numpy(y2).float()
+
+        # Apply rotation augmentation if enabled
+        if self.augment:
+            x1 = _transform(x1.unsqueeze(0), self.theta).squeeze(0)
+            x2 = _transform(x2.unsqueeze(0), self.theta).squeeze(0)
+            y1 = _transform(y1.unsqueeze(0), self.theta).squeeze(0)
+            y2 = _transform(y2.unsqueeze(0), self.theta).squeeze(0)
 
         return (
             x1,  # x1
@@ -488,12 +678,27 @@ class PT_Data(Dataset):
     """
     Simple supervised dataset from X, y arrays.
     """
-    def __init__(self, X, y):
+    def __init__(self, X, y, seg=64, augment=True, theta=0.3):
         self.X = X
         self.y = y
+        self.seg = seg  # Number of frames to sample
+        self.augment = augment  # Whether to apply data augmentation
+        self.theta = theta  # Rotation angle for augmentation
 
     def __getitem__(self, index):
-        return self.X[index], self.y[index]
+        x_raw = self.X[index].numpy() if isinstance(self.X[index], torch.Tensor) else self.X[index]
+
+        # Apply frame sampling
+        x = sample_frames(x_raw, self.seg)
+
+        # Convert to torch tensor
+        x = torch.from_numpy(x).float()
+
+        # Apply rotation augmentation if enabled
+        if self.augment:
+            x = _transform(x.unsqueeze(0), self.theta).squeeze(0)
+
+        return x, self.y[index]
 
     def __len__(self):
         return len(self.X)
@@ -504,13 +709,29 @@ class Masked_AE_Data(Dataset):
     Simple masked autoencoder style dataset.
     For each skeleton, randomly masks frames and joints.
     """
-    def __init__(self, X, frame_masking_ratio=0.5, joint_masking_ratio=0.5):
+    def __init__(self, X, frame_masking_ratio=0.5, joint_masking_ratio=0.5, seg=64, augment=True, theta=0.3):
         self.X = X
         self.frame_masking_ratio = frame_masking_ratio
         self.joint_masking_ratio = joint_masking_ratio
+        self.seg = seg  # Number of frames to sample
+        self.augment = augment  # Whether to apply data augmentation
+        self.theta = theta  # Rotation angle for augmentation
 
     def __getitem__(self, index):
-        x = self.X[index].copy()  # Make a copy so we don't destroy original
+        x_raw = self.X[index].numpy() if isinstance(self.X[index], torch.Tensor) else self.X[index].copy()
+
+        # Apply frame sampling
+        x = sample_frames(x_raw, self.seg)
+
+        # Convert to torch tensor
+        x = torch.from_numpy(x).float()
+
+        # Apply rotation augmentation if enabled
+        if self.augment:
+            x = _transform(x.unsqueeze(0), self.theta).squeeze(0)
+
+        # Convert back to numpy for masking
+        x = x.numpy()
         frames, joints_dim = x.shape
         joints = joints_dim // 3  # If we have (joints * 3) columns
 
@@ -527,38 +748,70 @@ class Masked_AE_Data(Dataset):
         for joint_idx in masked_joint_indices:
             x[:, joint_idx * 3:(joint_idx + 1) * 3] = 0
 
+        # Convert back to torch tensor for return
+        x = torch.from_numpy(x).float()
         return x
 
     def __len__(self):
         return len(self.X)
 
 
-def get_cross_data(X, dataset, setting, batch_size=32, return_loader=False, 
-                   train_samples=50000, test_samples=5000, threads=1):
+def get_cross_data(X, dataset, setting, batch_size=32, return_loader=False,
+                   train_samples=50000, test_samples=5000, threads=1, seg=64,
+                   augment=True, train_theta=0.3, val_theta=0.3):
     """
-    Entry point to generate 'paired' cross data (two actors, two actions) 
+    Entry point to generate 'paired' cross data (two actors, two actions)
     for training and validation sets.
 
-    Returns either (train_dataset, val_dataset) 
-    or (train_loader, val_loader) if return_loader=True.
+    Args:
+        X: dict - Raw data mapping filenames to sequences
+        dataset: str - Dataset name
+        setting: str - 'cs' for cross-subject, 'cv' for cross-view
+        batch_size: int - Batch size for DataLoader
+        return_loader: bool - Whether to return DataLoader objects
+        train_samples: int - Number of training samples to generate
+        test_samples: int - Number of test samples to generate
+        threads: int - Number of threads for sample generation
+        seg: int - Number of frames to sample from each sequence
+        augment: bool - Whether to apply data augmentation
+        train_theta: float - Rotation angle for training data augmentation
+        val_theta: float - Rotation angle for validation data augmentation
+
+    Returns:
+        tuple - (train_dataset, val_dataset) or (train_loader, val_loader)
     """
+    logger.info(f"Starting data sampling for {dataset} dataset with {setting} setting")
+    logger.info(f"Target: {train_samples} training samples, {test_samples} test samples")
+
     # 1) Organize data by group key
+    logger.info("Organizing data by group key...")
     organized_data_train, organized_data_test = organize_data(X, setting, dataset)
 
+    train_groups = len(organized_data_train)
+    test_groups = len(organized_data_test)
+    logger.info(f"Organized data into {train_groups} training groups and {test_groups} test groups")
+
     # 2) Generate samples either single- or multi-threaded
+    logger.info("Generating training samples...")
     if threads == 1:
         train_data = gen_samples_single_threaded(train_samples, organized_data_train)
+        logger.info("Generating test samples...")
         val_data = gen_samples_single_threaded(test_samples, organized_data_test)
     else:
         train_data = gen_samples(train_samples, organized_data_train, threads=threads)
+        logger.info("Generating test samples...")
         val_data = gen_samples(test_samples, organized_data_test, threads=threads)
 
-    # 3) Build the dataset objects
-    train_dataset = Cross_Data(train_data, X)
-    val_dataset = Cross_Data(val_data, X)
+    # 3) Build the dataset objects with augmentation parameters
+    logger.info("Building dataset objects...")
+    train_dataset = Cross_Data(train_data, X, seg=seg, augment=augment, theta=train_theta)
+    val_dataset = Cross_Data(val_data, X, seg=seg, augment=False)
+
+    logger.info(f"Data sampling complete: {len(train_data)} training samples, {len(val_data)} test samples")
 
     # 4) Optionally wrap them in DataLoader
     if return_loader:
+        logger.info("Creating data loaders...")
         train_dl = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
         val_dl = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
         return train_dl, val_dl
