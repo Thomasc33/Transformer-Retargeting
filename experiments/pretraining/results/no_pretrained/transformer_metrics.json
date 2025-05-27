@@ -1,0 +1,16 @@
+{
+  "action_recognition_accuracy": 5.475,
+  "reidentification_accuracy": 7.9625,
+  "original_actor_accuracy": 14.05,
+  "mse_gt": 0.03131708886154229,
+  "mse_reference": 0.015786482262497886,
+  "bone_length_consistency": 0.006475384656541058,
+  "joint_angle_limits": 99.93648792613561,
+  "temporal_smoothness": 0.0023489634138386464,
+  "velocity_consistency": 0.059415165214338046,
+  "foot_contact_consistency": 81.57251956127584,
+  "fid_score": 0.02795974046605059,
+  "gender_classification_orig": 66.1875,
+  "gender_classification_ret": 63.6625,
+  "gender_classification_cross": 52.73861171366595
+}
