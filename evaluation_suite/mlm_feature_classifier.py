@@ -30,7 +30,6 @@ if project_root not in sys.path:
 
 from pretrain import SkeletonAutoEncoder
 from data import load_data, get_cross_data
-from eval_model import datasets
 
 
 class MLMFeatureClassifier(nn.Module):
@@ -93,7 +92,7 @@ class MLMFeatureExtractor:
 
     @torch.no_grad()
     def extract_features(self, data_loader):
-        """Extract features from data loader."""
+        """Extract features from data loader using FIXED approach."""
         features = []
         labels = []
 
@@ -101,11 +100,10 @@ class MLMFeatureExtractor:
         processed_batches = 0
         skipped_batches = 0
 
-        for batch_idx, batch_content in enumerate(tqdm(data_loader, desc="Extracting features")):
+        for batch_idx, batch_content in enumerate(tqdm(data_loader, desc="Extracting features (FIXED)")):
             total_batches += 1
 
             # Handle Cross_Data format: (x1, x2, y1, y2, actors, actions)
-            # Can be either tuple or list depending on PyTorch version/settings
             if isinstance(batch_content, (tuple, list)):
                 if len(batch_content) == 6:
                     x1, x2, y1, y2, actors, actions = batch_content
@@ -123,8 +121,7 @@ class MLMFeatureExtractor:
                     actions = actions.long()
                     actors = actors.long()
 
-                    # Extract labels - actions and actors are already (batch_size, 2) arrays
-                    # We'll use the first column for both (action1, actor1)
+                    # Extract labels - use first column
                     action_labels = actions[:, 0] if len(actions.shape) > 1 else actions
                     actor_labels = actors[:, 0] if len(actors.shape) > 1 else actors
 
@@ -140,7 +137,6 @@ class MLMFeatureExtractor:
                 x_data = torch.tensor(x_data, dtype=torch.float32)
 
             # Handle different input shapes
-            # Cross_Data returns (batch, frames, joints*channels) where joints*channels = 75
             if len(x_data.shape) == 3 and x_data.shape[2] == 75:  # (batch, frames, joints*channels)
                 x_data = x_data.view(x_data.shape[0], x_data.shape[1], 25, 3)
             elif len(x_data.shape) == 2 and x_data.shape[1] == 75:  # (frames, joints*channels)
@@ -152,6 +148,7 @@ class MLMFeatureExtractor:
                 continue
 
             x_data = x_data.to(self.device)
+            batch_size = x_data.shape[0]
 
             # Extract encoder features
             try:
@@ -165,55 +162,48 @@ class MLMFeatureExtractor:
                 # Get encoder output
                 encoder_output = self.model.encoder(x_encoder)
 
-                # The encoder output can have different shapes depending on the model
-                # We need to pool this to get a single feature vector per sample
-                if len(encoder_output.shape) == 4:  # (batch, features, frames, joints)
-                    # Global average pooling over spatial and temporal dimensions
+                # FIXED: Handle encoder output properly
+                if len(encoder_output.shape) == 3:  # (seq_len, batch_size, feature_dim)
+                    seq_len, batch_size_out, feature_dim = encoder_output.shape
+
+                    # Use multiple pooling strategies for richer features
+                    avg_pooled = encoder_output.mean(dim=0)  # (batch_size, feature_dim)
+                    max_pooled = encoder_output.max(dim=0)[0]  # (batch_size, feature_dim)
+                    first_token = encoder_output[0]  # (batch_size, feature_dim)
+                    last_token = encoder_output[-1]  # (batch_size, feature_dim)
+
+                    # Concatenate for richer representation
+                    pooled_features = torch.cat([
+                        avg_pooled, max_pooled, first_token, last_token
+                    ], dim=1)  # (batch_size, 4*feature_dim)
+
+                    # Ensure batch size matches
+                    if batch_size_out != batch_size:
+                        pooled_features = pooled_features[:batch_size]
+
+                elif len(encoder_output.shape) == 4:  # (batch, features, frames, joints)
                     pooled_features = encoder_output.mean(dim=[2, 3])  # (batch, features)
-                elif len(encoder_output.shape) == 3:  # (batch, sequence, features)
-                    # Average pooling over sequence dimension to get (batch, features)
-                    pooled_features = encoder_output.mean(dim=1)  # (batch, features)
                 elif len(encoder_output.shape) == 2:  # (batch, features)
                     pooled_features = encoder_output
                 else:
+                    print(f"⚠️ Unexpected encoder output shape: {encoder_output.shape}")
                     skipped_batches += 1
                     continue
 
-                # Ensure labels match the number of features
-                batch_size = pooled_features.shape[0]
-
-                # If labels are shorter than features, we need to repeat them
-                if len(action_labels) < batch_size:
-                    # This happens when the data loader batches multiple samples
-                    # We need to expand labels to match the feature batch size
-                    repeat_factor = batch_size // len(action_labels)
-                    remainder = batch_size % len(action_labels)
-
-                    # Repeat labels and handle remainder
-                    if remainder == 0:
-                        # Perfect division
-                        action_labels = action_labels.repeat(repeat_factor).long()
-                        actor_labels = actor_labels.repeat(repeat_factor).long()
+                # Ensure we have the right number of features for the batch
+                if pooled_features.shape[0] != batch_size:
+                    print(f"⚠️ Feature count mismatch: expected {batch_size}, got {pooled_features.shape[0]}")
+                    if pooled_features.shape[0] > batch_size:
+                        pooled_features = pooled_features[:batch_size]
                     else:
-                        # Need to handle remainder
-                        repeated_action = action_labels.repeat(repeat_factor)
-                        repeated_actor = actor_labels.repeat(repeat_factor)
+                        skipped_batches += 1
+                        continue
 
-                        # Add remainder
-                        action_labels = torch.cat([repeated_action, action_labels[:remainder]]).long()
-                        actor_labels = torch.cat([repeated_actor, actor_labels[:remainder]]).long()
-
-                    # Verify final size matches
-                    if len(action_labels) != batch_size:
-                        # Fallback: truncate or pad to exact size
-                        if len(action_labels) > batch_size:
-                            action_labels = action_labels[:batch_size]
-                            actor_labels = actor_labels[:batch_size]
-                        else:
-                            # Pad by repeating last element
-                            pad_size = batch_size - len(action_labels)
-                            action_labels = torch.cat([action_labels, action_labels[-1].repeat(pad_size)])
-                            actor_labels = torch.cat([actor_labels, actor_labels[-1].repeat(pad_size)])
+                # Ensure label counts match feature counts
+                if len(action_labels) != batch_size or len(actor_labels) != batch_size:
+                    print(f"⚠️ Label count mismatch: features {batch_size}, actions {len(action_labels)}, actors {len(actor_labels)}")
+                    skipped_batches += 1
+                    continue
 
                 features.append(pooled_features.cpu())
                 labels.append({
@@ -281,7 +271,7 @@ class MLMFeatureExtractor:
 
 
 def train_classifier(features, labels, num_classes, device, epochs=200, lr=1e-3, batch_size=64):
-    """Train a classifier on extracted features."""
+    """Train a classifier on extracted features with FIXED label handling."""
 
     # Ensure features and labels have the same first dimension
     if features.shape[0] != labels.shape[0]:
@@ -290,14 +280,38 @@ def train_classifier(features, labels, num_classes, device, epochs=200, lr=1e-3,
         features = features[:min_size]
         labels = labels[:min_size]
 
+    # FIXED: Handle label indexing properly
+    features = features.float()
+    labels = labels.long()
+
+    print(f"Training classifier:")
+    print(f"  Features: {features.shape}, dtype: {features.dtype}")
+    print(f"  Labels: {labels.shape}, dtype: {labels.dtype}")
+    print(f"  Unique labels: {torch.unique(labels).shape[0]}")
+    print(f"  Label range: {labels.min().item()}-{labels.max().item()}")
+
+    # Fix label indexing - convert to 0-based indexing
+    unique_labels = torch.unique(labels)
+    label_mapping = {label.item(): idx for idx, label in enumerate(unique_labels)}
+
+    # Map labels to 0-based indexing
+    mapped_labels = torch.zeros_like(labels)
+    for i, label in enumerate(labels):
+        mapped_labels[i] = label_mapping[label.item()]
+
+    labels = mapped_labels
+    actual_num_classes = len(unique_labels)
+
+    print(f"  After mapping: {actual_num_classes} classes, range: {labels.min().item()}-{labels.max().item()}")
+
     # Create dataset and data loader
     dataset = TensorDataset(features, labels)
     data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
-    # Initialize model
+    # Initialize model with actual number of classes
     model = MLMFeatureClassifier(
         input_dim=features.shape[1],
-        num_classes=num_classes
+        num_classes=actual_num_classes
     ).to(device)
 
     # Loss and optimizer with better settings

@@ -195,12 +195,14 @@ class LossComponentAblationAnalyzer:
             script_content = f"""#!/bin/bash
 #
 #SBATCH --job-name="no-{component}"
-#SBATCH --partition=GPU
+#SBATCH --partition=gpu
 #SBATCH --time=24:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --gres=gpu:1
 #SBATCH --mem=64GB
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-user=carrt313@gmail.com
 #
 #   ===== No {name} Experiment =====
 
@@ -256,12 +258,14 @@ python experiments/repeat/run_repeated_eval.py \\
         baseline_script = f"""#!/bin/bash
 #
 #SBATCH --job-name="baseline-full"
-#SBATCH --partition=GPU
+#SBATCH --partition=gpu
 #SBATCH --time=24:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --gres=gpu:1
 #SBATCH --mem=64GB
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-user=carrt313@gmail.com
 #
 #   ===== Baseline Model (All Losses) =====
 

@@ -5,10 +5,12 @@
 #SBATCH --gres=gpu:4
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
-#SBATCH --partition=GPU
+#SBATCH --partition=gpu
 #SBATCH --mem=200GB
 #SBATCH --cpus-per-task=4
 #SBATCH --time=72:00:00
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-user=carrt313@gmail.com
 
 # Create output directories if they don't exist
 mkdir -p slurm_out/optuna

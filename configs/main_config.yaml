@@ -76,28 +76,29 @@ models:
 # Training Configuration
 training:
   default_epochs: 100
-  default_batch_size: 128
-  default_lr: 1e-5
+  default_batch_size: 32  # OPTIMIZED: From hyperparameter tuning (trial 17)
+  default_lr: 9.43062936149491e-05  # OPTIMIZED: From hyperparameter tuning (trial 17)
   default_device: "cuda"
   checkpoint_every: 1
   validation_frequency: 1
-  
-  # Loss weights (default values)
+  decoder_dropout: 0.11551063114920847  # OPTIMIZED: From hyperparameter tuning (trial 17)
+
+  # Loss weights (OPTIMIZED: From hyperparameter tuning trial 17 - best performance)
   loss_weights:
-    mse: 7.0
+    mse: 5.323284271000699  # OPTIMIZED: From hyperparameter tuning
     l1: 0.0
     smoothl1: 0.0
     kl: 0.0
     ce: 0.0
-    ee: 5.0
-    smoothing: 0.075
+    ee: 4.7250245075017725  # OPTIMIZED: From hyperparameter tuning
+    smoothing: 2.8747697025246937  # OPTIMIZED: From hyperparameter tuning (exact value)
     latent: 0.0
     triplet: 0.0
-    inception: 0.05
-    fid_vel: 1.0
-    bone: 10.0
-    foot: 3.0
-    joint_limit: 1.0
+    inception: 3.0656068713914353  # OPTIMIZED: From hyperparameter tuning (exact value)
+    fid_vel: 2.2608337791442894  # OPTIMIZED: From hyperparameter tuning (exact value)
+    bone: 6.185377286837532  # OPTIMIZED: From hyperparameter tuning (exact value)
+    foot: 0.544125368059208  # OPTIMIZED: From hyperparameter tuning (exact value)
+    joint_limit: 1.768344443841404  # OPTIMIZED: From hyperparameter tuning (exact value)
 
 # Pretraining Configuration
 pretraining:
@@ -118,6 +119,9 @@ pretraining:
     epochs: 150
     batch_size: 64
     lr: 1e-4
+    mixed_precision: false  # DISABLED: Mixed precision causes NaN gradients due to scaling issues
+    gradient_accumulation_steps: 4
+    max_grad_norm: 1.0
 
 # Evaluation Configuration
 evaluation:
@@ -145,7 +149,7 @@ hpc:
   default_ntasks_per_node: 4
   default_gres: "gpu:4"
   default_mem: "200GB"
-  
+
   job_templates:
     quick:
       time: "4:00:00"
@@ -153,12 +157,12 @@ hpc:
       gres: "gpu:1"
       ntasks_per_node: 1
     standard:
-      time: "12:00:00"
-      mem: "128GB"
-      gres: "gpu:2"
-      ntasks_per_node: 2
-    long:
       time: "48:00:00"
+      mem: "64GB"
+      gres: "gpu:1"
+      ntasks_per_node: 1
+    long:
+      time: "240:00:00"
       mem: "200GB"
       gres: "gpu:4"
       ntasks_per_node: 4

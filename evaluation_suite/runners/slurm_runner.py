@@ -145,6 +145,8 @@ class SlurmRunner:
             f"#SBATCH --mem={defaults['mem']}",
             f"#SBATCH --output=slurm_out/{experiment_name}_%j.out",
             f"#SBATCH --error=slurm_out/{experiment_name}_%j.err",
+            f"#SBATCH --mail-type=BEGIN,END,FAIL",
+            f"#SBATCH --mail-user=carrt313@gmail.com",
             "",
             "# Load modules and activate environment",
             "module load pytorch/2.3.0-cuda12.1",

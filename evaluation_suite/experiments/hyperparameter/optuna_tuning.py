@@ -57,16 +57,16 @@ def objective(trial, args, logger):
 
     # All hyperparameters have been sampled
 
-    # Sample loss weights (only for non-zero defaults)
-    # Default values: MSE=7.0, EE=5.0, Smoothing=0.075, Inception=0.05, FID_Vel=1.0, Bone=10.0, Foot=3.0, Joint_Limit=1.0
-    loss_mse = trial.suggest_float("loss_mse", 1.0, 10.0)
-    loss_ee = trial.suggest_float("loss_ee", 1.0, 10.0)
-    loss_smoothing = trial.suggest_float("loss_smoothing", 0.01, 5.0)
-    loss_inception = trial.suggest_float("loss_inception", 0.01, 5.0)
-    loss_fid_vel = trial.suggest_float("loss_fid_vel", 0.1, 10.0)
-    loss_bone = trial.suggest_float("loss_bone", 1.0, 15.0)
-    loss_foot = trial.suggest_float("loss_foot", 0.5, 5.0)
-    loss_joint_limit = trial.suggest_float("loss_joint_limit", 0.1, 3.0)
+    # FIXED: Sample loss weights with numerically stable ranges
+    # Updated ranges based on numerical stability analysis - joint limit was causing NaN gradients
+    loss_mse = trial.suggest_float("loss_mse", 0.5, 2.0)  # Reduced from 1.0-10.0
+    loss_ee = trial.suggest_float("loss_ee", 0.5, 2.0)   # Reduced from 1.0-10.0
+    loss_smoothing = trial.suggest_float("loss_smoothing", 0.05, 0.5)  # Reduced from 0.01-5.0
+    loss_inception = trial.suggest_float("loss_inception", 0.05, 0.5)  # Reduced from 0.01-5.0
+    loss_fid_vel = trial.suggest_float("loss_fid_vel", 0.2, 1.0)  # Reduced from 0.1-10.0
+    loss_bone = trial.suggest_float("loss_bone", 0.5, 2.0)  # Reduced from 1.0-15.0
+    loss_foot = trial.suggest_float("loss_foot", 0.05, 0.2)  # Reduced from 0.5-5.0
+    loss_joint_limit = trial.suggest_float("loss_joint_limit", 0.005, 0.05)  # DRASTICALLY REDUCED: was 0.1-3.0, now 0.005-0.05
 
     # Create a unique output directory for this trial
     trial_dir = os.path.join(args.output_dir, f"trial_{trial.number}")

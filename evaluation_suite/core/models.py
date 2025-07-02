@@ -14,8 +14,101 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 # Import from your existing eval_model.py
 try:
-    from eval_model import load_anonymizer, safe_load_model
-    from data import datasets
+    # Try different possible paths for eval_model.py
+    import sys
+    import os
+
+    # Add src directory to path
+    src_path = os.path.join(os.path.dirname(__file__), '..', '..', 'src')
+    if os.path.exists(src_path):
+        sys.path.insert(0, src_path)
+
+    # Add root directory to path
+    root_path = os.path.join(os.path.dirname(__file__), '..', '..')
+    if os.path.exists(root_path):
+        sys.path.insert(0, root_path)
+
+    # Try multiple import paths for eval_model functions
+    eval_model_imported = False
+
+    # Try src.evaluation.eval_model first
+    try:
+        src_eval_path = os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'evaluation')
+        if src_eval_path not in sys.path:
+            sys.path.insert(0, src_eval_path)
+
+        # Also add the root directory for data import
+        root_path = os.path.join(os.path.dirname(__file__), '..', '..')
+        if root_path not in sys.path:
+            sys.path.insert(0, root_path)
+
+        # Add src/utils for safe_model_loading
+        utils_path = os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'utils')
+        if utils_path not in sys.path:
+            sys.path.insert(0, utils_path)
+
+        # Add eval directory for preprocess module
+        eval_path = os.path.join(os.path.dirname(__file__), '..', '..', 'eval')
+        if eval_path not in sys.path:
+            sys.path.insert(0, eval_path)
+
+        from eval_model import load_anonymizer
+        from data import datasets
+        logging.info("Successfully imported from src/evaluation/eval_model.py")
+        eval_model_imported = True
+    except ImportError as e:
+        logging.debug(f"Failed to import from src/evaluation: {e}")
+        pass
+
+    # Try direct import from src
+    if not eval_model_imported:
+        try:
+            from src.evaluation.eval_model import load_anonymizer
+            from data import datasets
+            logging.info("Successfully imported from src.evaluation.eval_model")
+            eval_model_imported = True
+        except ImportError:
+            pass
+
+    # Try evaluation.eval_model
+    if not eval_model_imported:
+        try:
+            from evaluation.eval_model import load_anonymizer
+            from data import datasets
+            logging.info("Successfully imported from evaluation.eval_model")
+            eval_model_imported = True
+        except ImportError:
+            pass
+
+    # Try direct eval_model import
+    if not eval_model_imported:
+        try:
+            from eval_model import load_anonymizer
+            from data import datasets
+            logging.info("Successfully imported from eval_model")
+            eval_model_imported = True
+        except ImportError:
+            pass
+
+    if not eval_model_imported:
+                # Fallback - create dummy functions for visualization
+                def dummy_load_anonymizer(model_type, model_path, device, args, ds=None):
+                    """Dummy anonymizer for visualization when real models aren't available."""
+                    if model_type == 'raw':
+                        return None  # Raw data, no model needed
+                    else:
+                        # Return a dummy model that just returns the input
+                        class DummyModel:
+                            def __call__(self, x):
+                                return x
+                            def __repr__(self):
+                                return f"DummyModel({model_type})"
+                        return DummyModel()
+
+                load_anonymizer = dummy_load_anonymizer
+                safe_load_model = None
+                datasets = None
+                logging.info("Using dummy models for visualization (real models not available)")
 except ImportError as e:
     logging.warning(f"Could not import from eval_model.py: {e}")
     load_anonymizer = None

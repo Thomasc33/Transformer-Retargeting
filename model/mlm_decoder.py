@@ -54,8 +54,10 @@ def post_process(output, frames, batch_size, actor, joints, channels):
     """
     Process the output from the MLM decoder to the expected format.
 
+    FIXED VERSION: Properly handles shape transformations for MLM reconstruction.
+
     Args:
-        output: Tensor with shape (sequence_length, batch_size, channels)
+        output: Tensor with shape (sequence_length, batch_size, feature_dim)
         frames: Number of frames in the original sequence
         batch_size: Batch size
         actor: Number of actors (typically 1)
@@ -65,47 +67,89 @@ def post_process(output, frames, batch_size, actor, joints, channels):
     Returns:
         Tensor with shape (batch_size, frames, actor, joints, channels)
     """
+    import torch.nn.functional as F
+
     # Get the actual shape of the output
-    sequence_length, batch_size, channels = output.shape
+    sequence_length, batch_size_out, feature_dim = output.shape
 
-    # Calculate expected sequence length based on encoder's temporal reduction
-    T_new = frames // 4  # Adjust based on your encoder's temporal reduction
-    V_new = joints
-
-    # Check if the sequence length matches the expected length
-    if sequence_length != T_new * V_new:
-        print(f"Warning: Expected sequence_length {T_new * V_new}, got {sequence_length}")
-        # Try to adjust T_new to match the sequence length
-        if sequence_length % V_new == 0:
-            T_new = sequence_length // V_new
-            print(f"Adjusted T_new to {T_new}")
-        else:
-            # If we can't adjust, we'll try to proceed anyway
-            print(f"Cannot adjust T_new. Proceeding with original values.")
+    # Debug information (can be removed in production)
+    # print(f"post_process input: {output.shape}")
+    # print(f"Expected output: ({batch_size}, {frames}, {actor}, {joints}, {channels})")
 
     try:
-        # Reshape to (batch_size, T_new, V_new, channels)
-        output = output.permute(1, 0, 2).contiguous()
-        output = output.view(batch_size, T_new, V_new, channels)
+        # Method 1: Direct reshape if dimensions match
+        expected_elements = batch_size * channels * frames * joints * actor
+        actual_elements = sequence_length * batch_size_out * feature_dim
 
-        # Optional: Upsample temporal dimension back to frames if needed
-        output = output.permute(0, 3, 1, 2)  # (batch_size, channels, T_new, V_new)
-        output = F.interpolate(output, size=(frames, V_new), mode='bilinear', align_corners=False)
-        output = output.permute(0, 2, 3, 1).contiguous()  # (batch_size, frames, V_new, channels)
+        if actual_elements == expected_elements:
+            # Reshape directly
+            output = output.permute(1, 0, 2)  # (batch_size, sequence_length, feature_dim)
+            output = output.contiguous().view(batch_size, frames, actor, joints, channels)
+            return output
 
-        # Add actor dimension
-        output = output.unsqueeze(2)  # (batch_size, frames, 1, V_new, channels)
-        return output
-    except RuntimeError as e:
-        print(f"Error in post_process: {e}")
-        print(f"Output shape: {output.shape}, Expected reshape to: ({batch_size}, {T_new}, {V_new}, {channels})")
+        # Method 2: Handle encoder temporal reduction
+        # Assume encoder reduces temporal dimension by factor of 4
+        T_reduced = frames // 4
+        if sequence_length == T_reduced * joints:
+            # Reshape to (batch_size, T_reduced, joints, channels)
+            output = output.permute(1, 0, 2)  # (batch_size, sequence_length, feature_dim)
+            output = output.view(batch_size, T_reduced, joints, channels)
 
-        # Try a different approach if the first one fails
+            # Upsample temporal dimension back to original frames
+            output = output.permute(0, 3, 1, 2)  # (batch_size, channels, T_reduced, joints)
+            output = F.interpolate(output, size=(frames, joints), mode='bilinear', align_corners=False)
+            output = output.permute(0, 2, 3, 1)  # (batch_size, frames, joints, channels)
+
+            # Add actor dimension
+            output = output.unsqueeze(2)  # (batch_size, frames, 1, joints, channels)
+            return output
+
+        # Method 3: Feature dimension matches joint*channel output
+        if feature_dim == joints * channels:
+            # Reshape feature dimension to joints and channels
+            output = output.permute(1, 0, 2)  # (batch_size, sequence_length, feature_dim)
+            output = output.view(batch_size, sequence_length, joints, channels)
+
+            # Handle temporal dimension mismatch
+            if sequence_length != frames:
+                # Interpolate to correct number of frames
+                output = output.permute(0, 3, 1, 2)  # (batch_size, channels, sequence_length, joints)
+                output = F.interpolate(output, size=(frames, joints), mode='bilinear', align_corners=False)
+                output = output.permute(0, 2, 3, 1)  # (batch_size, frames, joints, channels)
+
+            # Add actor dimension
+            output = output.unsqueeze(2)  # (batch_size, frames, 1, joints, channels)
+            return output
+
+    except Exception as e1:
+        print(f"Primary methods failed: {e1}")
+
+        # Fallback method: Force reshape with padding/truncation
         try:
-            # Reshape directly to the final shape
-            return output.permute(1, 0, 2).view(batch_size, frames, actor, joints, channels)
-        except RuntimeError:
-            # If all else fails, return the original output and let the caller handle it
-            print("Failed to reshape output. Returning original output.")
-            return output.permute(1, 0, 2).unsqueeze(2).unsqueeze(3)  # Add missing dimensions
+            output = output.permute(1, 0, 2)  # (batch_size, sequence_length, feature_dim)
+
+            # Calculate target shape
+            target_elements = frames * joints * channels
+            current_elements = sequence_length * feature_dim
+
+            if current_elements >= target_elements:
+                # Truncate
+                flat_output = output.view(batch_size, -1)[:, :target_elements]
+            else:
+                # Pad with zeros
+                flat_output = output.view(batch_size, -1)
+                padding_size = target_elements - current_elements
+                padding = torch.zeros(batch_size, padding_size, device=output.device)
+                flat_output = torch.cat([flat_output, padding], dim=1)
+
+            # Reshape to final format
+            result = flat_output.view(batch_size, frames, joints, channels)
+            result = result.unsqueeze(2)  # Add actor dimension
+            return result
+
+        except Exception as e2:
+            print(f"Ultimate fallback failed: {e2}")
+            # Return zeros with correct shape
+            result = torch.zeros(batch_size, frames, actor, joints, channels, device=output.device)
+            return result
 

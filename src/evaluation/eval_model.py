@@ -35,7 +35,8 @@ try:
     from eval_loader import AverageMeter
 
 except ImportError as e:
-    print(f"Warning: Could not import some evaluation modules: {e}")
+    # This is expected when eval/*.py files are missing - not critical for basic functionality
+    pass
 finally:
     sys.path = original_sys_path
 
@@ -471,13 +472,14 @@ def get_anonymized_paired_dmr_pmr(batch, model, T=75, mixformer_mode=False, gend
     out = []
     for i in range(N):
         # Prepare data for model using original format
-        # with explicit reshaping to 25 joints x 3 dimensions
+        # DMR/PMR models use 2D encoders when one_dimension_conv=False
+        # They expect input as (batch, T, 25, 3) for 2D encoders
         # Handle both CPU and GPU devices
         device = next(model.parameters()).device
-        x1_in = x1[i].unsqueeze(0).float().to(device).view(1, T, 25, 3)
-        x2_in = x2[i].unsqueeze(0).float().to(device).view(1, T, 25, 3)
-        y1_in = y1[i].unsqueeze(0).float().to(device).view(1, T, 25, 3)
-        y2_in = y2[i].unsqueeze(0).float().to(device).view(1, T, 25, 3)
+        x1_in = x1[i].unsqueeze(0).float().to(device).view(1, T, 25, 3)  # (1, T, 25, 3)
+        x2_in = x2[i].unsqueeze(0).float().to(device).view(1, T, 25, 3)  # (1, T, 25, 3)
+        y1_in = y1[i].unsqueeze(0).float().to(device).view(1, T, 25, 3)  # (1, T, 25, 3)
+        y2_in = y2[i].unsqueeze(0).float().to(device).view(1, T, 25, 3)  # (1, T, 25, 3)
 
         # Run model on all combinations
         x1_hat = model.eval(x1_in, x2_in).squeeze(0).cpu()

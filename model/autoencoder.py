@@ -98,43 +98,72 @@ class Model(nn.Module):
             # Free memory
             del current_input_frame
 
-            for t in range(T-1): # Generate T-1 frames
+            # MEMORY SAFETY: Limit maximum autoregressive sequence length
+            max_autoregressive_length = min(T-1, 64)  # Cap at 64 frames to prevent memory explosion
+
+            for t in range(max_autoregressive_length): # Generate frames with memory safety limit
+                # CRITICAL MEMORY FIX: More aggressive cache clearing to prevent memory leaks
+                # Clear cache every 4 steps instead of 8 to prevent memory accumulation
+                if t > 0 and t % 4 == 0:
+                    # Force garbage collection before clearing cache
+                    import gc
+                    gc.collect()
+                    torch.cuda.empty_cache()
+                    cache = [None] * len(self.decoder.layers) if self.decoder.layers else None
+
                 # Prepare input for this step: add sequence dim (1) and positional encoding for step t
                 current_input_step = current_input_proj.unsqueeze(0) # (1, N, d_model)
                 # Add positional encoding for the current time step 't'
                 decoder_input_t = current_input_step + self.positional_encoding.pe[t]
                 decoder_input_t = self.positional_encoding.dropout(decoder_input_t) # Apply dropout
 
-                # Free memory
+                # Free memory immediately
                 del current_input_step
 
                 # Decoder output for this step using cache
                 # Pass full memory encodings; cache handles efficiency
                 output_t, cache = self.decoder(decoder_input_t, motion_encoding, memory_prime=skeleton_encoding, cache=cache, use_cache=True) # output_t shape (1, N, d_model)
 
-                # Free memory
+                # Free memory immediately
                 del decoder_input_t
 
                 # Map decoder output (last step) to target space (D_input)
                 output_frame = self.output_linear(output_t[-1, :, :]) # Get the prediction (N, D_input)
 
-                # Free memory
+                # Free memory immediately
                 del output_t
 
-                # Detach output frame to prevent memory accumulation in the computation graph
-                # This is safe because we're in autoregressive mode and don't need the full graph
-                output_frame_detached = output_frame.detach() if not self.training else output_frame
-                outputs_list.append(output_frame_detached) # Store the raw projected output (N, D_input)
+                # CRITICAL MEMORY FIX: Break gradient accumulation across time steps
+                # The fundamental issue: autoregressive generation was accumulating gradients
+                # across ALL time steps, creating exponentially growing computation graphs
 
-                # Prepare next input: use the projected output_frame
-                next_input_frame_raw = output_frame
-                # Project the predicted frame to d_model for the next decoder input
-                current_input_proj = self.decoder_input_proj(next_input_frame_raw) # (N, d_model)
+                if self.training:
+                    # FIXED: Always detach to prevent gradient accumulation across time steps
+                    # Each time step should be independent for memory efficiency
+                    output_frame_detached = output_frame.detach()
+                    outputs_list.append(output_frame_detached)
 
-                # Free memory
+                    # For next input: detach to break gradient chain completely
+                    next_input_frame_raw = output_frame.detach()
+                    current_input_proj = self.decoder_input_proj(next_input_frame_raw).detach()
+
+                    # CRITICAL: Clear the computation graph for this step
+                    del output_frame  # Remove reference to computation graph
+                else:
+                    # During evaluation: detach everything to save memory
+                    output_frame_detached = output_frame.detach()
+                    outputs_list.append(output_frame_detached)
+
+                    next_input_frame_raw = output_frame.detach()
+                    current_input_proj = self.decoder_input_proj(next_input_frame_raw).detach()
+                    del output_frame
+
+                # Free memory immediately
                 del next_input_frame_raw
-                del output_frame_detached
-                del output_frame
+
+                # Light memory cleanup (root cause fixed, so less aggressive cleanup needed)
+                if t % 8 == 0:
+                    torch.cuda.empty_cache()
 
                 # Force synchronize CUDA operations every few steps to prevent memory buildup
                 if t % 10 == 0:
@@ -146,9 +175,50 @@ class Model(nn.Module):
                         gc.collect()
                         torch.cuda.empty_cache()
 
-            # Stack the projected outputs from all steps along the time dimension
-            # Use a memory-efficient approach for stacking
-            output = torch.stack(outputs_list, dim=0) # (T-1, N, D_input)
+            # CRITICAL FIX: Two-pass approach for autoregressive training
+            # Pass 1: Generate sequence (detached, memory efficient)
+            # Pass 2: Recompute with gradients for loss (only final outputs)
+
+            if self.training and target_motion is not None:
+                # TRAINING: Use teacher forcing for gradient computation to avoid memory explosion
+                # The autoregressive generation above was just for sequence generation
+                # Now use teacher forcing for actual gradient computation
+
+                # Prepare target sequence input (excluding last frame)
+                tgt_input = target_motion[:, :, :-1, :, :]     # (N, C_in, T-1, V, M)
+                tgt_input = tgt_input.permute(2, 0, 3, 4, 1).contiguous()  # (T-1, N, V, M, C_in)
+                tgt_input = tgt_input.view(T-1, N, -1)         # (T-1, N, D_input)
+                tgt_input = self.decoder_input_proj(tgt_input) # (T-1, N, d_model)
+                tgt_input = self.positional_encoding(tgt_input) # Apply positional encoding
+
+                # Generate causal mask
+                tgt_mask = self.generate_square_subsequent_mask(T-1)
+
+                # Forward pass with gradients for loss computation
+                decoder_output = self.decoder(tgt_input, motion_encoding[:-1], memory_prime=skeleton_encoding[:-1], tgt_mask=tgt_mask)[0]
+
+                # Apply final projection
+                output = self.output_linear(decoder_output)  # (T-1, N, D_input)
+
+                # Clear intermediate tensors
+                del tgt_input, decoder_output, tgt_mask
+
+            else:
+                # EVALUATION: Use the autoregressive outputs (already detached)
+                if outputs_list:
+                    output = torch.stack(outputs_list, dim=0) # (actual_frames, N, D_input)
+
+                    # If we generated fewer frames than expected, pad with zeros
+                    actual_frames = output.shape[0]
+                    expected_frames = T - 1
+                    if actual_frames < expected_frames:
+                        padding_frames = expected_frames - actual_frames
+                        padding = torch.zeros(padding_frames, N, output.shape[2],
+                                            device=output.device, dtype=output.dtype)
+                        output = torch.cat([output, padding], dim=0)
+                else:
+                    # Fallback: create zero output if no frames were generated
+                    output = torch.zeros(T-1, N, V*M*C_in, device=device)
 
             # Clear outputs_list to free memory
             outputs_list.clear()

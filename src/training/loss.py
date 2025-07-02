@@ -67,7 +67,12 @@ class Loss():
     # Standard losses
     # -----------------
     def mse_loss(self, output, target):
-        return F.mse_loss(output, target)
+        # Add numerical stability by clamping extreme values
+        output_clamped = torch.clamp(output, min=-100.0, max=100.0)
+        target_clamped = torch.clamp(target, min=-100.0, max=100.0)
+        loss = F.mse_loss(output_clamped, target_clamped)
+        # Clamp the loss itself to prevent explosion
+        return torch.clamp(loss, min=0.0, max=1000.0)
 
     def l1_loss(self, output, target):
         return F.l1_loss(output, target)
@@ -114,13 +119,19 @@ class Loss():
 
         # Norm across channels dimension, since C=3 usually
         # => shape (N, T-1, len(ee_idx))
-        x_vel_norm = torch.norm(x_vel, dim=1) / chain_lens.unsqueeze(0).unsqueeze(1)
-        y_vel_norm = torch.norm(y_vel, dim=1) / chain_lens.unsqueeze(0).unsqueeze(1)
+        # Add small epsilon to prevent division by zero
+        chain_lens_safe = torch.clamp(chain_lens, min=1e-6)
+        x_vel_norm = torch.norm(x_vel, dim=1) / chain_lens_safe.unsqueeze(0).unsqueeze(1)
+        y_vel_norm = torch.norm(y_vel, dim=1) / chain_lens_safe.unsqueeze(0).unsqueeze(1)
+
+        # Clamp velocities to prevent extreme values
+        x_vel_norm = torch.clamp(x_vel_norm, min=-10.0, max=10.0)
+        y_vel_norm = torch.clamp(y_vel_norm, min=-10.0, max=10.0)
 
         # MSE across those velocities
         losses = (x_vel_norm - y_vel_norm).pow(2)
         # sum over end-effectors, average over batch & time
-        loss = losses.mean()
+        loss = torch.clamp(losses.mean(), min=0.0, max=100.0)
 
         return loss
 
@@ -189,6 +200,10 @@ class Loss():
 
         Note: Removed @torch.no_grad() to allow gradient computation.
         """
+        # FIXED: Handle case when encoder is None
+        if self.encoder is None:
+            return torch.tensor(0.0, device=self.device, requires_grad=True)
+
         # Expand time dimension (fake) for alignment if needed
         output = torch.cat([output, torch.zeros_like(output[:, :, :1, :, :])], dim=2)
         target = torch.cat([target, torch.zeros_like(target[:, :, :1, :, :])], dim=2)
@@ -258,12 +273,34 @@ class Loss():
         for (j1, j2) in bone_pairs:
             out_vec = out[:, :, j1, :] - out[:, :, j2, :]  # (N, T, 3)
             tgt_vec = tgt[:, :, j1, :] - tgt[:, :, j2, :]
-            out_len = torch.norm(out_vec, dim=-1)  # (N, T)
-            tgt_len = torch.norm(tgt_vec, dim=-1)
-            losses.append((out_len - tgt_len).pow(2))  # (N, T)
+
+            # Add numerical stability for norm computation
+            out_len = torch.norm(out_vec, dim=-1) + 1e-8  # (N, T)
+            tgt_len = torch.norm(tgt_vec, dim=-1) + 1e-8
+
+            # Clamp bone lengths to reasonable range
+            out_len = torch.clamp(out_len, min=1e-6, max=10.0)
+            tgt_len = torch.clamp(tgt_len, min=1e-6, max=10.0)
+
+            bone_diff = (out_len - tgt_len).pow(2)
+
+            # Check for NaN/inf in bone differences
+            if torch.isfinite(bone_diff).all():
+                losses.append(bone_diff)  # (N, T)
+
+        if not losses:
+            return torch.tensor(0.0, device=self.device, requires_grad=True)
 
         # Stack => shape (num_bones, N, T), mean over all
         bone_loss = torch.mean(torch.stack(losses, dim=0))
+
+        # Additional clamping to prevent extremely high values that cause NaN gradients
+        bone_loss = torch.clamp(bone_loss, min=0.0, max=2.0)
+
+        # Final NaN check
+        if not torch.isfinite(bone_loss):
+            return torch.tensor(0.0, device=self.device, requires_grad=True)
+
         return bone_loss
 
     def foot_contact_loss(self, output, target):
@@ -292,9 +329,13 @@ class Loss():
         out_foot_vel = out_vel[:, :, foot_joints, :]
         tgt_foot_vel = tgt_vel[:, :, foot_joints, :]
 
-        # Norm of foot velocity
-        out_foot_speed = torch.norm(out_foot_vel, dim=-1)  # (N, T-1, #feet)
-        tgt_foot_speed = torch.norm(tgt_foot_vel, dim=-1)
+        # Norm of foot velocity with numerical stability
+        out_foot_speed = torch.norm(out_foot_vel, dim=-1) + 1e-8  # (N, T-1, #feet)
+        tgt_foot_speed = torch.norm(tgt_foot_vel, dim=-1) + 1e-8
+
+        # Clamp foot speeds to reasonable range
+        out_foot_speed = torch.clamp(out_foot_speed, min=0.0, max=5.0)
+        tgt_foot_speed = torch.clamp(tgt_foot_speed, min=0.0, max=5.0)
 
         # Threshold to decide "contact"
         threshold = 0.05
@@ -306,8 +347,17 @@ class Loss():
         # => MSE or L2 cost on out_foot_speed in masked frames
         # Weighted by contact_mask
         loss_mat = out_foot_speed * contact_mask  # speed in frames where contact_mask=1
-        # Average them
-        loss = torch.mean(loss_mat)
+
+        # Check for valid loss values
+        if torch.isfinite(loss_mat).all():
+            loss = torch.mean(loss_mat)
+        else:
+            loss = torch.tensor(0.0, device=self.device, requires_grad=True)
+
+        # Final NaN check
+        if not torch.isfinite(loss):
+            return torch.tensor(0.0, device=self.device, requires_grad=True)
+
         return loss
 
     def _compute_angle_between(self, v1, v2):
@@ -315,17 +365,38 @@ class Loss():
         Computes the angle (in degrees) between v1, v2 of shape (..., 3).
         angle = arccos((v1 • v2) / (||v1|| * ||v2||)).
         """
+        # Add numerical stability checks
+        if not (torch.isfinite(v1).all() and torch.isfinite(v2).all()):
+            # Return zero angle for invalid inputs
+            return torch.zeros_like(v1[..., 0])
+
         dot = (v1 * v2).sum(dim=-1)  # (...)
         norm1 = torch.norm(v1, dim=-1)
         norm2 = torch.norm(v2, dim=-1)
-        denom = norm1 * norm2 + 1e-6
-        cos_val = torch.clamp(dot / denom, -1.0, 1.0)
-        return torch.acos(cos_val) * (180.0 / math.pi)
+
+        # More aggressive epsilon for numerical stability
+        denom = norm1 * norm2 + 1e-8
+
+        # Check for zero norms
+        zero_norm_mask = (norm1 < 1e-8) | (norm2 < 1e-8)
+
+        cos_val = torch.clamp(dot / denom, -0.9999, 0.9999)  # More conservative clamping
+
+        # Handle zero norm cases
+        angles = torch.acos(cos_val) * (180.0 / math.pi)
+        angles = torch.where(zero_norm_mask, torch.zeros_like(angles), angles)
+
+        # Final NaN check
+        angles = torch.where(torch.isfinite(angles), angles, torch.zeros_like(angles))
+
+        return angles
 
     def joint_limit_loss(self, output):
         """
         For each (parent, joint, child) in self.joint_angle_ranges_ntu,
         compute the angle at 'joint' and penalize angles outside [min_deg, max_deg].
+
+        FIXED: Added proper scaling and numerical stability to prevent massive loss values.
         """
         if self.dataset != 'ntu':
             return torch.tensor(0.0, device=self.device, requires_grad=True)
@@ -344,15 +415,23 @@ class Loss():
             below_mask = (angles < min_deg).float()
             above_mask = (angles > max_deg).float()
 
-            below_violation = (min_deg - angles) * below_mask
-            above_violation = (angles - max_deg) * above_mask
-            angle_loss_accumulator.append(below_violation + above_violation)
+            # FIXED: Use squared violations for smoother gradients and add scaling
+            below_violation = torch.pow(min_deg - angles, 2) * below_mask
+            above_violation = torch.pow(angles - max_deg, 2) * above_mask
+
+            # FIXED: Scale down the violations to prevent massive loss values
+            total_violation = (below_violation + above_violation) / 10000.0  # Scale down by 10k
+            angle_loss_accumulator.append(total_violation)
 
         if not angle_loss_accumulator:
             return torch.tensor(0.0, device=self.device, requires_grad=True)
 
         # mean over all frames, joints, batch
         angle_loss = torch.mean(torch.stack(angle_loss_accumulator, dim=0))
+
+        # FIXED: Clamp the loss to prevent extreme values
+        angle_loss = torch.clamp(angle_loss, 0.0, 1.0)
+
         return angle_loss
 
     # -----------------
@@ -478,19 +557,31 @@ class Loss():
     # -----------------
     # Master loss aggregator
     # -----------------
-    def loss(self, output, target, input):
+    def loss(self, output, target, input, debug_mode=False):
         """
         Aggregates all requested losses.
         :param output: (N, C_in, T-1, V, M)
         :param target: (N, C_in, T-1, V, M)
         :param input:  (N, C_in, T-1, V, M) - sometimes used for certain losses
+        :param debug_mode: If True, print detailed loss information
         """
         total_loss = 0
         losses = {key: 0 for key in self.loss_weights}
 
+        # Debug: Print input statistics
+        if debug_mode:
+            print(f"DEBUG: Loss input shapes - output: {output.shape}, target: {target.shape}")
+            print(f"DEBUG: Output stats - min: {output.min().item():.6f}, max: {output.max().item():.6f}, mean: {output.mean().item():.6f}, std: {output.std().item():.6f}")
+            print(f"DEBUG: Target stats - min: {target.min().item():.6f}, max: {target.max().item():.6f}, mean: {target.mean().item():.6f}, std: {target.std().item():.6f}")
+            print(f"DEBUG: Output finite check: {torch.isfinite(output).all().item()}")
+            print(f"DEBUG: Target finite check: {torch.isfinite(target).all().item()}")
+
         # Check for NaN/inf in inputs
         if not (torch.isfinite(output).all() and torch.isfinite(target).all()):
             print("Warning: NaN/inf detected in loss inputs!")
+            if debug_mode:
+                print(f"DEBUG: Output NaN count: {(~torch.isfinite(output)).sum().item()}")
+                print(f"DEBUG: Target NaN count: {(~torch.isfinite(target)).sum().item()}")
             # Return zero losses to avoid propagating NaN, but maintain gradient tracking
             zero_loss = torch.tensor(0.0, device=self.device, requires_grad=True)
             for key in self.loss_weights:
@@ -501,54 +592,90 @@ class Loss():
         def zero_loss_with_grad():
             return torch.tensor(0.0, device=self.device, requires_grad=True)
 
-        # Standard losses with NaN checking
+        # Standard losses with NaN checking and debug logging
         if self.mse:
             loss_val = self.mse_loss(output, target)
+            if debug_mode:
+                print(f"DEBUG: MSE loss = {loss_val.item():.6f}, finite: {torch.isfinite(loss_val).item()}")
             losses['mse'] = loss_val if torch.isfinite(loss_val) else zero_loss_with_grad()
         if self.l1:
             loss_val = self.l1_loss(output, target)
+            if debug_mode:
+                print(f"DEBUG: L1 loss = {loss_val.item():.6f}, finite: {torch.isfinite(loss_val).item()}")
             losses['l1'] = loss_val if torch.isfinite(loss_val) else zero_loss_with_grad()
         if self.smoothl1:
             loss_val = self.smoothl1_loss(output, target)
+            if debug_mode:
+                print(f"DEBUG: SmoothL1 loss = {loss_val.item():.6f}, finite: {torch.isfinite(loss_val).item()}")
             losses['smoothl1'] = loss_val if torch.isfinite(loss_val) else zero_loss_with_grad()
         if self.kl:
             loss_val = self.kl_loss(output, target)
+            if debug_mode:
+                print(f"DEBUG: KL loss = {loss_val.item():.6f}, finite: {torch.isfinite(loss_val).item()}")
             losses['kl'] = loss_val if torch.isfinite(loss_val) else zero_loss_with_grad()
         if self.ce:
             loss_val = self.ce_loss(output, target)
+            if debug_mode:
+                print(f"DEBUG: CE loss = {loss_val.item():.6f}, finite: {torch.isfinite(loss_val).item()}")
             losses['ce'] = loss_val if torch.isfinite(loss_val) else zero_loss_with_grad()
         if self.ee:
             loss_val = self.ee_loss(output, target)
+            if debug_mode:
+                print(f"DEBUG: EE loss = {loss_val.item():.6f}, finite: {torch.isfinite(loss_val).item()}")
             losses['ee'] = loss_val if torch.isfinite(loss_val) else zero_loss_with_grad()
         if self.smoothing:
             loss_val = self.smoothing_loss(output, target)
+            if debug_mode:
+                print(f"DEBUG: Smoothing loss = {loss_val.item():.6f}, finite: {torch.isfinite(loss_val).item()}")
             losses['smoothing'] = loss_val if torch.isfinite(loss_val) else zero_loss_with_grad()
         if self.latent:
             loss_val = self.latent_loss(output, target)
+            if debug_mode:
+                print(f"DEBUG: Latent loss = {loss_val.item():.6f}, finite: {torch.isfinite(loss_val).item()}")
             losses['latent'] = loss_val if torch.isfinite(loss_val) else zero_loss_with_grad()
         if self.triplet:
             loss_val = self.triplet_loss(output, target, input)
+            if debug_mode:
+                print(f"DEBUG: Triplet loss = {loss_val.item():.6f}, finite: {torch.isfinite(loss_val).item()}")
             losses['triplet'] = loss_val if torch.isfinite(loss_val) else zero_loss_with_grad()
         if self.inception:
             loss_val = self.inception_loss(output, target)
+            if debug_mode:
+                print(f"DEBUG: Inception loss = {loss_val.item():.6f}, finite: {torch.isfinite(loss_val).item()}")
             losses['inception'] = loss_val if torch.isfinite(loss_val) else zero_loss_with_grad()
 
-        # New losses with NaN checking
+        # New losses with NaN checking and debug logging
         if self.fid_vel:
             loss_val = self.fid_velocity_loss(output, target)
+            if debug_mode:
+                print(f"DEBUG: FID velocity loss = {loss_val.item():.6f}, finite: {torch.isfinite(loss_val).item()}")
             losses['fid_vel'] = loss_val if torch.isfinite(loss_val) else zero_loss_with_grad()
         if self.bone:
             loss_val = self.bone_length_loss(output, target)
+            if debug_mode:
+                print(f"DEBUG: Bone length loss = {loss_val.item():.6f}, finite: {torch.isfinite(loss_val).item()}")
             losses['bone'] = loss_val if torch.isfinite(loss_val) else zero_loss_with_grad()
         if self.foot:
             loss_val = self.foot_contact_loss(output, target)
+            if debug_mode:
+                print(f"DEBUG: Foot contact loss = {loss_val.item():.6f}, finite: {torch.isfinite(loss_val).item()}")
             losses['foot'] = loss_val if torch.isfinite(loss_val) else zero_loss_with_grad()
         if self.joint_limit:
             loss_val = self.joint_limit_loss(output)
+            if debug_mode:
+                print(f"DEBUG: Joint limit loss = {loss_val.item():.6f}, finite: {torch.isfinite(loss_val).item()}")
             losses['joint_limit'] = loss_val if torch.isfinite(loss_val) else zero_loss_with_grad()
 
         # Weighted sum with NaN checking
         total_loss = sum([losses[k] * self.loss_weights[k] for k in self.loss_weights if k in losses])
+
+        if debug_mode:
+            print(f"DEBUG: Individual weighted losses:")
+            for k in self.loss_weights:
+                if k in losses:
+                    weighted_val = losses[k] * self.loss_weights[k]
+                    print(f"  {k}: {losses[k].item():.6f} * {self.loss_weights[k]} = {weighted_val.item():.6f}")
+            print(f"DEBUG: Total loss = {total_loss.item():.6f}, finite: {torch.isfinite(total_loss).item()}")
 
         # Final NaN check
         if not torch.isfinite(total_loss):

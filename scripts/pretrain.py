@@ -333,6 +333,8 @@ def generate_slurm_script(pretrain_config: Dict[str, Any], config: Dict[str, Any
 #SBATCH --mem={template['mem']}
 #SBATCH --output=logs/{job_name}_%j.out
 #SBATCH --error=logs/{job_name}_%j.err
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-user=carrt313@gmail.com
 
 # Load modules (adjust as needed for your HPC system)
 module load python/3.8

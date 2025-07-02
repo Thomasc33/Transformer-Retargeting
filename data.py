@@ -817,3 +817,132 @@ def get_cross_data(X, dataset, setting, batch_size=32, return_loader=False,
         return train_dl, val_dl
 
     return train_dataset, val_dataset
+
+
+# Optimized data loading functions (merged from data_optimized.py)
+import multiprocessing as mp
+
+
+def optimize_data_loading(train_dataset, val_dataset, batch_size, distributed=False, rank=0, world_size=1):
+    """
+    Create optimized data loaders for training and validation.
+
+    Args:
+        train_dataset: Training dataset
+        val_dataset: Validation dataset
+        batch_size: Batch size
+        distributed: Whether using distributed training
+        rank: Process rank for distributed training
+        world_size: Number of processes for distributed training
+
+    Returns:
+        Tuple of (train_loader, val_loader)
+    """
+    # OPTIMIZED: Determine optimal number of workers for better performance
+    if distributed:
+        # For distributed training, use more workers per GPU
+        num_workers = min(mp.cpu_count() // world_size, 8)  # Increased from 4 to 8
+    else:
+        # For single GPU, use even more workers
+        num_workers = min(mp.cpu_count(), 12)  # Increased from 4 to 12
+
+    if distributed and world_size > 1:
+        # Use DistributedSampler for distributed training
+        train_sampler = torch.utils.data.distributed.DistributedSampler(
+            train_dataset,
+            num_replicas=world_size,
+            rank=rank,
+            shuffle=True,
+            drop_last=True
+        )
+        val_sampler = torch.utils.data.distributed.DistributedSampler(
+            val_dataset,
+            num_replicas=world_size,
+            rank=rank,
+            shuffle=False,
+            drop_last=False
+        )
+
+        train_loader = DataLoader(
+            train_dataset,
+            batch_size=batch_size,
+            sampler=train_sampler,
+            num_workers=num_workers,
+            pin_memory=True,
+            persistent_workers=True if num_workers > 0 else False,
+            prefetch_factor=4 if num_workers > 0 else 2,  # INCREASED: More prefetching
+            drop_last=True,  # Ensure consistent batch sizes for DDP
+        )
+
+        val_loader = DataLoader(
+            val_dataset,
+            batch_size=batch_size,
+            sampler=val_sampler,
+            num_workers=num_workers,
+            pin_memory=True,
+            persistent_workers=True if num_workers > 0 else False,
+            prefetch_factor=4 if num_workers > 0 else 2,  # INCREASED: More prefetching
+            drop_last=False,  # Keep all validation samples
+        )
+    else:
+        # Single-process data loading
+        train_loader = DataLoader(
+            train_dataset,
+            batch_size=batch_size,
+            shuffle=True,
+            num_workers=num_workers,
+            pin_memory=True,
+            persistent_workers=True if num_workers > 0 else False,
+            prefetch_factor=2 if num_workers > 0 else 2,
+            drop_last=True
+        )
+
+        val_loader = DataLoader(
+            val_dataset,
+            batch_size=batch_size,
+            shuffle=False,
+            num_workers=num_workers,
+            pin_memory=True,
+            persistent_workers=True if num_workers > 0 else False,
+            prefetch_factor=2 if num_workers > 0 else 2,
+            drop_last=False
+        )
+
+    return train_loader, val_loader
+
+
+def estimate_memory_usage(dataset, batch_size, sample_size=10):
+    """
+    Estimate memory usage for a dataset and batch size.
+
+    Args:
+        dataset: Dataset to estimate for
+        batch_size: Batch size
+        sample_size: Number of samples to use for estimation
+
+    Returns:
+        Dictionary with memory usage estimates
+    """
+    sample_items = []
+    for i in range(min(sample_size, len(dataset))):
+        sample_items.append(dataset[i])
+
+    # Calculate average item size
+    total_size = 0
+    for item in sample_items:
+        if isinstance(item, (list, tuple)):
+            for sub_item in item:
+                if torch.is_tensor(sub_item):
+                    total_size += sub_item.numel() * sub_item.element_size()
+        elif torch.is_tensor(item):
+            total_size += item.numel() * item.element_size()
+
+    avg_item_size = total_size / len(sample_items)
+    batch_memory = avg_item_size * batch_size
+
+    return {
+        'avg_item_size_mb': avg_item_size / (1024 * 1024),
+        'batch_memory_mb': batch_memory / (1024 * 1024),
+        'batch_memory_gb': batch_memory / (1024 * 1024 * 1024),
+        'estimated_peak_memory_gb': batch_memory * 3 / (1024 * 1024 * 1024)  # Rough estimate including gradients
+    }
