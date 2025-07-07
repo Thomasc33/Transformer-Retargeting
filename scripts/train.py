@@ -154,8 +154,6 @@ def load_config(config_path: str = "configs/main_config.yaml") -> Dict[str, Any]
 def validate_environment() -> bool:
     """Validate that required files and directories exist."""
     required_paths = [
-        "src/model",
-        "src/data", 
         "src/training",
         "configs/main_config.yaml"
     ]
