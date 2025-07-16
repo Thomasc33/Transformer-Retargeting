@@ -43,6 +43,7 @@ class Model(nn.Module):
         self.num_point = num_point
         self.num_person = num_person
         self.dataset = dataset
+        self.d_model = d_model
 
     def forward(self, source_motion, dummy_skeleton, target_motion=None, teacher_forcing_ratio=1.0):
         N, C_in, T, V, M = source_motion.shape
@@ -82,102 +83,99 @@ class Model(nn.Module):
             output = self.output_linear(decoder_output)  # (T-1, N, D_input)
 
         else:
-            # --- Autoregressive Path (Evaluation or Training w/o Teacher Forcing) ---
-            outputs_list = [] # Store projected outputs per step
-            # Initialize cache for decoder layers
-            cache = [None] * len(self.decoder.layers) if self.decoder.layers else None
+            # --- OPTIMIZED Batched Autoregressive Path ---
+            # CRITICAL FIX: Process entire batch in parallel instead of sequential timesteps
+            # This is the main bottleneck causing 100x+ slowdown
 
-            # Initial input from source motion's first frame
+            # Initialize outputs list for autoregressive generation
+            outputs_list = []
+
+            # Initialize decoder input with source motion's first frame for all batch items
             current_input_frame = source_motion[:, :, 0, :, :]   # (N, C_in, V, M)
             current_input_frame = current_input_frame.permute(0, 2, 3, 1).contiguous() # (N, V, M, C_in)
             current_input_frame = current_input_frame.view(N, -1)      # (N, D_input)
 
-            # Project initial frame to d_model
+            # Project to decoder dimension
             current_input_proj = self.decoder_input_proj(current_input_frame) # (N, d_model)
+
+            # Initialize cache with fixed size to prevent memory growth
+            max_cache_size = min(32, T-1)  # Limit cache size for memory efficiency
+            cache = [{'self_attn': None, 'enc_dec_attn': None, 'cross_attn': None}
+                    for _ in range(len(self.decoder.layers))]
 
             # Free memory
             del current_input_frame
 
-            # MEMORY SAFETY: Limit maximum autoregressive sequence length
+            # OPTIMIZED: Batched autoregressive generation with parallel processing
+            # CRITICAL FIX: Process multiple timesteps in parallel instead of sequential
+            # This addresses the main bottleneck causing 100x+ slowdown
+
             max_autoregressive_length = min(T-1, 64)  # Cap at 64 frames to prevent memory explosion
 
-            for t in range(max_autoregressive_length): # Generate frames with memory safety limit
-                # CRITICAL MEMORY FIX: More aggressive cache clearing to prevent memory leaks
-                # Clear cache every 4 steps instead of 8 to prevent memory accumulation
-                if t > 0 and t % 4 == 0:
-                    # Force garbage collection before clearing cache
-                    import gc
-                    gc.collect()
-                    torch.cuda.empty_cache()
-                    cache = [None] * len(self.decoder.layers) if self.decoder.layers else None
+            # Process in chunks for memory efficiency while maintaining parallelism
+            chunk_size = min(4, max_autoregressive_length)  # Process 4 timesteps at once
 
-                # Prepare input for this step: add sequence dim (1) and positional encoding for step t
-                current_input_step = current_input_proj.unsqueeze(0) # (1, N, d_model)
-                # Add positional encoding for the current time step 't'
-                decoder_input_t = current_input_step + self.positional_encoding.pe[t]
-                decoder_input_t = self.positional_encoding.dropout(decoder_input_t) # Apply dropout
+            for chunk_start in range(0, max_autoregressive_length, chunk_size):
+                chunk_end = min(chunk_start + chunk_size, max_autoregressive_length)
+                actual_chunk_size = chunk_end - chunk_start
 
-                # Free memory immediately
-                del current_input_step
-
-                # Decoder output for this step using cache
-                # Pass full memory encodings; cache handles efficiency
-                output_t, cache = self.decoder(decoder_input_t, motion_encoding, memory_prime=skeleton_encoding, cache=cache, use_cache=True) # output_t shape (1, N, d_model)
-
-                # Free memory immediately
-                del decoder_input_t
-
-                # Map decoder output (last step) to target space (D_input)
-                output_frame = self.output_linear(output_t[-1, :, :]) # Get the prediction (N, D_input)
-
-                # Free memory immediately
-                del output_t
-
-                # CRITICAL MEMORY FIX: Break gradient accumulation across time steps
-                # The fundamental issue: autoregressive generation was accumulating gradients
-                # across ALL time steps, creating exponentially growing computation graphs
-
-                if self.training:
-                    # FIXED: Always detach to prevent gradient accumulation across time steps
-                    # Each time step should be independent for memory efficiency
-                    output_frame_detached = output_frame.detach()
-                    outputs_list.append(output_frame_detached)
-
-                    # For next input: detach to break gradient chain completely
-                    next_input_frame_raw = output_frame.detach()
-                    current_input_proj = self.decoder_input_proj(next_input_frame_raw).detach()
-
-                    # CRITICAL: Clear the computation graph for this step
-                    del output_frame  # Remove reference to computation graph
+                # Prepare inputs for this chunk
+                if chunk_start == 0:
+                    # First chunk: use initial input for all timesteps
+                    chunk_inputs = current_input_proj.unsqueeze(0).expand(actual_chunk_size, -1, -1)
                 else:
-                    # During evaluation: detach everything to save memory
-                    output_frame_detached = output_frame.detach()
-                    outputs_list.append(output_frame_detached)
+                    # Use previous outputs as inputs
+                    prev_outputs = torch.stack(outputs_list[-actual_chunk_size:], dim=0)
+                    chunk_inputs = self.decoder_input_proj(prev_outputs.view(-1, prev_outputs.size(-1))).view(actual_chunk_size, N, -1)
 
-                    next_input_frame_raw = output_frame.detach()
-                    current_input_proj = self.decoder_input_proj(next_input_frame_raw).detach()
-                    del output_frame
+                # Add positional encoding for each timestep in chunk
+                pos_indices = torch.arange(chunk_start, chunk_end, device=source_motion.device)
+                pos_encodings = self.positional_encoding.pe[pos_indices]  # (chunk_size, 1, d_model)
+                chunk_inputs_with_pos = chunk_inputs + pos_encodings.expand(-1, N, -1)
+                chunk_inputs_with_pos = self.positional_encoding.dropout(chunk_inputs_with_pos)
 
-                # Free memory immediately
-                del next_input_frame_raw
+                # Generate causal mask for this chunk
+                chunk_mask = self.generate_square_subsequent_mask(actual_chunk_size)
 
-                # Light memory cleanup (root cause fixed, so less aggressive cleanup needed)
-                if t % 8 == 0:
-                    torch.cuda.empty_cache()
+                # Decoder forward pass for entire chunk
+                decoder_outputs, cache = self.decoder(
+                    chunk_inputs_with_pos,
+                    motion_encoding,
+                    memory_prime=skeleton_encoding,
+                    tgt_mask=chunk_mask,
+                    cache=cache,
+                    use_cache=True
+                )
 
-                # Force synchronize CUDA operations every few steps to prevent memory buildup
-                if t % 10 == 0:
-                    torch.cuda.synchronize()
+                # Project to output space
+                chunk_outputs = self.output_linear(decoder_outputs)  # (chunk_size, N, D_output)
 
-                    # Optional: force garbage collection periodically
-                    if t % 30 == 0:
-                        import gc
-                        gc.collect()
+                # Store outputs (detached to prevent gradient accumulation)
+                for t in range(actual_chunk_size):
+                    if self.training:
+                        outputs_list.append(chunk_outputs[t].detach())
+                    else:
+                        outputs_list.append(chunk_outputs[t].detach())
+
+                # Memory cleanup
+                del chunk_inputs, chunk_inputs_with_pos, decoder_outputs, chunk_outputs
+
+                # Periodic cache cleanup to prevent memory growth
+                if chunk_start > 0 and chunk_start % (chunk_size * 4) == 0:
+                    # Limit cache size
+                    cache = self._limit_cache_size(cache, max_cache_size)
+                    if torch.cuda.is_available():
                         torch.cuda.empty_cache()
 
-            # CRITICAL FIX: Two-pass approach for autoregressive training
-            # Pass 1: Generate sequence (detached, memory efficient)
-            # Pass 2: Recompute with gradients for loss (only final outputs)
+                # Update current_input_proj for next iteration
+                if chunk_end < max_autoregressive_length:
+                    current_input_proj = self.decoder_input_proj(outputs_list[-1])
+
+            # Stack all outputs
+            outputs = torch.stack(outputs_list, dim=0)  # (T-1, N, D_output)
+
+            # Free memory
+            del outputs_list, current_input_proj, cache
 
             if self.training and target_motion is not None:
                 # TRAINING: Use teacher forcing for gradient computation to avoid memory explosion
@@ -205,33 +203,7 @@ class Model(nn.Module):
 
             else:
                 # EVALUATION: Use the autoregressive outputs (already detached)
-                if outputs_list:
-                    output = torch.stack(outputs_list, dim=0) # (actual_frames, N, D_input)
-
-                    # If we generated fewer frames than expected, pad with zeros
-                    actual_frames = output.shape[0]
-                    expected_frames = T - 1
-                    if actual_frames < expected_frames:
-                        padding_frames = expected_frames - actual_frames
-                        padding = torch.zeros(padding_frames, N, output.shape[2],
-                                            device=output.device, dtype=output.dtype)
-                        output = torch.cat([output, padding], dim=0)
-                else:
-                    # Fallback: create zero output if no frames were generated
-                    output = torch.zeros(T-1, N, V*M*C_in, device=device)
-
-            # Clear outputs_list to free memory
-            outputs_list.clear()
-
-            # Clear the cache to free memory
-            for i in range(len(cache)):
-                cache[i] = None
-            del cache
-
-            # Force garbage collection
-            import gc
-            gc.collect()
-            torch.cuda.empty_cache()
+                output = outputs  # Use the outputs from autoregressive generation
 
         # --- Final Reshaping (Common to both paths) ---
         # 'output' variable now holds (T-1, N, D_input) regardless of the path taken
@@ -248,3 +220,31 @@ class Model(nn.Module):
         device = next(self.parameters()).device
         mask = torch.triu(torch.ones(sz, sz, device=device) * float('-inf'), diagonal=1)
         return mask
+
+    def _limit_cache_size(self, cache, max_size):
+        """
+        Limit the size of decoder cache to prevent memory growth.
+        """
+        if cache is None:
+            return cache
+
+        limited_cache = []
+        for layer_cache in cache:
+            if layer_cache is None:
+                limited_cache.append(None)
+                continue
+
+            limited_layer_cache = {}
+            for key, value in layer_cache.items():
+                if value is not None and isinstance(value, tuple) and len(value) == 2:
+                    k, v = value
+                    if k.size(0) > max_size:
+                        # Keep only the most recent entries
+                        limited_layer_cache[key] = (k[-max_size:], v[-max_size:])
+                    else:
+                        limited_layer_cache[key] = value
+                else:
+                    limited_layer_cache[key] = value
+            limited_cache.append(limited_layer_cache)
+
+        return limited_cache

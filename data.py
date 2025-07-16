@@ -838,13 +838,13 @@ def optimize_data_loading(train_dataset, val_dataset, batch_size, distributed=Fa
     Returns:
         Tuple of (train_loader, val_loader)
     """
-    # OPTIMIZED: Determine optimal number of workers for better performance
+    # OPTIMIZED: Aggressive worker count for maximum data loading performance
     if distributed:
         # For distributed training, use more workers per GPU
-        num_workers = min(mp.cpu_count() // world_size, 8)  # Increased from 4 to 8
+        num_workers = min(mp.cpu_count() // world_size, 16)  # INCREASED: Even more workers
     else:
-        # For single GPU, use even more workers
-        num_workers = min(mp.cpu_count(), 12)  # Increased from 4 to 12
+        # For single GPU, use maximum available workers
+        num_workers = min(mp.cpu_count(), 20)  # INCREASED: Maximum workers for single GPU
 
     if distributed and world_size > 1:
         # Use DistributedSampler for distributed training
@@ -870,7 +870,7 @@ def optimize_data_loading(train_dataset, val_dataset, batch_size, distributed=Fa
             num_workers=num_workers,
             pin_memory=True,
             persistent_workers=True if num_workers > 0 else False,
-            prefetch_factor=4 if num_workers > 0 else 2,  # INCREASED: More prefetching
+            prefetch_factor=8 if num_workers > 0 else 2,  # INCREASED: Maximum prefetching
             drop_last=True,  # Ensure consistent batch sizes for DDP
         )
 
@@ -881,7 +881,7 @@ def optimize_data_loading(train_dataset, val_dataset, batch_size, distributed=Fa
             num_workers=num_workers,
             pin_memory=True,
             persistent_workers=True if num_workers > 0 else False,
-            prefetch_factor=4 if num_workers > 0 else 2,  # INCREASED: More prefetching
+            prefetch_factor=8 if num_workers > 0 else 2,  # INCREASED: Maximum prefetching
             drop_last=False,  # Keep all validation samples
         )
     else:

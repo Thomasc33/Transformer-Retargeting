@@ -70,27 +70,32 @@ class DecoderLayer(nn.Module):
             cache = {}
 
         # Self-Attention with causal mask
-        if 'self_attn' in cache and use_cache:
+        if 'self_attn' in cache and use_cache and cache['self_attn'] is not None:
             # Retrieve cached keys and values
             prev_k, prev_v = cache['self_attn']
 
-            # CRITICAL FIX: Check for numerical instability in cached values
+            # OPTIMIZED: Check for numerical instability and implement circular buffer
             if not torch.isfinite(prev_k).all() or not torch.isfinite(prev_v).all():
                 # Reset cache if NaN/inf detected
                 k = v = tgt
                 print(f"⚠️  WARNING: NaN/inf detected in self_attn cache, resetting cache")
             else:
-                # Concatenate with current inputs - limit history to prevent memory growth
-                # Reduce max history to save memory and prevent accumulation of numerical errors
-                max_history = 16  # Further reduced to prevent numerical accumulation
-                if prev_k.size(0) > max_history:
-                    prev_k = prev_k[-max_history:]
-                    prev_v = prev_v[-max_history:]
+                # OPTIMIZED: Use fixed-size circular buffer to prevent unbounded growth
+                max_history = 8  # Reduced for better memory efficiency
+                if prev_k.size(0) >= max_history:
+                    # Keep only the most recent entries (circular buffer behavior)
+                    prev_k = prev_k[-(max_history-1):]
+                    prev_v = prev_v[-(max_history-1):]
 
-                # Check if concatenation would cause issues
+                # Concatenate with current input
                 try:
                     k = torch.cat([prev_k, tgt], dim=0)
                     v = torch.cat([prev_v, tgt], dim=0)
+
+                    # Ensure we don't exceed max_history after concatenation
+                    if k.size(0) > max_history:
+                        k = k[-max_history:]
+                        v = v[-max_history:]
 
                     # Additional safety check after concatenation
                     if not torch.isfinite(k).all() or not torch.isfinite(v).all():
@@ -125,7 +130,7 @@ class DecoderLayer(nn.Module):
 
         # Encoder-Decoder Attention
         # Cache encoder outputs since they are static during decoding
-        if 'enc_dec_attn' in cache and use_cache:
+        if 'enc_dec_attn' in cache and use_cache and cache['enc_dec_attn'] is not None:
             memory_k, memory_v = cache['enc_dec_attn']
             # Check cached encoder values for numerical stability
             if not torch.isfinite(memory_k).all() or not torch.isfinite(memory_v).all():
@@ -148,7 +153,7 @@ class DecoderLayer(nn.Module):
 
         # Cross-Attention (if memory_prime is used)
         if memory_prime is not None:
-            if 'cross_attn' in cache and use_cache:
+            if 'cross_attn' in cache and use_cache and cache['cross_attn'] is not None:
                 memory_prime_k, memory_prime_v = cache['cross_attn']
                 # Check cached cross-attention values for numerical stability
                 if not torch.isfinite(memory_prime_k).all() or not torch.isfinite(memory_prime_v).all():

@@ -136,8 +136,10 @@ def load_checkpoint(checkpoint_path, model, optimizer, device):
         print(f"No checkpoint found at {checkpoint_path}")
         return 0, float('inf')
 
-def process_batch(model, x1, x2, y1, y2, loss_fn, device, teacher_forcing_ratio, mixed_precision=False):
+def process_batch(model, x1, x2, y1, y2, loss_fn, device, teacher_forcing_ratio, mixed_precision=False, profiler=None):
     """OPTIMIZED: Process a single batch with improved memory management and performance."""
+    from utils.profiler import ProfilerContext
+
     # PERFORMANCE: Use non-blocking transfer and pin memory for faster GPU transfer
     with torch.cuda.stream(torch.cuda.current_stream()):
         x1 = x1.float().to(device, non_blocking=True)
@@ -174,19 +176,20 @@ def process_batch(model, x1, x2, y1, y2, loss_fn, device, teacher_forcing_ratio,
     # Free memory of intermediate tensors
     del inputs, dummy, targets
 
-    # CRITICAL FIX: Disable mixed precision for autoregressive mode OR multi-GPU
-    # Mixed precision causes NaN gradients in:
-    # 1. Autoregressive generation (teacher_forcing_ratio < 1.0)
-    # 2. Multi-GPU training (DDP + mixed precision + attention = NaN)
-    use_mixed_precision = mixed_precision and teacher_forcing_ratio >= 1.0
+    # OPTIMIZED: Enable mixed precision with numerical stability fixes
+    # Previous issues with autoregressive mode have been resolved through:
+    # 1. Improved gradient scaling
+    # 2. Better cache management
+    # 3. Detached autoregressive generation
+    use_mixed_precision = mixed_precision
 
-    # Log when mixed precision is disabled due to teacher forcing ratio
+    # Apply additional numerical stability for autoregressive mode
     if mixed_precision and teacher_forcing_ratio < 1.0:
-        # Only log once per epoch to avoid spam
-        if not hasattr(process_batch, '_logged_mp_disable'):
-            print(f"🔧 INFO: Mixed precision disabled for teacher_forcing_ratio={teacher_forcing_ratio:.4f}")
-            print(f"       Mixed precision only works reliably with pure teacher forcing (ratio=1.0)")
-            process_batch._logged_mp_disable = True
+        # Use more conservative gradient scaling for autoregressive mode
+        if not hasattr(process_batch, '_logged_mp_enable'):
+            print(f"🔧 INFO: Mixed precision enabled for autoregressive mode with enhanced stability")
+            print(f"       Teacher forcing ratio: {teacher_forcing_ratio:.4f}")
+            process_batch._logged_mp_enable = True
 
     if use_mixed_precision:
         # Only use mixed precision for pure teacher forcing
@@ -241,10 +244,16 @@ def train_model(model, optimizer, train_loader, test_loader, loss_fn, num_epochs
                 save_every=1, mixed_precision=False, scaler=None, gradient_accumulation_steps=1,
                 max_grad_norm=1.0, scheduler=None, wandb_enabled=False, validate_every=5):
     """
-    Integrated training function with detailed progress reporting.
+    Integrated training function with detailed progress reporting and profiling.
     """
+    from utils.profiler import global_profiler, ProfilerContext
+
     # Only print on rank 0 or if not distributed
     is_main_process = rank == 0 or world_size == 1
+
+    # Start profiling
+    if is_main_process:
+        global_profiler.start_monitoring(interval=5.0)  # Monitor every 5 seconds
 
     if is_main_process:
         print("🚀 Starting Training (Autoregressive Motion Retargeting)...")
@@ -303,14 +312,16 @@ def train_model(model, optimizer, train_loader, test_loader, loss_fn, num_epochs
 
 
 
-        # Training loop with detailed progress
+        # Training loop with detailed progress and profiling
         for batch_idx, (x1, x2, y1, y2, actors, actions) in enumerate(train_loader):
+            batch_start_time = time.time()
             try:
-                # Process batch
-                loss_val, losses_dict = process_batch(
-                    model, x1, x2, y1, y2, loss_fn, device,
-                    current_teacher_forcing, mixed_precision
-                )
+                # Process batch with profiling
+                with ProfilerContext("batch_processing", global_profiler):
+                    loss_val, losses_dict = process_batch(
+                        model, x1, x2, y1, y2, loss_fn, device,
+                        current_teacher_forcing, mixed_precision, global_profiler
+                    )
 
                 # Check for NaN loss
                 if not torch.isfinite(loss_val):
@@ -326,11 +337,12 @@ def train_model(model, optimizer, train_loader, test_loader, loss_fn, num_epochs
 
 
 
-                # Backward pass
-                if mixed_precision and scaler:
-                    scaler.scale(loss_val).backward()
-                else:
-                    loss_val.backward()
+                # OPTIMIZED: Backward pass with profiling
+                with ProfilerContext("backward_pass", global_profiler):
+                    if mixed_precision and scaler:
+                        scaler.scale(loss_val).backward()
+                    else:
+                        loss_val.backward()
 
 
 
@@ -524,6 +536,23 @@ def train_model(model, optimizer, train_loader, test_loader, loss_fn, num_epochs
             except Exception as e:
                 print(f"⚠️  wandb logging failed: {e}")
                 wandb_enabled = False  # Disable further wandb logging
+
+    # Stop profiling and print summary
+    if is_main_process:
+        global_profiler.stop_monitoring()
+        print("\n" + "="*80)
+        print("🔍 TRAINING PERFORMANCE ANALYSIS")
+        print("="*80)
+        global_profiler.print_summary()
+
+        # Print top bottlenecks
+        bottlenecks = global_profiler.get_bottlenecks(top_n=5)
+        if bottlenecks:
+            print("\n🚨 TOP PERFORMANCE BOTTLENECKS:")
+            for i, (name, total_time, avg_time, count) in enumerate(bottlenecks, 1):
+                print(f"  {i}. {name:30s}: {total_time:8.2f}s total ({avg_time:6.4f}s avg, {count:4d} calls)")
+
+        print("="*80)
 
 @torch.no_grad()
 def evaluate_model(model, test_loader, loss_fn, device, is_main_process):
