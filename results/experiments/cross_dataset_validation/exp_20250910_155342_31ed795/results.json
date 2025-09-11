@@ -1,0 +1,58 @@
+{
+  "experiment_name": "cross_dataset_validation",
+  "experiment_id": "exp_20250910_155342_31ed795",
+  "config": {
+    "name": "Cross-Dataset Validation",
+    "description": "Train on NTU-60, test on NTU-120 and ETRI",
+    "evaluation_type": "cross_dataset",
+    "models": {
+      "transformer": {
+        "type": "transformer",
+        "path": "model.pth"
+      }
+    },
+    "eval_models": {
+      "sgn_ar_ntu120": {
+        "type": "sgn",
+        "task": "ar",
+        "path": "output/ntu120_ar_cview/model_best.pth.tar",
+        "dataset": "ntu120"
+      },
+      "sgn_ar_etri": {
+        "type": "sgn",
+        "task": "ar",
+        "path": "output/etri_ar_cview/model_best.pth.tar",
+        "dataset": "etri"
+      }
+    },
+    "data": {
+      "ntu120_cv": {
+        "type": "paired",
+        "dataset": "ntu120",
+        "setting": "cv",
+        "batch_size": 32,
+        "test_samples": 3000
+      },
+      "etri": {
+        "type": "paired",
+        "dataset": "etri",
+        "setting": "cv",
+        "batch_size": 32,
+        "test_samples": 1000
+      }
+    },
+    "metrics": [
+      "action_recognition_accuracy",
+      "mse",
+      "bone_length_consistency",
+      "temporal_smoothness"
+    ],
+    "output_dir": "cross_dataset_validation"
+  },
+  "results": {},
+  "metrics": {
+    "aggregate": {}
+  },
+  "duration": 20.045876264572144,
+  "timestamp": "2025-09-10T15:54:02.273397"
+}

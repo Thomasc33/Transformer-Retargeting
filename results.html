@@ -1,0 +1,178 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Evaluation Results Dashboard</title>
+  <style>
+    :root {
+      --bg: #0f172a; /* slate-900 */
+      --card: #111827; /* gray-900 */
+      --muted: #94a3b8; /* slate-400 */
+      --text: #e5e7eb; /* gray-200 */
+      --accent: #22d3ee; /* cyan-400 */
+      --accent2: #a78bfa; /* violet-400 */
+      --ok: #34d399; /* green-400 */
+      --warn: #fbbf24; /* amber-400 */
+      --bad: #f87171; /* red-400 */
+    }
+    html, body { background: var(--bg); color: var(--text); }
+    body { font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; margin: 24px; }
+    h1, h2, h3 { margin: 0.6em 0 0.4em; }
+    .meta { color: var(--muted); font-size: 0.9em; }
+    .exp { background: var(--card); border: 1px solid #1f2937; border-radius: 10px; padding: 14px; margin: 16px 0; box-shadow: 0 1px 0 #000; }
+    .status { font-weight: 600; }
+    .completed { color: var(--ok); }
+    .pending { color: var(--warn); }
+    .failed { color: var(--bad); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); grid-gap: 14px; }
+    .thumb { border: 1px solid #1f2937; border-radius: 8px; padding: 8px; background: #0b1220; }
+    img { max-width: 100%; height: auto; display: block; border-radius: 6px; }
+    video { width: 100%; height: auto; display: block; border-radius: 6px; }
+    .small { font-size: 0.85em; color: var(--muted); }
+    .toc a { margin-right: 12px; color: var(--accent); text-decoration: none; }
+    .toc a:hover { color: var(--accent2); }
+    .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; background: #0b1220; margin-left: 6px; font-size: 0.85em; color: var(--accent); border: 1px solid #1f2937; }
+    .footer { margin-top: 24px; color: var(--muted); font-size: 0.9em; }
+    .missing { padding: 8px; border: 1px dashed #334155; border-radius: 8px; color: var(--muted); }
+    .files { margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <h1>Evaluation Results Dashboard</h1>
+  <div class="meta">Generated: 2025-09-10 21:58:06</div>
+  <p class="small">This page aggregates experiment results, status (to-do list), and visualizations (GIFs/images/videos). It auto-refreshes after each experiment run.</p>
+  <hr/>
+
+<div class='toc'><strong>Jump to:</strong> <a href='#primary_experiments'>Primary Experiments</a> <a href='#loss_analysis_experiments'>Loss Analysis Experiments</a> <a href='#pretraining_experiments'>Pretraining Experiments</a> <a href='#robustness_experiments'>Robustness Experiments</a> <a href='#generalization_&_efficiency_experiments'>Generalization & Efficiency Experiments</a> <a href='#qualitative_experiments'>Qualitative Experiments</a></div>
+<h2 id='primary_experiments'>Primary Experiments</h2>
+<div class='exp'>
+<h3>privacy_utility_sgn <span class='badge'>4 hours</span></h3>
+<div class='meta'>Evaluate privacy-utility tradeoff using SGN for AR, RI, and GC tasks</div>
+<div class='status completed'>Status: Completed</div>
+<div class='files'>Files: <a href='results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/results.json' target='_blank'>results.json</a> | <a href='results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/metrics.json' target='_blank'>metrics.json</a> | <a href='results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/config.json' target='_blank'>config.json</a></div>
+<div class='missing small'>No visualizations found in latest run.</div>
+</div>
+<div class='exp'>
+<h3>privacy_utility_mixformer <span class='badge'>4 hours</span></h3>
+<div class='meta'>Evaluate privacy-utility tradeoff using MixFormer for AR, RI, and GC tasks</div>
+<div class='status completed'>Status: Completed</div>
+<div class='files'>Files: <a href='results/experiments/privacy_utility_mixformer/exp_20250910_210639_31ed795/results.json' target='_blank'>results.json</a> | <a href='results/experiments/privacy_utility_mixformer/exp_20250910_210639_31ed795/metrics.json' target='_blank'>metrics.json</a> | <a href='results/experiments/privacy_utility_mixformer/exp_20250910_210639_31ed795/config.json' target='_blank'>config.json</a></div>
+<div class='missing small'>No visualizations found in latest run.</div>
+</div>
+<div class='exp'>
+<h3>baseline_comparison <span class='badge'>6 hours</span></h3>
+<div class='meta'>Compare all baseline models across all tasks</div>
+<div class='status completed'>Status: Completed</div>
+<div class='files'>Files: <a href='results/experiments/baseline_comparison/exp_20250910_210702_31ed795/results.json' target='_blank'>results.json</a> | <a href='results/experiments/baseline_comparison/exp_20250910_210702_31ed795/metrics.json' target='_blank'>metrics.json</a> | <a href='results/experiments/baseline_comparison/exp_20250910_210702_31ed795/config.json' target='_blank'>config.json</a></div>
+<div class='missing small'>No visualizations found in latest run.</div>
+</div>
+<div class='exp'>
+<h3>physical_plausibility <span class='badge'>3 hours</span></h3>
+<div class='meta'>Comprehensive physical plausibility evaluation</div>
+<div class='status completed'>Status: Completed</div>
+<div class='files'>Files: <a href='results/experiments/physical_plausibility/exp_20250910_210716_31ed795/results.json' target='_blank'>results.json</a> | <a href='results/experiments/physical_plausibility/exp_20250910_210716_31ed795/metrics.json' target='_blank'>metrics.json</a> | <a href='results/experiments/physical_plausibility/exp_20250910_210716_31ed795/config.json' target='_blank'>config.json</a></div>
+<div class='missing small'>No visualizations found in latest run.</div>
+</div>
+<hr/>
+<h2 id='loss_analysis_experiments'>Loss Analysis Experiments</h2>
+<div class='exp'>
+<h3>loss_ablation <span class='badge'>8 hours</span></h3>
+<div class='meta'>Single loss component ablation studies</div>
+<div class='status completed'>Status: Completed</div>
+<div class='files'>Files: <a href='results/experiments/loss_ablation/exp_20250910_210737_31ed795/results.json' target='_blank'>results.json</a> | <a href='results/experiments/loss_ablation/exp_20250910_210737_31ed795/metrics.json' target='_blank'>metrics.json</a> | <a href='results/experiments/loss_ablation/exp_20250910_210737_31ed795/config.json' target='_blank'>config.json</a></div>
+<div class='missing small'>No visualizations found in latest run.</div>
+</div>
+<div class='exp'>
+<h3>loss_weight_sensitivity <span class='badge'>12 hours</span></h3>
+<div class='meta'>Hyperparameter optimization of loss weights</div>
+<div class='status completed'>Status: Completed</div>
+<div class='files'>Files: <a href='results/experiments/loss_weight_sensitivity/exp_20250910_210748_31ed795/results.json' target='_blank'>results.json</a> | <a href='results/experiments/loss_weight_sensitivity/exp_20250910_210748_31ed795/metrics.json' target='_blank'>metrics.json</a> | <a href='results/experiments/loss_weight_sensitivity/exp_20250910_210748_31ed795/config.json' target='_blank'>config.json</a></div>
+<div class='missing small'>No visualizations found in latest run.</div>
+</div>
+<hr/>
+<h2 id='pretraining_experiments'>Pretraining Experiments</h2>
+<div class='exp'>
+<h3>masking_configurations <span class='badge'>10 hours</span></h3>
+<div class='meta'>Test different temporal and spatial masking ratios</div>
+<div class='status completed'>Status: Completed</div>
+<div class='files'>Files: <a href='results/experiments/masking_configurations/exp_20250910_210754_31ed795/results.json' target='_blank'>results.json</a> | <a href='results/experiments/masking_configurations/exp_20250910_210754_31ed795/metrics.json' target='_blank'>metrics.json</a> | <a href='results/experiments/masking_configurations/exp_20250910_210754_31ed795/config.json' target='_blank'>config.json</a></div>
+<div class='missing small'>No visualizations found in latest run.</div>
+</div>
+<div class='exp'>
+<h3>pretraining_approaches <span class='badge'>6 hours</span></h3>
+<div class='meta'>Compare different pretraining strategies</div>
+<div class='status completed'>Status: Completed</div>
+<div class='files'>Files: <a href='results/experiments/pretraining_approaches/exp_20250910_210758_31ed795/results.json' target='_blank'>results.json</a> | <a href='results/experiments/pretraining_approaches/exp_20250910_210758_31ed795/metrics.json' target='_blank'>metrics.json</a> | <a href='results/experiments/pretraining_approaches/exp_20250910_210758_31ed795/config.json' target='_blank'>config.json</a></div>
+<div class='missing small'>No visualizations found in latest run.</div>
+</div>
+<hr/>
+<h2 id='robustness_experiments'>Robustness Experiments</h2>
+<div class='exp'>
+<h3>training_stability <span class='badge'>20 hours</span></h3>
+<div class='meta'>Repeat key experiments with different random seeds</div>
+<div class='status completed'>Status: Completed</div>
+<div class='files'>Files: <a href='results/experiments/training_stability/exp_20250910_210809_31ed795/results.json' target='_blank'>results.json</a> | <a href='results/experiments/training_stability/exp_20250910_210809_31ed795/metrics.json' target='_blank'>metrics.json</a> | <a href='results/experiments/training_stability/exp_20250910_210809_31ed795/config.json' target='_blank'>config.json</a></div>
+<div class='missing small'>No visualizations found in latest run.</div>
+</div>
+<div class='exp'>
+<h3>teacher_forcing_analysis <span class='badge'>8 hours</span></h3>
+<div class='meta'>Compare different teacher forcing decay schedules</div>
+<div class='status completed'>Status: Completed</div>
+<div class='files'>Files: <a href='results/experiments/teacher_forcing_analysis/exp_20250910_210815_31ed795/results.json' target='_blank'>results.json</a> | <a href='results/experiments/teacher_forcing_analysis/exp_20250910_210815_31ed795/metrics.json' target='_blank'>metrics.json</a> | <a href='results/experiments/teacher_forcing_analysis/exp_20250910_210815_31ed795/config.json' target='_blank'>config.json</a></div>
+<div class='missing small'>No visualizations found in latest run.</div>
+</div>
+<div class='exp'>
+<h3>per_class_analysis <span class='badge'>4 hours</span></h3>
+<div class='meta'>Analyze performance for each action class</div>
+<div class='status completed'>Status: Completed</div>
+<div class='files'>Files: <a href='results/experiments/per_class_analysis/exp_20250910_210823_31ed795/results.json' target='_blank'>results.json</a> | <a href='results/experiments/per_class_analysis/exp_20250910_210823_31ed795/metrics.json' target='_blank'>metrics.json</a> | <a href='results/experiments/per_class_analysis/exp_20250910_210823_31ed795/config.json' target='_blank'>config.json</a></div>
+<div class='missing small'>No visualizations found in latest run.</div>
+</div>
+<div class='exp'>
+<h3>per_subject_analysis <span class='badge'>4 hours</span></h3>
+<div class='meta'>Analyze anonymization effectiveness per subject</div>
+<div class='status completed'>Status: Completed</div>
+<div class='files'>Files: <a href='results/experiments/per_subject_analysis/exp_20250910_210825_31ed795/results.json' target='_blank'>results.json</a> | <a href='results/experiments/per_subject_analysis/exp_20250910_210825_31ed795/metrics.json' target='_blank'>metrics.json</a> | <a href='results/experiments/per_subject_analysis/exp_20250910_210825_31ed795/config.json' target='_blank'>config.json</a></div>
+<div class='missing small'>No visualizations found in latest run.</div>
+</div>
+<hr/>
+<h2 id='generalization_&_efficiency_experiments'>Generalization & Efficiency Experiments</h2>
+<div class='exp'>
+<h3>cross_dataset_validation <span class='badge'>6 hours</span></h3>
+<div class='meta'>Train on NTU-60, test on NTU-120 and ETRI</div>
+<div class='status completed'>Status: Completed</div>
+<div class='files'>Files: <a href='results/experiments/cross_dataset_validation/exp_20250910_210727_31ed795/results.json' target='_blank'>results.json</a> | <a href='results/experiments/cross_dataset_validation/exp_20250910_210727_31ed795/metrics.json' target='_blank'>metrics.json</a> | <a href='results/experiments/cross_dataset_validation/exp_20250910_210727_31ed795/config.json' target='_blank'>config.json</a></div>
+<div class='missing small'>No visualizations found in latest run.</div>
+</div>
+<div class='exp'>
+<h3>efficiency_analysis <span class='badge'>2 hours</span></h3>
+<div class='meta'>Measure inference speed and memory requirements</div>
+<div class='status completed'>Status: Completed</div>
+<div class='files'>Files: <a href='results/experiments/efficiency_analysis/exp_20250910_210833_31ed795/results.json' target='_blank'>results.json</a> | <a href='results/experiments/efficiency_analysis/exp_20250910_210833_31ed795/metrics.json' target='_blank'>metrics.json</a> | <a href='results/experiments/efficiency_analysis/exp_20250910_210833_31ed795/config.json' target='_blank'>config.json</a></div>
+<div class='missing small'>No visualizations found in latest run.</div>
+</div>
+<hr/>
+<h2 id='qualitative_experiments'>Qualitative Experiments</h2>
+<div class='exp'>
+<h3>motion_visualizations <span class='badge'>4 hours</span></h3>
+<div class='meta'>Create animated sequences and overlays</div>
+<div class='status completed'>Status: Completed</div>
+<div class='files'>Files: <a href='results/experiments/motion_visualizations/exp_20250910_210835_31ed795/results.json' target='_blank'>results.json</a> | <a href='results/experiments/motion_visualizations/exp_20250910_210835_31ed795/metrics.json' target='_blank'>metrics.json</a> | <a href='results/experiments/motion_visualizations/exp_20250910_210835_31ed795/config.json' target='_blank'>config.json</a></div>
+<div class='missing small'>No visualizations found in latest run.</div>
+</div>
+<div class='exp'>
+<h3>attention_visualization <span class='badge'>3 hours</span></h3>
+<div class='meta'>Create attention heatmaps and analysis</div>
+<div class='status completed'>Status: Completed</div>
+<div class='files'>Files: <a href='results/experiments/attention_visualization/exp_20250910_210846_31ed795/results.json' target='_blank'>results.json</a> | <a href='results/experiments/attention_visualization/exp_20250910_210846_31ed795/metrics.json' target='_blank'>metrics.json</a> | <a href='results/experiments/attention_visualization/exp_20250910_210846_31ed795/config.json' target='_blank'>config.json</a></div>
+<div class='missing small'>No visualizations found in latest run.</div>
+</div>
+<hr/>
+<h2 id='standalone_visualizations'>Standalone Visualizations</h2>
+<p class='small'>No standalone visualizations directory yet.</p>
+
+  <div class="footer">Made by evaluation_suite/generate_dashboard.py — Missing items are indicated below each experiment.</div>
+</body>
+</html>

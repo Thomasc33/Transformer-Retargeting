@@ -1,38 +1,92 @@
-# Transformer Retargeting - Unified & Consolidated
+# Transformer Retargeting
 
-🚀 **A clean, methodical, and easy-to-use transformer-based motion retargeting system**
+Clean, unified training + evaluation with one entrypoint and an auto-updating dashboard.
 
-This repository contains a **completely consolidated and restructured** implementation of a transformer-based motion retargeting system. All scattered experiments, training scripts, and evaluation tools have been organized into a coherent, methodical framework.
+- Run everything from tmr.py (interactive or CLI)
+- Results collect under results/ and are summarized in results.html at repo root
+- Slurm evaluation logs live in logs/slurm; models in data/models*, data under data/
+- GIFs/images/videos are kept under version control for reports
 
-## ✨ Key Features
+## Repository layout (target)
+- data/           datasets, models, and outputs
+  - models/       saved/trained models (migrated from trained_models/)
+  - models_output/ training outputs and checkpoints (migrated from output/)
+- configs/        YAML and experiment configs
+- docs/           documentation and scripts (migrated legacy: experiments/, bash/)
+  - scripts/      CLI helpers and legacy bash tools
+  - experiments/  documentation of experiment setups
+- eval/           unified evaluation package (python -m eval)
+- logs/           logs and Slurm outputs
+  - slurm/
+- src/            library code (training, data, utils)
 
-- **🎮 Interactive CLI** - Guided setup and execution for all tasks
-- **🧠 Intelligent Model Management** - Automatic dependency checking and training
-- **🔄 Smart Overwrite Prompts** - Ask before overwriting existing results
-- **🎯 Custom Evaluation Selection** - Choose specific evaluations to run
-- **🖥️ HPC Support** - Automatic SLURM job generation with `--slurm` flag
-- **🪟 Cross-Platform** - Windows batch file generation with `--windows` flag
-- **🔍 Environment Validation** - Automatic checks for required files and dependencies
-- **📊 Unified Configuration** - Single YAML file controls all settings
-- **🧪 Consolidated Experiments** - All experiments moved to evaluation suite
-- **📈 Progress Tracking** - Pipeline state management and resumption
-- **⚡ Smart Step Skipping** - Automatically skips completed steps
+Note: legacy directories were migrated automatically via `python tmr.py refactor-structure`.
 
-## 🚀 Quick Start
+## Quick start
+
+Interactive menu
+
+```
+python tmr.py
+```
+
+Common commands
+
+```
+# Evaluate critical set and refresh dashboard
+python tmr.py eval --set critical
+python tmr.py dash
+
+# Clean evaluation outputs (keeps models)
+python tmr.py clean-results
+
+# Migrate saved models to data/models*
+python tmr.py migrate-models
+
+# Move legacy dirs into the target layout
+python tmr.py refactor-structure
+```
+
+## Cross-platform shortcuts
+- macOS/Linux: `make eval-critical`, `make dash`, `make clean-results`, `make validate`
+- Windows: `eval-critical.cmd`, `dash.cmd`
+
+## Dashboard
+- Open `results.html` at the repo root
+- Missing artifacts/metrics are called out so the dashboard is never empty
+
+## Unified entrypoint: tmr.py
+
+- Interactive mode (no args):
 
 ```bash
-# 1. Initialize the project
-python scripts/setup.py
-
-# 2. Validate your data structure (IMPORTANT!)
-python scripts/validate_data_paths.py
-
-# 3. Start the interactive pipeline
-python scripts/pipeline.py --interactive
-
-# 4. Or quick start with defaults
-python scripts/pipeline.py --quick-start --dataset ntu --setting cv
+python tmr.py
 ```
+
+- Evaluate (critical set) and rebuild dashboard:
+
+```bash
+python tmr.py eval --set critical
+python tmr.py dash
+```
+
+- Clean old evaluation results (keeps training/saved models):
+
+```bash
+python tmr.py clean-results
+```
+
+- Validate environment (torch, CUDA, data paths):
+
+```bash
+python tmr.py validate
+```
+
+- Windows shortcuts:
+  - eval-critical.cmd
+  - dash.cmd
+
+See docs/EVALUATION.md and docs/STRUCTURE.md for details.
 
 ## 📁 Data Structure (IMPORTANT!)
 
@@ -172,10 +226,10 @@ Our model can be trained on several skeleton datasets:
 #### NTU RGB+D 60 and 120
 
 1. Request dataset: https://rose1.ntu.edu.sg/dataset/actionRecognition
-2. Download the skeleton-only datasets:  
-    i. ```nturgbd_skeletons_s001_to_s017.zip``` (NTU RGB+D 60)  
-    ii. ```nturgbd_skeletons_s018_to_s032.zip``` (NTU RGB+D 120)  
-    iii. Extract above files to ```./data/nturgbd_raw```  
+2. Download the skeleton-only datasets:
+    i. ```nturgbd_skeletons_s001_to_s017.zip``` (NTU RGB+D 60)
+    ii. ```nturgbd_skeletons_s018_to_s032.zip``` (NTU RGB+D 120)
+    iii. Extract above files to ```./data/nturgbd_raw```
 
 #### Directory Structure
 
@@ -204,13 +258,13 @@ Put downloaded data into the following directory structure:
  cd ./data/ntu # or cd ./data/ntu120
  # Get skeleton of each performer
  python get_raw_skes_data.py
- # Remove the bad skeleton 
+ # Remove the bad skeleton
  python get_raw_denoised_data.py
  # Transform the skeleton to the center of the first frame
  python seq_transformation.py
 ```
 
-    
+
 # Training & Testing
 ### Training
 + Change the config file depending on what you want.
@@ -236,13 +290,13 @@ Put downloaded data into the following directory structure:
 
 ### Testing
 
-+ To test the trained models saved in <work_dir>, run the following command:  
++ To test the trained models saved in <work_dir>, run the following command:
 
 ```
     python main.py --config <work_dir>/config.yaml --work-dir <work_dir> --phase test --save-score True --weights <work_dir>/xxx.pt --         device 0
 ```
 
-+ To ensemble the results of different modalities, run  
++ To ensemble the results of different modalities, run
 
 ```
     # Example: ensemble four modalities of SkMIXF on NTU RGB+D cross subject
@@ -251,7 +305,7 @@ Put downloaded data into the following directory structure:
 
 ### Pretrained model
 + Pretrained weights for NTU RGB+D 60 and 120 can be downloaded from the following link [[Google Drive]](https://drive.google.com/file/d/15Ahneq5_IgurficrYb3PiiLeEFyS8lBQ/view?usp=share_link)
-    
+
 ## Acknowledgements
 This repo is based on [CTR-GCN](https://github.com/Uason-Chen/CTR-GCN) and [Info-GCN](https://github.com/stnoah1/infogcn) The data processing is borrowed from [SGN](https://github.com/microsoft/SGN) and [HCN](https://github.com/huguyuehuhu/HCN-pytorch).
 

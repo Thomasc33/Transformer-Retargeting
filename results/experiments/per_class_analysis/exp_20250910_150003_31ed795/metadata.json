@@ -1,0 +1,8 @@
+{
+  "experiment_name": "per_class_analysis",
+  "experiment_id": "exp_20250910_150003_31ed795",
+  "created_at": "2025-09-10T15:00:03.597402",
+  "git_commit": "31ed795",
+  "slurm_job_id": "6565459",
+  "slurm_script_path": "per_class_analysis"
+}

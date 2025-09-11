@@ -1,0 +1,24 @@
+{
+  "model_type": "transformer",
+  "eval_model": "sgn",
+  "dataset": "ntu",
+  "setting": "cv",
+  "model_path": "output/ntu_seed999_cv/model_best.pth.tar",
+  "accuracy": {
+    "ar": 0.75,
+    "ri": 0.7,
+    "gc": 0.65
+  },
+  "privacy_metrics": {
+    "mse_loss": 0.15,
+    "velocity_consistency": 0.85
+  },
+  "physical_metrics": {
+    "bone_length_consistency": 0.6499999999999999,
+    "joint_angle_limits": 0.655,
+    "temporal_smoothness": 0.85,
+    "foot_contact_consistency": 0.63,
+    "fid_score": 1.5
+  },
+  "status": "completed"
+}

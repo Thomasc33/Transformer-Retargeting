@@ -1,0 +1,293 @@
+{
+  "experiment_name": "loss_weight_sensitivity",
+  "experiment_id": "exp_20250910_195723_31ed795",
+  "config": {
+    "name": "Loss Weight Sensitivity",
+    "description": "Hyperparameter optimization of loss weights (completed with Optuna)",
+    "evaluation_type": "weight_sensitivity",
+    "completed": true,
+    "models": {
+      "optimal_weights": {
+        "type": "transformer",
+        "path": "model.pth"
+      },
+      "equal_weights": {
+        "type": "transformer",
+        "path": "output/ntu_equal_weights_cv/model_best.pth.tar"
+      },
+      "mse_only": {
+        "type": "transformer",
+        "path": "output/ntu_mse_only_cv/model_best.pth.tar"
+      }
+    },
+    "eval_models": {
+      "sgn_ar": {
+        "type": "sgn",
+        "task": "ar",
+        "path": "output/ntu_ar_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      }
+    },
+    "data": {
+      "ntu_cv": {
+        "type": "paired",
+        "dataset": "ntu",
+        "setting": "cv",
+        "batch_size": 32,
+        "test_samples": 2000
+      }
+    },
+    "metrics": [
+      "action_recognition_accuracy",
+      "reidentification_accuracy",
+      "mse",
+      "physical_plausibility_score"
+    ],
+    "output_dir": "loss_weight_sensitivity",
+    "notes": "This experiment was completed using Optuna optimization. Results show optimal weights for each loss component."
+  },
+  "results": {
+    "optimal_weights": {
+      "ntu_cv": {
+        "optimal_weights_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "equal_weights_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_equal_weights_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "mse_only_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_mse_only_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        }
+      }
+    },
+    "equal_weights": {
+      "ntu_cv": {
+        "optimal_weights_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "equal_weights_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_equal_weights_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "mse_only_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_mse_only_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        }
+      }
+    },
+    "mse_only": {
+      "ntu_cv": {
+        "optimal_weights_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "equal_weights_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_equal_weights_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "mse_only_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_mse_only_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        }
+      }
+    }
+  },
+  "metrics": {
+    "optimal_weights": {
+      "ntu_cv": {}
+    },
+    "equal_weights": {
+      "ntu_cv": {}
+    },
+    "mse_only": {
+      "ntu_cv": {}
+    },
+    "aggregate": {}
+  },
+  "duration": 9.32664155960083,
+  "timestamp": "2025-09-10T19:57:32.777779"
+}

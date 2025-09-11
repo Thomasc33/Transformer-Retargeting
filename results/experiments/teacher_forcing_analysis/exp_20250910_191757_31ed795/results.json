@@ -1,0 +1,57 @@
+{
+  "experiment_name": "teacher_forcing_analysis",
+  "experiment_id": "exp_20250910_191757_31ed795",
+  "config": {
+    "name": "Teacher Forcing Analysis",
+    "description": "Compare different teacher forcing decay schedules",
+    "evaluation_type": "teacher_forcing",
+    "models": {
+      "linear_decay": {
+        "type": "transformer",
+        "path": "output/ntu_tf_linear_cv/model_best.pth.tar"
+      },
+      "exponential_decay": {
+        "type": "transformer",
+        "path": "output/ntu_tf_exp_cv/model_best.pth.tar"
+      },
+      "step_decay": {
+        "type": "transformer",
+        "path": "output/ntu_tf_step_cv/model_best.pth.tar"
+      },
+      "no_decay": {
+        "type": "transformer",
+        "path": "output/ntu_tf_none_cv/model_best.pth.tar"
+      }
+    },
+    "eval_models": {
+      "sgn_ar": {
+        "type": "sgn",
+        "task": "ar",
+        "path": "output/ntu_ar_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      }
+    },
+    "data": {
+      "ntu_cv": {
+        "type": "paired",
+        "dataset": "ntu",
+        "setting": "cv",
+        "batch_size": 32,
+        "test_samples": 2000
+      }
+    },
+    "metrics": [
+      "action_recognition_accuracy",
+      "mse",
+      "temporal_smoothness",
+      "training_convergence"
+    ],
+    "output_dir": "teacher_forcing_analysis"
+  },
+  "results": {},
+  "metrics": {
+    "aggregate": {}
+  },
+  "duration": 9.118512392044067,
+  "timestamp": "2025-09-10T19:18:06.533279"
+}

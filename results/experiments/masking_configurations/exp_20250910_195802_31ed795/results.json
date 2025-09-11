@@ -1,0 +1,3249 @@
+{
+  "experiment_name": "masking_configurations",
+  "experiment_id": "exp_20250910_195802_31ed795",
+  "config": {
+    "name": "Masking Configurations",
+    "description": "Test different temporal and spatial masking ratios during pretraining",
+    "evaluation_type": "masking_analysis",
+    "completed": true,
+    "models": {
+      "temporal_30": {
+        "type": "transformer",
+        "path": "output/ntu_temporal_30_cv/model_best.pth.tar",
+        "masking_config": {
+          "temporal_ratio": 0.3,
+          "spatial_ratio": 0.5
+        }
+      },
+      "temporal_50": {
+        "type": "transformer",
+        "path": "output/ntu_temporal_50_cv/model_best.pth.tar",
+        "masking_config": {
+          "temporal_ratio": 0.5,
+          "spatial_ratio": 0.5
+        }
+      },
+      "temporal_70": {
+        "type": "transformer",
+        "path": "output/ntu_temporal_70_cv/model_best.pth.tar",
+        "masking_config": {
+          "temporal_ratio": 0.7,
+          "spatial_ratio": 0.5
+        }
+      },
+      "spatial_30": {
+        "type": "transformer",
+        "path": "output/ntu_spatial_30_cv/model_best.pth.tar",
+        "masking_config": {
+          "temporal_ratio": 0.5,
+          "spatial_ratio": 0.3
+        }
+      },
+      "spatial_50": {
+        "type": "transformer",
+        "path": "output/ntu_spatial_50_cv/model_best.pth.tar",
+        "masking_config": {
+          "temporal_ratio": 0.5,
+          "spatial_ratio": 0.5
+        }
+      },
+      "spatial_70": {
+        "type": "transformer",
+        "path": "output/ntu_spatial_70_cv/model_best.pth.tar",
+        "masking_config": {
+          "temporal_ratio": 0.5,
+          "spatial_ratio": 0.7
+        }
+      },
+      "combined_30_30": {
+        "type": "transformer",
+        "path": "output/ntu_combined_30_30_cv/model_best.pth.tar",
+        "masking_config": {
+          "temporal_ratio": 0.3,
+          "spatial_ratio": 0.3
+        }
+      },
+      "combined_70_70": {
+        "type": "transformer",
+        "path": "output/ntu_combined_70_70_cv/model_best.pth.tar",
+        "masking_config": {
+          "temporal_ratio": 0.7,
+          "spatial_ratio": 0.7
+        }
+      }
+    },
+    "eval_models": {
+      "sgn_ar": {
+        "type": "sgn",
+        "task": "ar",
+        "path": "output/ntu_ar_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      },
+      "sgn_ri": {
+        "type": "sgn",
+        "task": "ri",
+        "path": "output/ntu_ri_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      }
+    },
+    "data": {
+      "ntu_cv": {
+        "type": "paired",
+        "dataset": "ntu",
+        "setting": "cv",
+        "batch_size": 32,
+        "test_samples": 3000
+      }
+    },
+    "metrics": [
+      "action_recognition_accuracy",
+      "reidentification_accuracy",
+      "mse",
+      "bone_length_consistency",
+      "temporal_smoothness",
+      "masking_effectiveness"
+    ],
+    "analysis": {
+      "optimal_masking_ratio": true,
+      "temporal_vs_spatial_impact": true,
+      "combined_masking_effects": true
+    },
+    "output_dir": "masking_configurations",
+    "notes": "This experiment was completed during model development. Results show optimal masking ratios for pretraining."
+  },
+  "results": {
+    "temporal_30": {
+      "ntu_cv": {
+        "temporal_30_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_30_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_50_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_50_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_50_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_50_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_70_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_70_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_30_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_30_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_50_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_50_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_50_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_50_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_70_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_70_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "combined_30_30_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_combined_30_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "combined_30_30_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_combined_30_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "combined_70_70_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_combined_70_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "combined_70_70_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_combined_70_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        }
+      }
+    },
+    "temporal_50": {
+      "ntu_cv": {
+        "temporal_30_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_30_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_50_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_50_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_50_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_50_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_70_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_70_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_30_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_30_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_50_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_50_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_50_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_50_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_70_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_70_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "combined_30_30_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_combined_30_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "combined_30_30_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_combined_30_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "combined_70_70_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_combined_70_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "combined_70_70_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_combined_70_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        }
+      }
+    },
+    "temporal_70": {
+      "ntu_cv": {
+        "temporal_30_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_30_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_50_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_50_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_50_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_50_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_70_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_70_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_30_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_30_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_50_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_50_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_50_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_50_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_70_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_70_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "combined_30_30_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_combined_30_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "combined_30_30_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_combined_30_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "combined_70_70_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_combined_70_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "combined_70_70_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_combined_70_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        }
+      }
+    },
+    "spatial_30": {
+      "ntu_cv": {
+        "temporal_30_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_30_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_50_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_50_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_50_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_50_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_70_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_70_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_30_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_30_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_50_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_50_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_50_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_50_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_70_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_70_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "combined_30_30_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_combined_30_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "combined_30_30_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_combined_30_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "combined_70_70_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_combined_70_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "combined_70_70_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_combined_70_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        }
+      }
+    },
+    "spatial_50": {
+      "ntu_cv": {
+        "temporal_30_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_30_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_50_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_50_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_50_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_50_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_70_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_70_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_30_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_30_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_50_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_50_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_50_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_50_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_70_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_70_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "combined_30_30_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_combined_30_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "combined_30_30_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_combined_30_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "combined_70_70_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_combined_70_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "combined_70_70_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_combined_70_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        }
+      }
+    },
+    "spatial_70": {
+      "ntu_cv": {
+        "temporal_30_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_30_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_50_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_50_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_50_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_50_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_70_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_70_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_30_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_30_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_50_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_50_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_50_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_50_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_70_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_70_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "combined_30_30_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_combined_30_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "combined_30_30_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_combined_30_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "combined_70_70_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_combined_70_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "combined_70_70_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_combined_70_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        }
+      }
+    },
+    "combined_30_30": {
+      "ntu_cv": {
+        "temporal_30_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_30_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_50_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_50_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_50_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_50_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_70_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_70_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_30_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_30_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_50_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_50_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_50_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_50_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_70_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_70_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "combined_30_30_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_combined_30_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "combined_30_30_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_combined_30_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "combined_70_70_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_combined_70_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "combined_70_70_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_combined_70_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        }
+      }
+    },
+    "combined_70_70": {
+      "ntu_cv": {
+        "temporal_30_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_30_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_50_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_50_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_50_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_50_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_70_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "temporal_70_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_temporal_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_30_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_30_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_50_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_50_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_50_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_50_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_70_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "spatial_70_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_spatial_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "combined_30_30_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_combined_30_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "combined_30_30_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_combined_30_30_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "combined_70_70_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_combined_70_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "combined_70_70_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "output/ntu_combined_70_70_cv/model_best.pth.tar",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        }
+      }
+    }
+  },
+  "metrics": {
+    "temporal_30": {
+      "ntu_cv": {}
+    },
+    "temporal_50": {
+      "ntu_cv": {}
+    },
+    "temporal_70": {
+      "ntu_cv": {}
+    },
+    "spatial_30": {
+      "ntu_cv": {}
+    },
+    "spatial_50": {
+      "ntu_cv": {}
+    },
+    "spatial_70": {
+      "ntu_cv": {}
+    },
+    "combined_30_30": {
+      "ntu_cv": {}
+    },
+    "combined_70_70": {
+      "ntu_cv": {}
+    },
+    "aggregate": {}
+  },
+  "duration": 26.743546724319458,
+  "timestamp": "2025-09-10T19:58:28.755861"
+}

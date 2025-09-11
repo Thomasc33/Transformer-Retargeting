@@ -1,0 +1,41 @@
+{
+  "status": "placeholder",
+  "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+  "context": {
+    "cmd": [
+      "python",
+      "/users/tcarr23/Transformer-Retargeting/docs/scripts/standalone_eval.py",
+      "--model_type",
+      "transformer",
+      "--eval_model",
+      "sgn",
+      "--dataset",
+      "ntu",
+      "--setting",
+      "cv",
+      "--task",
+      "ri",
+      "--batch_size",
+      "32",
+      "--output_dir",
+      "results/experiments/privacy_utility_sgn/exp_20250910_183132_31ed795/artifacts/transformer_sgn_ri_ntu_cv",
+      "--ri_model_weights",
+      "output/ntu_ri_cview/model_best.pth.tar",
+      "--transformer_model_path",
+      "model.pth",
+      "--test_samples",
+      "5000"
+    ],
+    "returncode": 1,
+    "stderr": "Traceback (most recent call last):\n  File \"/users/tcarr23/Transformer-Retargeting/docs/scripts/standalone_eval.py\", line 48, in <module>\n    logging.FileHandler('logs/standalone_eval.log', mode='a')\n  File \"/apps/pkg/conda/envs/pytorch-2.3.0/lib/python3.9/logging/__init__.py\", line 1146, in __init__\n    StreamHandler.__init__(self, self._open())\n  File \"/apps/pkg/conda/envs/pytorch-2.3.0/lib/python3.9/logging/__init__.py\", line 1175, in _open\n    return open(self.baseFilename, self.mode, encoding=self.encoding,\nFileNotFoundError: [Errno 2] No such file or directory: '/users/tcarr23/Transformer-Retargeting/eval/logs/standalone_eval.log'\n"
+  },
+  "metrics": {
+    "action_recognition": {
+      "accuracy": 0.0
+    },
+    "reidentification": {
+      "identity_accuracy": 0.0,
+      "anonymization_rate": 100.0
+    }
+  }
+}

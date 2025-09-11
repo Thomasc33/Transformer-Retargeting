@@ -1,0 +1,9 @@
+{
+  "action_recognition": {
+    "accuracy": 0.0
+  },
+  "reidentification": {
+    "identity_accuracy": 0.0,
+    "anonymization_rate": 100.0
+  }
+}

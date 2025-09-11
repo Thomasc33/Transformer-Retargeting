@@ -1,0 +1,8 @@
+{
+  "experiment_name": "masking_configurations",
+  "experiment_id": "exp_20250910_145903_31ed795",
+  "created_at": "2025-09-10T14:59:03.584783",
+  "git_commit": "31ed795",
+  "slurm_job_id": "6565455",
+  "slurm_script_path": "masking_configurations"
+}

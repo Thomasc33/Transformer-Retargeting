@@ -1,0 +1,7 @@
+{
+  "transformer": {
+    "ntu120_cv": {},
+    "etri": {}
+  },
+  "aggregate": {}
+}

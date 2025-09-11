@@ -1,0 +1,8 @@
+{
+  "experiment_name": "teacher_forcing_analysis",
+  "experiment_id": "exp_20250910_145933_31ed795",
+  "created_at": "2025-09-10T14:59:33.821547",
+  "git_commit": "31ed795",
+  "slurm_job_id": "6565458",
+  "slurm_script_path": "teacher_forcing_analysis"
+}

@@ -1,0 +1,66 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Evaluation Results Dashboard</title>
+  <style>
+    :root {
+      --bg: #0f172a; /* slate-900 */
+      --card: #111827; /* gray-900 */
+      --muted: #94a3b8; /* slate-400 */
+      --text: #e5e7eb; /* gray-200 */
+      --accent: #22d3ee; /* cyan-400 */
+      --accent2: #a78bfa; /* violet-400 */
+      --ok: #34d399; /* green-400 */
+      --warn: #fbbf24; /* amber-400 */
+      --bad: #f87171; /* red-400 */
+    }
+    html, body { background: var(--bg); color: var(--text); }
+    body { font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; margin: 24px; }
+    h1, h2, h3 { margin: 0.6em 0 0.4em; }
+    .meta { color: var(--muted); font-size: 0.9em; }
+    .exp { background: var(--card); border: 1px solid #1f2937; border-radius: 10px; padding: 14px; margin: 16px 0; box-shadow: 0 1px 0 #000; }
+    .status { font-weight: 600; }
+    .completed { color: var(--ok); }
+    .pending { color: var(--warn); }
+    .failed { color: var(--bad); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); grid-gap: 14px; }
+    .thumb { border: 1px solid #1f2937; border-radius: 8px; padding: 8px; background: #0b1220; }
+    img { max-width: 100%; height: auto; display: block; border-radius: 6px; }
+    video { width: 100%; height: auto; display: block; border-radius: 6px; }
+    .small { font-size: 0.85em; color: var(--muted); }
+    .toc a { margin-right: 12px; color: var(--accent); text-decoration: none; }
+    .toc a:hover { color: var(--accent2); }
+    .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; background: #0b1220; margin-left: 6px; font-size: 0.85em; color: var(--accent); border: 1px solid #1f2937; }
+    .footer { margin-top: 24px; color: var(--muted); font-size: 0.9em; }
+    .missing { padding: 8px; border: 1px dashed #334155; border-radius: 8px; color: var(--muted); }
+    .files { margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <h1>Evaluation Results Dashboard</h1>
+  <div class="meta">Generated: 2025-09-10 11:17:59</div>
+  <p class="small">This page aggregates experiment results, status (to-do list), and visualizations (GIFs/images/videos). It auto-refreshes after each experiment run.</p>
+  <hr/>
+
+<div class='toc'><strong>Jump to:</strong> <a href='#primary_experiments'>Primary Experiments</a> <a href='#loss_analysis_experiments'>Loss Analysis Experiments</a> <a href='#pretraining_experiments'>Pretraining Experiments</a> <a href='#robustness_experiments'>Robustness Experiments</a> <a href='#generalization_&_efficiency_experiments'>Generalization & Efficiency Experiments</a> <a href='#qualitative_experiments'>Qualitative Experiments</a></div>
+<h2 id='primary_experiments'>Primary Experiments</h2>
+<hr/>
+<h2 id='loss_analysis_experiments'>Loss Analysis Experiments</h2>
+<hr/>
+<h2 id='pretraining_experiments'>Pretraining Experiments</h2>
+<hr/>
+<h2 id='robustness_experiments'>Robustness Experiments</h2>
+<hr/>
+<h2 id='generalization_&_efficiency_experiments'>Generalization & Efficiency Experiments</h2>
+<hr/>
+<h2 id='qualitative_experiments'>Qualitative Experiments</h2>
+<hr/>
+<h2 id='standalone_visualizations'>Standalone Visualizations</h2>
+<p class='small'>No standalone visualizations directory yet.</p>
+
+  <div class="footer">Made by evaluation_suite/generate_dashboard.py — Missing items are indicated below each experiment.</div>
+</body>
+</html>

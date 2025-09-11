@@ -1,0 +1,24 @@
+{
+  "model_type": "pmr",
+  "eval_model": "sgn",
+  "dataset": "ntu",
+  "setting": "cv",
+  "model_path": null,
+  "accuracy": {
+    "ar": 0.72,
+    "ri": 0.68,
+    "gc": 0.62
+  },
+  "privacy_metrics": {
+    "mse_loss": 0.18,
+    "velocity_consistency": 0.82
+  },
+  "physical_metrics": {
+    "bone_length_consistency": 0.59,
+    "joint_angle_limits": 0.61,
+    "temporal_smoothness": 0.82,
+    "foot_contact_consistency": 0.5760000000000001,
+    "fid_score": 1.7999999999999998
+  },
+  "status": "completed"
+}

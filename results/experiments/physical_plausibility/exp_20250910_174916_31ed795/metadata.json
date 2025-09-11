@@ -1,0 +1,8 @@
+{
+  "experiment_name": "physical_plausibility",
+  "experiment_id": "exp_20250910_174916_31ed795",
+  "created_at": "2025-09-10T17:49:16.686113",
+  "git_commit": "31ed795",
+  "slurm_job_id": "6566791",
+  "slurm_script_path": "physical_plausibility"
+}

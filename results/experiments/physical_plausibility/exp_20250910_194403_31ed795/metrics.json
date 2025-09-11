@@ -1,0 +1,12 @@
+{
+  "transformer": {
+    "ntu_cv": {}
+  },
+  "dmr": {
+    "ntu_cv": {}
+  },
+  "pmr": {
+    "ntu_cv": {}
+  },
+  "aggregate": {}
+}

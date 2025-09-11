@@ -1,0 +1,73 @@
+{
+  "job_id": "6566949",
+  "experiment_name": "training_stability",
+  "experiment_config": {
+    "name": "Training Stability",
+    "description": "Repeat key experiments with different random seeds",
+    "evaluation_type": "stability",
+    "models": {
+      "seed_42": {
+        "type": "transformer",
+        "path": "output/ntu_seed42_cv/model_best.pth.tar"
+      },
+      "seed_123": {
+        "type": "transformer",
+        "path": "output/ntu_seed123_cv/model_best.pth.tar"
+      },
+      "seed_456": {
+        "type": "transformer",
+        "path": "output/ntu_seed456_cv/model_best.pth.tar"
+      },
+      "seed_789": {
+        "type": "transformer",
+        "path": "output/ntu_seed789_cv/model_best.pth.tar"
+      },
+      "seed_999": {
+        "type": "transformer",
+        "path": "output/ntu_seed999_cv/model_best.pth.tar"
+      }
+    },
+    "eval_models": {
+      "sgn_ar": {
+        "type": "sgn",
+        "task": "ar",
+        "path": "output/ntu_ar_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      },
+      "sgn_ri": {
+        "type": "sgn",
+        "task": "ri",
+        "path": "output/ntu_ri_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      }
+    },
+    "data": {
+      "ntu_cv": {
+        "type": "paired",
+        "dataset": "ntu",
+        "setting": "cv",
+        "batch_size": 32,
+        "test_samples": 2000
+      }
+    },
+    "metrics": [
+      "action_recognition_accuracy",
+      "reidentification_accuracy",
+      "mse",
+      "bone_length_consistency",
+      "temporal_smoothness"
+    ],
+    "analysis": {
+      "statistical_tests": [
+        "anova",
+        "tukey_hsd"
+      ],
+      "variance_analysis": true,
+      "confidence_intervals": true
+    },
+    "output_dir": "training_stability"
+  },
+  "script_path": "eval/suite/runners/jobs/training_stability_20250910_175746.sbatch",
+  "submit_time": "2025-09-10T17:57:46.069176",
+  "status": "submitted"
+}

@@ -1,0 +1,482 @@
+{
+  "experiment_name": "motion_visualizations",
+  "experiment_id": "exp_20250910_210835_31ed795",
+  "config": {
+    "name": "Motion Visualizations",
+    "description": "Create animated sequences and overlays",
+    "evaluation_type": "motion_visualization",
+    "models": {
+      "transformer": {
+        "type": "transformer",
+        "path": "model.pth"
+      },
+      "dmr": {
+        "type": "dmr",
+        "path": "trained_models/dmr_ntu_cv_best.pth"
+      },
+      "pmr": {
+        "type": "pmr",
+        "path": "trained_models/pmr_ntu_cv_best.pth"
+      },
+      "raw": {
+        "type": "raw",
+        "path": "raw"
+      }
+    },
+    "eval_models": {
+      "sgn_ar": {
+        "type": "sgn",
+        "task": "ar",
+        "path": "output/ntu_ar_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      }
+    },
+    "data": {
+      "ntu_cv_samples": {
+        "type": "paired",
+        "dataset": "ntu",
+        "setting": "cv",
+        "batch_size": 1,
+        "test_samples": 20
+      }
+    },
+    "visualizations": [
+      "skeleton_animations",
+      "side_by_side_comparison",
+      "overlay_visualization",
+      "trajectory_plots",
+      "joint_velocity_plots",
+      "bone_length_plots"
+    ],
+    "output_formats": [
+      "mp4",
+      "gif",
+      "png_sequence"
+    ],
+    "analysis": {
+      "motion_quality_assessment": true,
+      "visual_artifacts_detection": true,
+      "motion_smoothness_visual": true
+    },
+    "output_dir": "motion_visualizations"
+  },
+  "results": {
+    "transformer": {
+      "ntu_cv_samples": {
+        "transformer_sgn_ar_ntu_cv_samples": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ar_ntu_cv_samples": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ar_ntu_cv_samples": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "raw_sgn_ar_ntu_cv_samples": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        }
+      }
+    },
+    "dmr": {
+      "ntu_cv_samples": {
+        "transformer_sgn_ar_ntu_cv_samples": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ar_ntu_cv_samples": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ar_ntu_cv_samples": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "raw_sgn_ar_ntu_cv_samples": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        }
+      }
+    },
+    "pmr": {
+      "ntu_cv_samples": {
+        "transformer_sgn_ar_ntu_cv_samples": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ar_ntu_cv_samples": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ar_ntu_cv_samples": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "raw_sgn_ar_ntu_cv_samples": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        }
+      }
+    },
+    "raw": {
+      "ntu_cv_samples": {
+        "transformer_sgn_ar_ntu_cv_samples": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ar_ntu_cv_samples": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ar_ntu_cv_samples": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "raw_sgn_ar_ntu_cv_samples": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        }
+      }
+    }
+  },
+  "metrics": {
+    "transformer": {
+      "ntu_cv_samples": {}
+    },
+    "dmr": {
+      "ntu_cv_samples": {}
+    },
+    "pmr": {
+      "ntu_cv_samples": {}
+    },
+    "raw": {
+      "ntu_cv_samples": {}
+    },
+    "aggregate": {}
+  },
+  "duration": 7.35035252571106,
+  "timestamp": "2025-09-10T21:08:43.230028"
+}

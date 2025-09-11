@@ -1,0 +1,58 @@
+{
+  "experiment_name": "per_class_analysis",
+  "experiment_id": "exp_20250910_155542_31ed795",
+  "config": {
+    "name": "Per-Class Analysis",
+    "description": "Analyze performance for each action class",
+    "evaluation_type": "per_class",
+    "models": {
+      "transformer": {
+        "type": "transformer",
+        "path": "model.pth"
+      },
+      "dmr": {
+        "type": "dmr",
+        "path": "trained_models/dmr_ntu_cv_final.pth"
+      },
+      "pmr": {
+        "type": "pmr",
+        "path": "trained_models/pmr_ntu_cv_final.pth"
+      }
+    },
+    "eval_models": {
+      "sgn_ar": {
+        "type": "sgn",
+        "task": "ar",
+        "path": "output/ntu_ar_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      }
+    },
+    "data": {
+      "ntu_cv": {
+        "type": "paired",
+        "dataset": "ntu",
+        "setting": "cv",
+        "batch_size": 32,
+        "test_samples": 5000
+      }
+    },
+    "metrics": [
+      "per_class_accuracy",
+      "per_class_anonymization",
+      "class_confusion_matrix",
+      "difficult_classes"
+    ],
+    "analysis": {
+      "class_difficulty_ranking": true,
+      "confusion_matrix_visualization": true,
+      "error_analysis": true
+    },
+    "output_dir": "per_class_analysis"
+  },
+  "results": {},
+  "metrics": {
+    "aggregate": {}
+  },
+  "duration": 6.168093919754028,
+  "timestamp": "2025-09-10T15:55:48.328184"
+}

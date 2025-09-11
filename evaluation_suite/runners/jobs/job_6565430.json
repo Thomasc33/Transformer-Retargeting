@@ -1,0 +1,55 @@
+{
+  "job_id": "6565430",
+  "experiment_name": "per_subject_analysis",
+  "experiment_config": {
+    "name": "Per-Subject Analysis",
+    "description": "Analyze anonymization effectiveness per subject",
+    "evaluation_type": "per_subject",
+    "models": {
+      "transformer": {
+        "type": "transformer",
+        "path": "model.pth"
+      },
+      "dmr": {
+        "type": "dmr",
+        "path": "trained_models/dmr_ntu_cv_final.pth"
+      },
+      "pmr": {
+        "type": "pmr",
+        "path": "trained_models/pmr_ntu_cv_final.pth"
+      }
+    },
+    "eval_models": {
+      "sgn_ri": {
+        "type": "sgn",
+        "task": "ri",
+        "path": "output/ntu_ri_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      }
+    },
+    "data": {
+      "ntu_cv": {
+        "type": "paired",
+        "dataset": "ntu",
+        "setting": "cv",
+        "batch_size": 32,
+        "test_samples": 5000
+      }
+    },
+    "metrics": [
+      "per_subject_anonymization",
+      "subject_identification_rate",
+      "anonymization_variance",
+      "hard_to_anonymize_subjects"
+    ],
+    "analysis": {
+      "subject_difficulty_ranking": true,
+      "anonymization_distribution": true,
+      "outlier_analysis": true
+    },
+    "output_dir": "per_subject_analysis"
+  },
+  "script_path": "evaluation_suite/runners/jobs/per_subject_analysis_20250910_144653.sbatch",
+  "submit_time": "2025-09-10T14:46:53.373700",
+  "status": "submitted"
+}

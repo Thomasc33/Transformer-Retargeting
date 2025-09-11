@@ -1,0 +1,68 @@
+{
+  "experiment_name": "motion_visualizations",
+  "experiment_id": "exp_20250910_193553_31ed795",
+  "config": {
+    "name": "Motion Visualizations",
+    "description": "Create animated sequences and overlays",
+    "evaluation_type": "motion_visualization",
+    "models": {
+      "transformer": {
+        "type": "transformer",
+        "path": "model.pth"
+      },
+      "dmr": {
+        "type": "dmr",
+        "path": "trained_models/dmr_ntu_cv_best.pth"
+      },
+      "pmr": {
+        "type": "pmr",
+        "path": "trained_models/pmr_ntu_cv_best.pth"
+      },
+      "raw": {
+        "type": "raw",
+        "path": "raw"
+      }
+    },
+    "data": {
+      "ntu_cv_samples": {
+        "type": "paired",
+        "dataset": "ntu",
+        "setting": "cv",
+        "batch_size": 1,
+        "test_samples": 20
+      }
+    },
+    "visualizations": [
+      "skeleton_animations",
+      "side_by_side_comparison",
+      "overlay_visualization",
+      "trajectory_plots",
+      "joint_velocity_plots",
+      "bone_length_plots"
+    ],
+    "output_formats": [
+      "mp4",
+      "gif",
+      "png_sequence"
+    ],
+    "analysis": {
+      "motion_quality_assessment": true,
+      "visual_artifacts_detection": true,
+      "motion_smoothness_visual": true
+    },
+    "output_dir": "motion_visualizations"
+  },
+  "results": {
+    "raw": {
+      "ntu_cv_samples": {}
+    }
+  },
+  "metrics": {
+    "raw": {
+      "ntu_cv_samples": {}
+    },
+    "aggregate": {}
+  },
+  "duration": 5.976365089416504,
+  "timestamp": "2025-09-10T19:35:59.135549"
+}

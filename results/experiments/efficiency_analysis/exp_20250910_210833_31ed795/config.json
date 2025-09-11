@@ -1,0 +1,77 @@
+{
+  "name": "Efficiency Analysis",
+  "description": "Measure inference speed and memory requirements",
+  "evaluation_type": "efficiency",
+  "models": {
+    "transformer": {
+      "type": "transformer",
+      "path": "model.pth"
+    },
+    "dmr": {
+      "type": "dmr",
+      "path": "trained_models/dmr_ntu_cv_final.pth"
+    },
+    "pmr": {
+      "type": "pmr",
+      "path": "trained_models/pmr_ntu_cv_final.pth"
+    },
+    "raw": {
+      "type": "raw",
+      "path": "raw"
+    }
+  },
+  "eval_models": {
+    "sgn_ar": {
+      "type": "sgn",
+      "task": "ar",
+      "path": "output/ntu_ar_cview/model_best.pth.tar",
+      "dataset": "ntu"
+    }
+  },
+  "data": {
+    "ntu_cv_small": {
+      "type": "paired",
+      "dataset": "ntu",
+      "setting": "cv",
+      "batch_size": 1,
+      "test_samples": 100
+    },
+    "ntu_cv_batch": {
+      "type": "paired",
+      "dataset": "ntu",
+      "setting": "cv",
+      "batch_size": 32,
+      "test_samples": 1000
+    }
+  },
+  "metrics": [
+    "inference_time_per_sample",
+    "inference_time_per_batch",
+    "memory_usage_peak",
+    "memory_usage_average",
+    "gpu_utilization",
+    "throughput_samples_per_second",
+    "model_size_mb",
+    "flops_count"
+  ],
+  "benchmarks": {
+    "single_sample_timing": true,
+    "batch_processing_timing": true,
+    "memory_profiling": true,
+    "gpu_profiling": true,
+    "model_complexity_analysis": true
+  },
+  "hardware_configs": [
+    {
+      "name": "single_gpu",
+      "gpus": 1,
+      "batch_size": 32
+    },
+    {
+      "name": "cpu_only",
+      "gpus": 0,
+      "batch_size": 8
+    }
+  ],
+  "output_dir": "efficiency_analysis"
+}

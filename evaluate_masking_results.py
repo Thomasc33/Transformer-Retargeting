@@ -1,3 +1,14 @@
+# Redirect to consolidated script under src to keep root clean
+try:
+    from src.evaluation.evaluate_masking_results import main as _main
+except Exception:
+    def _main():
+        from src.evaluation.evaluate_masking_results import main as __main2
+        return __main2()
+
+if __name__ == "__main__":
+    _main()
+
 #!/usr/bin/env python3
 """
 Script to evaluate masking configurations based on result metrics.
@@ -45,11 +56,11 @@ LOWER_IS_BETTER = {
 def load_results(results_dir='results/masking'):
     """Load all result JSON files from the specified directory."""
     results = []
-    
+
     for file_path in Path(results_dir).glob('*.json'):
         if 'README' in file_path.name:
             continue
-            
+
         with open(file_path, 'r') as f:
             try:
                 data = json.load(f)
@@ -58,7 +69,7 @@ def load_results(results_dir='results/masking'):
                 results.append(data)
             except json.JSONDecodeError:
                 print(f"Error decoding JSON from {file_path}")
-    
+
     return results
 
 def normalize_metrics(results):
@@ -69,58 +80,58 @@ def normalize_metrics(results):
         for key, value in result.items():
             if key in WEIGHTS and key not in metrics:
                 metrics[key] = []
-            
+
             if key in WEIGHTS:
                 if key == 'gc_accuracy' and value == -1:
                     # Handle special case for gc_accuracy
                     value = 0
                 metrics[key].append(value)
-        
+
         # Add utility metrics
         if 'utility_metrics' in result:
             for key, value in result['utility_metrics'].items():
                 if key not in metrics:
                     metrics[key] = []
                 metrics[key].append(value)
-    
+
     # Normalize each metric
     normalized_metrics = {}
     for key, values in metrics.items():
         if len(values) == 0:
             continue
-            
+
         min_val = min(values)
         max_val = max(values)
-        
+
         if min_val == max_val:
             # All values are the same, set to 0.5
             normalized_metrics[key] = [0.5] * len(values)
         else:
             # Normalize to 0-1 range
             normalized = [(v - min_val) / (max_val - min_val) for v in values]
-            
+
             # For metrics where lower is better, invert the normalization
             if key in LOWER_IS_BETTER and LOWER_IS_BETTER[key]:
                 normalized = [1 - n for n in normalized]
-                
+
             normalized_metrics[key] = normalized
-    
+
     return normalized_metrics
 
 def calculate_weighted_scores(results, normalized_metrics):
     """Calculate weighted scores for each configuration."""
     scores = []
-    
+
     for i, result in enumerate(results):
         score = 0
-        
+
         # Add weighted normalized metrics
         for key, weight in WEIGHTS.items():
             if key in normalized_metrics and i < len(normalized_metrics[key]):
                 score += weight * normalized_metrics[key][i]
             elif key in result['utility_metrics'] and key in normalized_metrics and i < len(normalized_metrics[key]):
                 score += weight * normalized_metrics[key][i]
-        
+
         scores.append({
             'temporal_masking_ratio': result['temporal_masking_ratio'],
             'spatial_masking_ratio': result['spatial_masking_ratio'],
@@ -136,7 +147,7 @@ def calculate_weighted_scores(results, normalized_metrics):
             'foot_contact': result['utility_metrics']['foot_contact'],
             'fid_score': result['fid_score']
         })
-    
+
     return scores
 
 def create_heatmap(scores, metric='score'):
@@ -144,25 +155,25 @@ def create_heatmap(scores, metric='score'):
     # Extract unique temporal and spatial masking ratios
     temporal_ratios = sorted(list(set([s['temporal_masking_ratio'] for s in scores])))
     spatial_ratios = sorted(list(set([s['spatial_masking_ratio'] for s in scores])))
-    
+
     # Create a matrix of scores
     matrix = np.zeros((len(temporal_ratios), len(spatial_ratios)))
-    
+
     for score in scores:
         t_idx = temporal_ratios.index(score['temporal_masking_ratio'])
         s_idx = spatial_ratios.index(score['spatial_masking_ratio'])
         matrix[t_idx, s_idx] = score[metric]
-    
+
     # Create a heatmap
     plt.figure(figsize=(10, 8))
-    sns.heatmap(matrix, annot=True, fmt=".3f", 
-                xticklabels=spatial_ratios, 
+    sns.heatmap(matrix, annot=True, fmt=".3f",
+                xticklabels=spatial_ratios,
                 yticklabels=temporal_ratios,
                 cmap='viridis')
     plt.xlabel('Spatial Masking Ratio')
     plt.ylabel('Temporal Masking Ratio')
     plt.title(f'Heatmap of {metric.replace("_", " ").title()}')
-    
+
     # Save the figure
     plt.tight_layout()
     plt.savefig(f'results/masking/plots/{metric}_heatmap.png')
@@ -172,23 +183,23 @@ def main():
     """Main function to evaluate masking results."""
     # Create plots directory if it doesn't exist
     os.makedirs('results/masking/plots', exist_ok=True)
-    
+
     # Load results
     results = load_results()
-    
+
     if not results:
         print("No result files found.")
         return
-    
+
     # Normalize metrics
     normalized_metrics = normalize_metrics(results)
-    
+
     # Calculate weighted scores
     scores = calculate_weighted_scores(results, normalized_metrics)
-    
+
     # Sort scores by score (descending)
     scores.sort(key=lambda x: x['score'], reverse=True)
-    
+
     # Print the top configurations
     print("\n===== Top Masking Configurations =====")
     for i, score in enumerate(scores):
@@ -199,23 +210,23 @@ def main():
         print(f"   Physical Metrics: BL={score['bone_len']:.4f}, JA={score['joint_angle']:.4f}, TS={score['smoothness']:.4f}, VC={score['vel_cons']:.4f}, FC={score['foot_contact']:.4f}")
         print(f"   FID: {score['fid_score']:.6f}")
         print()
-    
+
     # Create a DataFrame for easier analysis
     df = pd.DataFrame(scores)
-    
+
     # Save the DataFrame to CSV
     df.to_csv('results/masking/masking_evaluation.csv', index=False)
-    
+
     # Create heatmaps for different metrics
     create_heatmap(scores, 'score')
     create_heatmap(scores, 'reconstruction_mse')
     create_heatmap(scores, 'fid_score')
-    
+
     # Create a combined plot for physical plausibility metrics
     physical_metrics = ['bone_len', 'joint_angle', 'smoothness', 'vel_cons', 'foot_contact']
     for metric in physical_metrics:
         create_heatmap(scores, metric)
-    
+
     print("Evaluation complete. Results saved to results/masking/masking_evaluation.csv")
     print("Heatmaps saved to results/masking/plots/")
 

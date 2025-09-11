@@ -1,0 +1,74 @@
+{
+  "job_id": "6565419",
+  "experiment_name": "privacy_utility_mixformer",
+  "experiment_config": {
+    "name": "Privacy vs Utility - MixFormer",
+    "description": "Evaluate privacy-utility tradeoff using MixFormer for AR, RI, and GC tasks",
+    "evaluation_type": "privacy_utility",
+    "models": {
+      "raw": {
+        "type": "raw",
+        "path": "raw"
+      },
+      "transformer": {
+        "type": "transformer",
+        "path": "model.pth"
+      },
+      "dmr": {
+        "type": "dmr",
+        "path": "trained_models/dmr_ntu_cv_final.pth"
+      },
+      "pmr": {
+        "type": "pmr",
+        "path": "trained_models/pmr_ntu_cv_final.pth"
+      }
+    },
+    "eval_models": {
+      "mixformer_ar": {
+        "type": "mixformer",
+        "task": "ar",
+        "path": "output/ntu_mixformer_ar_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      },
+      "mixformer_ri": {
+        "type": "mixformer",
+        "task": "ri",
+        "path": "output/ntu_mixformer_ri_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      },
+      "mixformer_gc": {
+        "type": "mixformer",
+        "task": "gc",
+        "path": "output/ntu_mixformer_gc_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      }
+    },
+    "data": {
+      "ntu_cv": {
+        "type": "paired",
+        "dataset": "ntu",
+        "setting": "cv",
+        "batch_size": 32,
+        "test_samples": 5000
+      },
+      "ntu_cs": {
+        "type": "paired",
+        "dataset": "ntu",
+        "setting": "cs",
+        "batch_size": 32,
+        "test_samples": 5000
+      }
+    },
+    "metrics": [
+      "action_recognition_accuracy",
+      "reidentification_accuracy",
+      "gender_classification_accuracy",
+      "anonymization_rate",
+      "privacy_utility_tradeoff"
+    ],
+    "output_dir": "privacy_utility_mixformer"
+  },
+  "script_path": "evaluation_suite/runners/jobs/privacy_utility_mixformer_20250910_144652.sbatch",
+  "submit_time": "2025-09-10T14:46:52.921816",
+  "status": "submitted"
+}

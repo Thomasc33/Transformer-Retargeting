@@ -1,0 +1,8 @@
+{
+  "experiment_name": "loss_weight_sensitivity",
+  "experiment_id": "exp_20250910_193529_31ed795",
+  "created_at": "2025-09-10T19:35:29.477484",
+  "git_commit": "31ed795",
+  "slurm_job_id": "6567352",
+  "slurm_script_path": "loss_weight_sensitivity"
+}

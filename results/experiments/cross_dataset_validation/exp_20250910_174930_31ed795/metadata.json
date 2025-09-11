@@ -1,0 +1,8 @@
+{
+  "experiment_name": "cross_dataset_validation",
+  "experiment_id": "exp_20250910_174930_31ed795",
+  "created_at": "2025-09-10T17:49:30.519122",
+  "git_commit": "31ed795",
+  "slurm_job_id": "6566792",
+  "slurm_script_path": "cross_dataset_validation"
+}

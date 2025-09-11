@@ -1,0 +1,8 @@
+{
+  "experiment_name": "privacy_utility_mixformer",
+  "experiment_id": "exp_20250910_155246_31ed795",
+  "created_at": "2025-09-10T15:52:46.750115",
+  "git_commit": "31ed795",
+  "slurm_job_id": "6566495",
+  "slurm_script_path": "privacy_utility_mixformer"
+}

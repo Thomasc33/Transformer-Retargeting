@@ -1,0 +1,166 @@
+{
+  "job_id": "6568853",
+  "experiment_name": "attention_visualization",
+  "experiment_config": {
+    "name": "Attention Visualization",
+    "description": "Create attention heatmaps and analyze cross-attention behavior during different action phases",
+    "evaluation_type": "attention_visualization",
+    "models": {
+      "transformer": {
+        "type": "transformer",
+        "path": "model.pth",
+        "attention_extraction": true
+      }
+    },
+    "data": {
+      "ntu_cv_attention": {
+        "type": "paired",
+        "dataset": "ntu",
+        "setting": "cv",
+        "batch_size": 1,
+        "test_samples": 20,
+        "selection_criteria": [
+          "diverse_action_types",
+          "clear_motion_phases",
+          "representative_complexity"
+        ]
+      }
+    },
+    "visualizations": [
+      {
+        "type": "encoder_attention_maps",
+        "description": "Create heatmaps showing attention patterns from source motion",
+        "attention_layers": [
+          "all_layers",
+          "key_layers"
+        ],
+        "attention_heads": [
+          "all_heads",
+          "averaged"
+        ],
+        "output_formats": [
+          "png",
+          "pdf",
+          "interactive_html"
+        ]
+      },
+      {
+        "type": "decoder_attention_maps",
+        "description": "Visualize decoder self-attention patterns",
+        "temporal_resolution": "frame_by_frame",
+        "spatial_resolution": "joint_by_joint",
+        "output_formats": [
+          "png",
+          "pdf",
+          "animated_gif"
+        ]
+      },
+      {
+        "type": "cross_attention_maps",
+        "description": "Create heatmaps showing attention patterns from dummy skeleton",
+        "source_target_mapping": true,
+        "temporal_alignment": true,
+        "output_formats": [
+          "png",
+          "pdf",
+          "interactive_html"
+        ]
+      },
+      {
+        "type": "attention_evolution_over_time",
+        "description": "Show how attention patterns evolve during sequence generation",
+        "time_steps": "all_generation_steps",
+        "visualization_type": "animated_heatmap",
+        "output_formats": [
+          "mp4",
+          "gif",
+          "png_sequence"
+        ]
+      },
+      {
+        "type": "joint_attention_patterns",
+        "description": "Analyze which joints receive most attention",
+        "joint_importance_ranking": true,
+        "joint_interaction_analysis": true,
+        "output_formats": [
+          "png",
+          "pdf",
+          "csv"
+        ]
+      },
+      {
+        "type": "temporal_attention_patterns",
+        "description": "Analyze attention patterns across different time steps",
+        "temporal_importance_ranking": true,
+        "phase_based_analysis": true,
+        "output_formats": [
+          "png",
+          "pdf",
+          "csv"
+        ]
+      },
+      {
+        "type": "action_phase_attention",
+        "description": "Analyze cross-attention behavior during different action phases",
+        "action_phases": [
+          "preparation",
+          "execution",
+          "completion"
+        ],
+        "phase_detection": "automatic",
+        "output_formats": [
+          "png",
+          "pdf",
+          "interactive_html"
+        ]
+      }
+    ],
+    "analysis": {
+      "attention_pattern_analysis": {
+        "description": "Analyze patterns in attention weights",
+        "metrics": [
+          "attention_entropy",
+          "attention_sparsity",
+          "attention_consistency"
+        ]
+      },
+      "important_joints_identification": {
+        "description": "Identify which joints are most important for different actions",
+        "ranking_method": "attention_weight_aggregation",
+        "action_specific": true
+      },
+      "temporal_focus_analysis": {
+        "description": "Analyze temporal focus patterns",
+        "metrics": [
+          "temporal_attention_distribution",
+          "focus_shift_patterns"
+        ]
+      },
+      "attention_consistency_analysis": {
+        "description": "Analyze consistency of attention patterns",
+        "consistency_metrics": [
+          "inter_sample_consistency",
+          "intra_sample_consistency"
+        ],
+        "statistical_tests": true
+      },
+      "cross_attention_effectiveness": {
+        "description": "Evaluate effectiveness of cross-attention mechanism",
+        "metrics": [
+          "source_dummy_attention_balance",
+          "information_flow_analysis"
+        ]
+      }
+    },
+    "output_dir": "attention_visualization",
+    "interactive_features": {
+      "attention_explorer": true,
+      "layer_head_selection": true,
+      "threshold_adjustment": true,
+      "comparative_viewing": true
+    }
+  },
+  "script_path": "eval/suite/runners/jobs/attention_visualization_20250910_200559.sbatch",
+  "submit_time": "2025-09-10T20:05:59.759428",
+  "status": "submitted"
+}
