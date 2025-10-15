@@ -1,0 +1,33 @@
+# Jekyll configuration for GitHub Pages
+
+# Exclude directories that contain large files, model outputs, or broken symlinks
+exclude:
+  - eval/
+  - output/
+  - results/
+  - logs/
+  - data/
+  - scripts/
+  - configs/
+  - src/
+  - trained_models/
+  - docs/
+  - evaluation_suite/
+  - __pycache__/
+  - wandb/
+  - "*.py"
+  - "*.pth"
+  - "*.tar"
+  - "*.log"
+  - "*.pkl"
+  - "*.skeleton"
+  - "*.npz"
+  - "*.out"
+  - "*.err"
+  - Makefile
+  - README.md
+
+# Keep the essential files for the GitHub Pages site
+include:
+  - CNAME
+  - index.html
