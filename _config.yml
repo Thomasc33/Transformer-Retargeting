@@ -1,6 +1,8 @@
 # Jekyll configuration for GitHub Pages
 
 # Exclude directories that contain large files, model outputs, or broken symlinks
+# These exclusions prevent Jekyll from processing files that cause build errors
+# or are not intended for the GitHub Pages site
 exclude:
   - eval/
   - output/
@@ -11,7 +13,6 @@ exclude:
   - configs/
   - src/
   - trained_models/
-  - docs/
   - evaluation_suite/
   - __pycache__/
   - wandb/
@@ -25,9 +26,3 @@ exclude:
   - "*.out"
   - "*.err"
   - Makefile
-  - README.md
-
-# Keep the essential files for the GitHub Pages site
-include:
-  - CNAME
-  - index.html
