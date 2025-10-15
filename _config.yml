@@ -1,8 +1,8 @@
 # Jekyll configuration for GitHub Pages
 
-# Exclude directories that contain large files, model outputs, or broken symlinks.
+# Exclude directories that contain large files, model outputs, and symlink chains.
 # These exclusions prevent Jekyll build failures that occur when:
-# - Jekyll encounters broken symlinks during site generation
+# - Jekyll encounters symlinks to files outside the repository during site generation
 # - Large binary files (.pth, .tar) cause processing timeouts
 # - Python code and data files are unnecessarily processed
 exclude:
