@@ -25,8 +25,8 @@ python src/evaluation/eval_anonymization_v2.py --only-tmr --dataset ntu --settin
 
 **View Results Dashboard**:
 ```bash
-open results.html  # macOS
-firefox results.html  # Linux
+open index.html  # macOS
+firefox index.html  # Linux
 ```
 
 ---
@@ -58,7 +58,7 @@ firefox results.html  # Linux
 ### Key Features
 
 - 🎮 **Interactive CLI**: Comprehensive menu-driven interface via `tmr.py`
-- 📊 **Auto-Updating Dashboard**: Real-time results visualization in `results.html`
+- 📊 **Auto-Updating Dashboard**: Real-time results visualization in `index.html`
 - 🔄 **Complete Pipeline**: Data → Pretrain → Train → Evaluate → Visualize
 - 🖥️ **SLURM Integration**: Automated job submission and tracking for HPC clusters
 - 📈 **Experiment Tracking**: Track all experiments, models, and results
@@ -127,7 +127,7 @@ python tmr.py  # Select option 0: Validate Environment
 ```
 Transformer-Retargeting/
 ├── tmr.py                    # 🎯 MAIN ENTRY POINT - Interactive CLI
-├── results.html              # 📊 Interactive results dashboard
+├── index.html              # 📊 Interactive results dashboard
 ├── results.json              # 📈 Results data (auto-generated)
 ├── Makefile                  # 🛠️ Cross-platform shortcuts
 │
@@ -433,7 +433,7 @@ python scripts/eval_same_action.py \
 
 Results are automatically saved to:
 - `results/evaluation_results.json` - Raw data
-- `results.html` - Interactive dashboard
+- `index.html` - Interactive dashboard
 
 ---
 
@@ -442,9 +442,9 @@ Results are automatically saved to:
 ### Interactive Dashboard
 
 ```bash
-open results.html  # macOS
-firefox results.html  # Linux
-start results.html  # Windows
+open index.html  # macOS
+firefox index.html  # Linux
+start index.html  # Windows
 ```
 
 **Features**:
@@ -607,7 +607,7 @@ python scripts/eval_same_action.py --dataset ntu_cv --num_pairs 100 --device cud
 
 4. **View Results**:
    ```bash
-   open results.html
+   open index.html
    ```
 
 ### Long-Term Goals

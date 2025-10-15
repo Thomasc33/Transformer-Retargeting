@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Generate a single HTML dashboard (results.html at repo root) aggregating:
+Generate a single HTML dashboard (index.html at repo root) aggregating:
 - All experiments from evaluation_suite/configs/experiments.yaml
 - Completion status based on results/experiments/<exp>/*/results.json
 - Links to metrics and config
@@ -27,7 +27,7 @@ RESULTS_ROOT = REPO_ROOT / "results"
 EXPERIMENTS_DIR = RESULTS_ROOT / "experiments"
 STANDALONE_VIZ_DIR = RESULTS_ROOT / "visualizations"
 CONFIG_PATH = REPO_ROOT / "eval" / "suite" / "configs" / "experiments.yaml"
-OUTPUT_HTML = REPO_ROOT / "results.html"
+OUTPUT_HTML = REPO_ROOT / "index.html"
 
 IMG_EXTS = {".png", ".jpg", ".jpeg", ".gif"}
 VID_EXTS = {".mp4", ".webm"}

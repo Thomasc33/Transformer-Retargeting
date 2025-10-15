@@ -10,7 +10,7 @@ help:
 	@echo "  make eval-all           # Submit all evaluations and refresh dashboard"
 	@echo "  make eval-critical      # Submit critical set"
 	@echo "  make eval-one EXP=...   # Run a single experiment locally"
-	@echo "  make dash               # Regenerate results.html"
+	@echo "  make dash               # Regenerate index.html"
 	@echo "  make clean-results      # Delete evaluation outputs (keeps models)"
 	@echo "  make validate           # Quick env checks (torch/CUDA/data)"
 	@echo "  make status             # List submitted Slurm jobs (if any)"

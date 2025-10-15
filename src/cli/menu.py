@@ -83,7 +83,7 @@ This is your one-stop interface for all TMR operations.
             print(f"{Colors.BLUE}═══ Quick Actions ═══{Colors.ENDC}")
             print("  8. Quick Test (100 samples, local)")
             print("  9. Repository Status")
-            print(" 10. Open Dashboard (results.html)")
+            print(" 10. Open Dashboard (index.html)")
             print()
             print(f"{Colors.RED}  0. Exit{Colors.ENDC}")
             print()
@@ -173,7 +173,7 @@ This is your one-stop interface for all TMR operations.
         from pathlib import Path
         import webbrowser
         
-        dashboard_path = Path(__file__).parent.parent.parent / "results.html"
+        dashboard_path = Path(__file__).parent.parent.parent / "index.html"
         if dashboard_path.exists():
             print_info(f"Opening dashboard: {dashboard_path}")
             webbrowser.open(f"file://{dashboard_path.absolute()}")

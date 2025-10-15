@@ -2,7 +2,7 @@
 """
 Convenience wrapper to queue/run everything possible:
 - Submits the 'complete' experiment set to Slurm (preferred) or runs locally if --local
-- After submission, generates/refreshes the results.html dashboard at repo root
+- After submission, generates/refreshes the index.html dashboard at repo root
 
 Usage:
   # Submit all via Slurm

@@ -198,7 +198,7 @@ if [ "$PY_FILES" -eq 1 ] && [ "$FILES_OK" = true ] && [ "$COMPILE_OK" = true ]; 
     echo "Next steps:"
     echo "  1. Run: python tmr.py (select option 9 for status)"
     echo "  2. Run: python scripts/eval_same_action.py --dataset ntu_cv --num_pairs 100 --device cuda"
-    echo "  3. View: open results.html"
+    echo "  3. View: open index.html"
     echo ""
     exit 0
 else
