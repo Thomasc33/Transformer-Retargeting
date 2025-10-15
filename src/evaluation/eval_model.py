@@ -1,10 +1,31 @@
-# Compatibility wrapper; keep canonical eval implementation at root for now
+"""
+Compatibility wrapper for eval_model_main
+
+The canonical evaluation implementation is now at src/evaluation/eval_model_main.py.
+This module re-exports all functions for backward compatibility.
+"""
 from pathlib import Path
 import sys
 
-PROJECT_ROOT = str(Path(__file__).resolve().parents[2])
-if PROJECT_ROOT not in sys.path:
-    sys.path.insert(0, PROJECT_ROOT)
+# Import all functions from eval_model_main
+try:
+    # Import the main module
+    from src.evaluation import eval_model_main as _eval_model_main
 
-from eval_model import *  # re-export
+    # Re-export all public functions
+    from src.evaluation.eval_model_main import *  # noqa: F401,F403
+
+    # Provide main() function for CLI
+    def main():
+        """Entry point for command-line execution."""
+        if hasattr(_eval_model_main, 'main'):
+            return _eval_model_main.main()
+        else:
+            print("Error: main() function not found in eval_model_main.py")
+            return 1
+
+except ImportError as e:
+    print(f"Error importing eval_model_main: {e}")
+    print("Make sure eval_model_main.py exists at src/evaluation/")
+    raise
 

@@ -53,7 +53,7 @@ try:
             sys.path.insert(0, eval_path)
 
         from eval_model import load_anonymizer
-        from data import datasets
+        from src.data import datasets
         logging.info("Successfully imported from src/evaluation/eval_model.py")
         eval_model_imported = True
     except ImportError as e:
@@ -64,7 +64,7 @@ try:
     if not eval_model_imported:
         try:
             from src.evaluation.eval_model import load_anonymizer
-            from data import datasets
+            from src.data import datasets
             logging.info("Successfully imported from src.evaluation.eval_model")
             eval_model_imported = True
         except ImportError:
@@ -74,7 +74,7 @@ try:
     if not eval_model_imported:
         try:
             from evaluation.eval_model import load_anonymizer
-            from data import datasets
+            from src.data import datasets
             logging.info("Successfully imported from evaluation.eval_model")
             eval_model_imported = True
         except ImportError:
@@ -84,7 +84,7 @@ try:
     if not eval_model_imported:
         try:
             from eval_model import load_anonymizer
-            from data import datasets
+            from src.data import datasets
             logging.info("Successfully imported from eval_model")
             eval_model_imported = True
         except ImportError:

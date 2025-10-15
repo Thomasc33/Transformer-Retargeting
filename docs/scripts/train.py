@@ -325,8 +325,6 @@ def generate_slurm_script(train_config: Dict[str, Any], config: Dict[str, Any]) 
 #SBATCH --mem={defaults['mem']}
 #SBATCH --output=logs/train_{train_config['model']}_{train_config['dataset']}_{train_config['setting']}_%j.out
 #SBATCH --error=logs/train_{train_config['model']}_{train_config['dataset']}_{train_config['setting']}_%j.err
-#SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --mail-user=carrt313@gmail.com
 
 # Load modules and set environment
 module load pytorch/2.3.0-cuda12.1

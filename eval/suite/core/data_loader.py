@@ -13,7 +13,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 try:
-    from data import load_data
+    from src.data import load_data
 except ImportError:
     load_data = None
 
@@ -103,9 +103,10 @@ class DataManager:
         setting = config.get('setting', 'cv')
         batch_size = config.get('batch_size', 32)
         test_samples = config.get('test_samples', None)
+        train_samples = config.get('train_samples', None)
 
         # Check cache first
-        cache_key = f"{data_name}_{dataset}_{setting}_{batch_size}_{test_samples}"
+        cache_key = f"{data_name}_{dataset}_{setting}_{batch_size}_{test_samples}_{train_samples}"
         if cache_key in self.data_cache:
             self.logger.info(f"Using cached dataset: {data_name}")
             return self.data_cache[cache_key]
@@ -114,14 +115,14 @@ class DataManager:
 
         try:
             if config.get('type') == 'paired':
-                data_loader = self.load_paired_data(dataset, setting, batch_size, test_samples)
+                data_loader = self.load_paired_data(dataset, setting, batch_size, test_samples, train_samples)
             elif config.get('type') == 'cross':
                 data_loader = self.load_cross_data(dataset, setting, batch_size)
             elif config.get('type') == 'eval':
                 data_loader = self.load_eval_data(dataset, setting, config)
             else:
                 # Default to paired data
-                data_loader = self.load_paired_data(dataset, setting, batch_size, test_samples)
+                data_loader = self.load_paired_data(dataset, setting, batch_size, test_samples, train_samples)
 
             # Cache the data loader
             if data_loader is not None:
@@ -133,7 +134,7 @@ class DataManager:
         return data_loader
 
     def load_paired_data(self, dataset: str, setting: str, batch_size: int,
-                        test_samples: Optional[int] = None) -> Optional[Any]:
+                        test_samples: Optional[int] = None, train_samples: Optional[int] = None) -> Optional[Any]:
         """Load paired data for evaluation."""
         try:
             # Construct data file path - try multiple options
@@ -141,29 +142,64 @@ class DataManager:
 
             if dataset == 'ntu':
                 if setting == 'cv':
-                    possible_files = [
-                        'data/ntu_cv_paired_10000_2000.pt',
-                        'data/ntu_cv_paired_comprehensive.pt',
-                        'data/ntu/pretraining_data_cv_comprehensive.pt',
-                        'data/ntu/pretraining_data.pt'
-                    ]
+                    if test_samples is None:
+                        # Prioritize comprehensive dataset for full evaluation
+                        possible_files = [
+                            'data/ntu_cv_paired_comprehensive.pt',
+                            'data/ntu/pretraining_data_cv_comprehensive.pt',
+                            'data/ntu/pretraining_data.pt',
+                            'data/ntu_cv_paired_10000_2000.pt'
+                        ]
+                    else:
+                        # Use smaller dataset for limited samples
+                        possible_files = [
+                            'data/ntu_cv_paired_10000_2000.pt',
+                            'data/ntu_cv_paired_comprehensive.pt',
+                            'data/ntu/pretraining_data_cv_comprehensive.pt',
+                            'data/ntu/pretraining_data.pt'
+                        ]
                 else:  # cs
-                    possible_files = [
-                        'data/ntu_cs_paired_10000_2000.pt',
-                        'data/ntu_cs_paired_comprehensive.pt',
-                        'data/ntu/pretraining_data.pt'
-                    ]
+                    if test_samples is None:
+                        # Prioritize comprehensive dataset for full evaluation
+                        possible_files = [
+                            'data/ntu_cs_paired_comprehensive.pt',
+                            'data/ntu/pretraining_data.pt',
+                            'data/ntu_cs_paired_10000_2000.pt'
+                        ]
+                    else:
+                        # Use smaller dataset for limited samples
+                        possible_files = [
+                            'data/ntu_cs_paired_10000_2000.pt',
+                            'data/ntu_cs_paired_comprehensive.pt',
+                            'data/ntu/pretraining_data.pt'
+                        ]
             elif dataset == 'ntu120':
                 if setting == 'cv':
-                    possible_files = [
-                        'data/ntu120_cv_paired_10000_2000.pt',
-                        'data/ntu120_cv_paired_comprehensive.pt'
-                    ]
+                    if test_samples is None:
+                        # Prioritize comprehensive dataset for full evaluation
+                        possible_files = [
+                            'data/ntu120_cv_paired_comprehensive.pt',
+                            'data/ntu120_cv_paired_10000_2000.pt'
+                        ]
+                    else:
+                        # Use smaller dataset for limited samples
+                        possible_files = [
+                            'data/ntu120_cv_paired_10000_2000.pt',
+                            'data/ntu120_cv_paired_comprehensive.pt'
+                        ]
                 else:  # cs
-                    possible_files = [
-                        'data/ntu120_cs_paired_10000_2000.pt',
-                        'data/ntu120_cs_paired_comprehensive.pt'
-                    ]
+                    if test_samples is None:
+                        # Prioritize comprehensive dataset for full evaluation
+                        possible_files = [
+                            'data/ntu120_cs_paired_comprehensive.pt',
+                            'data/ntu120_cs_paired_10000_2000.pt'
+                        ]
+                    else:
+                        # Use smaller dataset for limited samples
+                        possible_files = [
+                            'data/ntu120_cs_paired_10000_2000.pt',
+                            'data/ntu120_cs_paired_comprehensive.pt'
+                        ]
             elif dataset == 'etri':
                 possible_files = ['data/etri_paired_data.pt', 'data/etri/pretraining_data.pt']
             else:
@@ -190,10 +226,13 @@ class DataManager:
                 # Handle different data formats
                 if isinstance(data, dict) and 'test' in data:
                     test_data = data['test']
+                    train_data = data.get('train', [])
                 elif isinstance(data, list):
                     test_data = data
+                    train_data = []
                 else:
                     test_data = data
+                    train_data = []
 
                 # Check if this is Cross_Data (problematic format)
                 if hasattr(test_data, '__class__') and 'Cross_Data' in str(test_data.__class__):
@@ -210,15 +249,37 @@ class DataManager:
                 if test_samples is not None and len(test_data) > test_samples:
                     test_data = test_data[:test_samples]
 
-                data_loader = torch.utils.data.DataLoader(
-                    test_data,
-                    batch_size=batch_size,
-                    shuffle=False,
-                    num_workers=0
-                )
+                # Limit train samples if specified (for ablation experiments)
+                if train_samples is not None and len(train_data) > train_samples:
+                    train_data = train_data[:train_samples]
 
-                self.logger.info(f"Successfully loaded real data with {len(test_data)} samples")
-                return data_loader
+                # For ablation experiments that need both train and test data
+                if train_samples is not None and len(train_data) > 0:
+                    # Return both train and test loaders for ablation experiments
+                    train_loader = torch.utils.data.DataLoader(
+                        train_data,
+                        batch_size=batch_size,
+                        shuffle=True,
+                        num_workers=0
+                    )
+                    test_loader = torch.utils.data.DataLoader(
+                        test_data,
+                        batch_size=batch_size,
+                        shuffle=False,
+                        num_workers=0
+                    )
+                    self.logger.info(f"Successfully loaded ablation data with {len(train_data)} train + {len(test_data)} test samples")
+                    return {'train': train_loader, 'test': test_loader}
+                else:
+                    # Return only test loader for evaluation experiments
+                    data_loader = torch.utils.data.DataLoader(
+                        test_data,
+                        batch_size=batch_size,
+                        shuffle=False,
+                        num_workers=0
+                    )
+                    self.logger.info(f"Successfully loaded real data with {len(test_data)} test samples")
+                    return data_loader
 
             except Exception as e:
                 self.logger.warning(f"Failed to load real data ({str(e)}), using dummy data")

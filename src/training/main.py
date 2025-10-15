@@ -18,7 +18,7 @@ try:
     # Prefer src module if available
     from src.data.paired_data import get_cross_data, load_data, optimize_data_loading, estimate_memory_usage
 except Exception:
-    from data import get_cross_data, load_data, optimize_data_loading, estimate_memory_usage
+    from src.data import get_cross_data, load_data, optimize_data_loading, estimate_memory_usage
 try:
     from src.utils.util import init_seed
 except Exception:

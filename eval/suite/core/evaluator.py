@@ -181,6 +181,10 @@ class ComprehensiveEvaluator:
                     model_results[data_name] = self.evaluate_ablation(model, data_loader, config)
                 elif config.get('evaluation_type') == 'robustness':
                     model_results[data_name] = self.evaluate_robustness(model, data_loader, config)
+                elif config.get('evaluation_type') == 'per_class':
+                    model_results[data_name] = self.evaluate_per_class(model, data_loader, config)
+                elif config.get('evaluation_type') == 'physical_plausibility':
+                    model_results[data_name] = self.evaluate_physical_plausibility(model, data_loader, config)
                 else:
                     model_results[data_name] = self.evaluate_standard(model, data_loader, config)
 
@@ -249,6 +253,108 @@ class ComprehensiveEvaluator:
         """Evaluate robustness analysis using existing eval_model.py."""
         # Similar to privacy_utility but for robustness analysis
         return self.evaluate_privacy_utility(model, data_loader, config)
+
+    def evaluate_per_class(self, model: Any, data_loader: Any, config: Dict[str, Any]) -> Dict[str, Any]:
+        """Evaluate per-class analysis using the dedicated per_class_eval.py script."""
+        results: Dict[str, Any] = {}
+
+        # Get model and eval model configurations
+        models_config = config.get('models', {})
+        eval_models_config = config.get('eval_models', {})
+        data_config = config.get('data', {})
+
+        # Base artifacts directory for this experiment
+        base_artifacts_dir = self.results_manager.artifacts_dir(self.current_exp_dir) if self.current_exp_dir else (self.results_dir / "artifacts")
+
+        # Track which combinations we've run
+        seen_keys: Set[str] = set()
+
+        for model_name, model_cfg in models_config.items():
+            for eval_name, eval_cfg in eval_models_config.items():
+                for data_name, data_cfg in data_config.items():
+                    # Create unique key for this combination
+                    key = f"{model_cfg.get('type', 'raw')}_{eval_cfg.get('type', 'sgn')}_{eval_cfg.get('task', 'ar')}_{data_cfg.get('dataset', 'ntu')}_{data_cfg.get('setting', 'cv')}"
+
+                    if key not in seen_keys:
+                        # Create output directory for this specific run
+                        output_dir = base_artifacts_dir / key
+                        output_dir.mkdir(parents=True, exist_ok=True)
+
+                        # Run per-class analysis using the dedicated script
+                        run_result = self.run_per_class_analysis(
+                            model_type=model_cfg.get('type', 'raw'),
+                            model_path=model_cfg.get('path', ''),
+                            eval_model_type=eval_cfg.get('type', 'sgn'),
+                            eval_model_path=eval_cfg.get('path', ''),
+                            dataset=data_cfg.get('dataset', 'ntu'),
+                            setting=data_cfg.get('setting', 'cv'),
+                            task=eval_cfg.get('task', 'ar'),
+                            output_dir=str(output_dir),
+                            batch_size=data_cfg.get('batch_size', 32),
+                            test_samples=data_cfg.get('test_samples')
+                        )
+
+                        if run_result:
+                            results[key] = run_result
+
+                        seen_keys.add(key)
+
+        return results
+
+    def evaluate_physical_plausibility(self, model: Any, data_loader: Any, config: Dict[str, Any]) -> Dict[str, Any]:
+        """Evaluate physical plausibility using existing eval_model.py."""
+        # Use the same approach as privacy_utility for physical plausibility
+        return self.evaluate_privacy_utility(model, data_loader, config)
+
+    def run_per_class_analysis(self, model_type: str, model_path: str, eval_model_type: str,
+                              eval_model_path: str, dataset: str, setting: str, task: str,
+                              output_dir: str, batch_size: int = 32, test_samples: Optional[int] = None) -> Optional[Dict[str, Any]]:
+        """Run per-class analysis using the dedicated per_class_eval.py script."""
+        import subprocess
+        import sys
+
+        try:
+            # Build command for per-class analysis
+            cmd = [
+                sys.executable, 'per_class_eval.py',
+                '--model-type', model_type,
+                '--eval-model', eval_model_type,
+                '--dataset', dataset,
+                '--setting', setting,
+                '--task', task,
+                '--output-dir', output_dir
+            ]
+
+            if test_samples:
+                cmd.extend(['--test_samples', str(test_samples)])
+
+            self.logger.info(f"Running per-class analysis: {' '.join(cmd)}")
+
+            # Run the per-class analysis script
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=3600)  # 1 hour timeout
+
+            if result.returncode == 0:
+                # Load results from the output directory
+                results_file = Path(output_dir) / 'results.json'
+                if results_file.exists():
+                    import json
+                    with open(results_file, 'r') as f:
+                        return json.load(f)
+                else:
+                    self.logger.warning(f"Per-class analysis completed but results file not found: {results_file}")
+                    return None
+            else:
+                self.logger.error(f"Per-class analysis failed with return code {result.returncode}")
+                self.logger.error(f"STDOUT: {result.stdout}")
+                self.logger.error(f"STDERR: {result.stderr}")
+                return None
+
+        except subprocess.TimeoutExpired:
+            self.logger.error("Per-class analysis timed out after 1 hour")
+            return None
+        except Exception as e:
+            self.logger.error(f"Error running per-class analysis: {e}")
+            return None
 
     def evaluate_standard(self, model: Any, data_loader: Any, config: Dict[str, Any]) -> Dict[str, Any]:
         """Standard evaluation using existing eval_model.py."""

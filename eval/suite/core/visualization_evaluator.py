@@ -28,9 +28,9 @@ project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from evaluation_suite.experiments.visualization import VisualizationExperiments
-from evaluation_suite.core.data_loader import DataManager
-from evaluation_suite.core.models import ModelManager
+from eval.suite.experiments.visualization import VisualizationExperiments
+from eval.suite.core.data_loader import DataManager
+from eval.suite.core.models import ModelManager
 
 
 class VisualizationEvaluator:
@@ -454,20 +454,23 @@ class VisualizationEvaluator:
                 self.logger.warning("No data available for comparison visualization")
                 return results
 
-            # Get samples
-            samples = []
+            # Get samples and extract skeleton data
+            skeleton_samples = []
             for batch in data_loader:
-                if isinstance(batch, (list, tuple)):
-                    samples.extend(batch)
-                else:
-                    samples.append(batch)
-                if len(samples) >= 3:  # Limit samples
+                # Each batch is (skeleton, action_label) from VisualizationDataset
+                if isinstance(batch, (list, tuple)) and len(batch) >= 2:
+                    skeleton_data = batch[0]  # Extract skeleton data
+                    skeleton_samples.append(skeleton_data)
+                elif hasattr(batch, 'shape'):  # Direct tensor
+                    skeleton_samples.append(batch)
+
+                if len(skeleton_samples) >= 3:  # Limit samples
                     break
 
             # Create side-by-side comparison visualizations
-            if samples:
+            if skeleton_samples:
                 comparison_path = VisualizationExperiments.create_skeleton_animation(
-                    samples[:1], output_dir=str(output_dir), figure_type='comparison',
+                    skeleton_samples[:1], output_dir=str(output_dir), figure_type='comparison',
                     max_frames=config.get('quality_settings', {}).get('max_frames', None)
                 )
                 if comparison_path:
@@ -505,20 +508,23 @@ class VisualizationEvaluator:
                 self.logger.warning("No data available for motion visualization")
                 return results
 
-            # Get samples
-            samples = []
+            # Get samples and extract skeleton data
+            skeleton_samples = []
             for batch in data_loader:
-                if isinstance(batch, (list, tuple)):
-                    samples.extend(batch)
-                else:
-                    samples.append(batch)
-                if len(samples) >= 5:  # Limit samples
+                # Each batch is (skeleton, action_label) from VisualizationDataset
+                if isinstance(batch, (list, tuple)) and len(batch) >= 2:
+                    skeleton_data = batch[0]  # Extract skeleton data
+                    skeleton_samples.append(skeleton_data)
+                elif hasattr(batch, 'shape'):  # Direct tensor
+                    skeleton_samples.append(batch)
+
+                if len(skeleton_samples) >= 5:  # Limit samples
                     break
 
             # Create motion trail visualizations
-            if samples:
+            if skeleton_samples:
                 motion_trail_path = VisualizationExperiments.create_skeleton_animation(
-                    samples[:1], output_dir=str(output_dir), figure_type='motion_trail',
+                    skeleton_samples[:1], output_dir=str(output_dir), figure_type='motion_trail',
                     max_frames=config.get('quality_settings', {}).get('max_frames', None)
                 )
                 if motion_trail_path:
@@ -556,20 +562,23 @@ class VisualizationEvaluator:
                 self.logger.warning("No data available for attention visualization")
                 return results
 
-            # Get samples
-            samples = []
+            # Get samples and extract skeleton data
+            skeleton_samples = []
             for batch in data_loader:
-                if isinstance(batch, (list, tuple)):
-                    samples.extend(batch)
-                else:
-                    samples.append(batch)
-                if len(samples) >= 3:  # Limit samples
+                # Each batch is (skeleton, action_label) from VisualizationDataset
+                if isinstance(batch, (list, tuple)) and len(batch) >= 2:
+                    skeleton_data = batch[0]  # Extract skeleton data
+                    skeleton_samples.append(skeleton_data)
+                elif hasattr(batch, 'shape'):  # Direct tensor
+                    skeleton_samples.append(batch)
+
+                if len(skeleton_samples) >= 3:  # Limit samples
                     break
 
             # Create attention heatmap visualizations (placeholder)
-            if samples:
+            if skeleton_samples:
                 attention_path = VisualizationExperiments.create_skeleton_animation(
-                    samples[:1], output_dir=str(output_dir), figure_type='attention',
+                    skeleton_samples[:1], output_dir=str(output_dir), figure_type='attention',
                     max_frames=config.get('quality_settings', {}).get('max_frames', None)
                 )
                 if attention_path:

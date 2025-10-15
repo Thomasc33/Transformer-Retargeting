@@ -75,14 +75,14 @@ class PrimaryExperiments:
                     'dataset': 'ntu',
                     'setting': 'cv',
                     'batch_size': 32,
-                    'test_samples': 5000
+                    'test_samples': None  # Use full comprehensive dataset (~825k samples)
                 },
                 'ntu_cs': {
                     'type': 'paired',
                     'dataset': 'ntu',
                     'setting': 'cs',
                     'batch_size': 32,
-                    'test_samples': 5000
+                    'test_samples': None  # Use full comprehensive dataset
                 }
             },
             'metrics': [
@@ -146,14 +146,14 @@ class PrimaryExperiments:
                     'dataset': 'ntu',
                     'setting': 'cv',
                     'batch_size': 32,
-                    'test_samples': 5000
+                    'test_samples': None  # Use full comprehensive dataset (~825k samples)
                 },
                 'ntu_cs': {
                     'type': 'paired',
                     'dataset': 'ntu',
                     'setting': 'cs',
                     'batch_size': 32,
-                    'test_samples': 5000
+                    'test_samples': None  # Use full comprehensive dataset
                 }
             },
             'metrics': [
@@ -223,7 +223,7 @@ class PrimaryExperiments:
                     'dataset': 'ntu',
                     'setting': 'cv',
                     'batch_size': 32,
-                    'test_samples': 10000
+                    'test_samples': None  # Use full comprehensive dataset (~825k samples)
                 }
             },
             'metrics': [
@@ -245,6 +245,10 @@ class PrimaryExperiments:
             'description': 'Evaluate all physical plausibility metrics (BLC, JAL, TS, VC, FCC, FID)',
             'evaluation_type': 'physical_plausibility',
             'models': {
+                'raw': {
+                    'type': 'raw',
+                    'path': 'raw'
+                },
                 'transformer': {
                     'type': 'transformer',
                     'path': 'model.pth'
@@ -272,7 +276,7 @@ class PrimaryExperiments:
                     'dataset': 'ntu',
                     'setting': 'cv',
                     'batch_size': 16,
-                    'test_samples': 2000
+                    'test_samples': 50000  # Use subset for physical plausibility (computationally intensive)
                 }
             },
             'metrics': [

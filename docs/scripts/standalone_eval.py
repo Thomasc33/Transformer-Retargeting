@@ -565,9 +565,6 @@ class StandaloneEvaluator:
         """Create SLURM script for evaluation."""
         job_name = f"standalone_eval_{model_type}_{config['dataset']}_{config['setting']}"
 
-        # Get user email from config or use default
-        email = config.get('email', 'carrt313@gmail.com')
-
         # Use same SLURM configuration as pipeline.py for evaluation jobs
         script = f"""#!/bin/bash
 #SBATCH --job-name={job_name}
@@ -579,8 +576,6 @@ class StandaloneEvaluator:
 #SBATCH --mem=64GB
 #SBATCH --output=logs/{job_name}_%j.out
 #SBATCH --error=logs/{job_name}_%j.err
-#SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --mail-user={email}
 
 # Load modules and set environment
 module load pytorch/2.3.0-cuda12.1

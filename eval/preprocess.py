@@ -426,10 +426,18 @@ def mixformer_preprocess_single_skeleton(
     T = skeleton_array.shape[0]
     c = 3
     v = 25
-    m = 1
+    m = 2  # MixFormer expects 2 persons
 
-    data_numpy = skeleton_array.reshape(T, v, c).transpose(2, 0, 1)  # => shape (3,T,25)
-    data_numpy = data_numpy[..., np.newaxis]  # => (3, T, 25, 1)
+    # Reshape from (T, 75) to (T, 25, 3)
+    data_numpy = skeleton_array.reshape(T, v, c)  # (T, 25, 3)
+
+    # Add person dimension and duplicate to get 2 persons
+    # This is necessary because MixFormer was trained expecting 2 persons
+    data_numpy = data_numpy[..., np.newaxis]  # (T, 25, 3, 1)
+    data_numpy = np.concatenate([data_numpy, np.zeros_like(data_numpy)], axis=3)  # (T, 25, 3, 2)
+
+    # Transpose to (C, T, V, M) format
+    data_numpy = data_numpy.transpose(2, 0, 1, 3)  # (3, T, 25, 2)
 
     # Remove zero frames (frames where all values are zero)
     sum_over = data_numpy.sum(axis=0).sum(axis=-1).sum(axis=-1)  # shape (T,)
@@ -468,4 +476,4 @@ def mixformer_preprocess_single_skeleton(
         out_t[:, -1] = 0
         out = out_t.numpy()
 
-    return out  # shape => (3, T', 25, 1)
+    return out  # shape => (3, T', 25, 2)

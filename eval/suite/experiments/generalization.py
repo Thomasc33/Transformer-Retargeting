@@ -25,7 +25,7 @@ class GeneralizationExperiments:
         """Cross-dataset validation: Train on NTU-60, test on NTU-120 and ETRI."""
         return {
             'name': 'Cross-Dataset Validation',
-            'description': 'Train on NTU-60, test on NTU-120 and ETRI to evaluate generalization',
+            'description': 'Evaluate generalization by testing NTU-60 trained anonymizers on NTU-120 and ETRI datasets. This measures how well privacy-preserving transformations transfer across different skeleton datasets with varying action classes and recording conditions.',
             'evaluation_type': 'cross_dataset',
             'models': {
                 'transformer_ntu60': {

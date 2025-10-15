@@ -77,7 +77,8 @@ class AblationExperiments:
                     'dataset': 'ntu',
                     'setting': 'cv',
                     'batch_size': 32,
-                    'test_samples': 2000
+                    'train_samples': 10000,  # Small training set for ablation retraining
+                    'test_samples': 2000     # Small test set for ablation evaluation
                 }
             },
             'metrics': [
@@ -98,22 +99,27 @@ class AblationExperiments:
     def loss_weight_sensitivity() -> Dict[str, Any]:
         """Loss weight sensitivity analysis (already completed with Optuna)."""
         return {
-            'name': 'Loss Weight Sensitivity',
-            'description': 'Hyperparameter optimization of loss weights (completed with Optuna)',
+            'name': 'Loss Weight Sensitivity Analysis',
+            'description': 'Compare three loss weight configurations: (1) Optimal weights found via Optuna hyperparameter optimization, (2) Equal weights for all loss components, and (3) MSE-only training. This analysis shows how different loss weight balancing affects the privacy-utility tradeoff and physical plausibility of generated motions.',
             'evaluation_type': 'weight_sensitivity',
-            'completed': True,
+            'completed': False,  # Models not trained yet
             'models': {
                 'optimal_weights': {
                     'type': 'transformer',
-                    'path': 'model.pth'  # Current optimal model
+                    'path': 'model.pth',  # Current optimal model (Optuna-tuned)
+                    'description': 'Model trained with Optuna-optimized loss weights'
                 },
                 'equal_weights': {
                     'type': 'transformer',
-                    'path': 'output/ntu_equal_weights_cv/model_best.pth.tar'
+                    'path': 'output/ntu_equal_weights_cv/model_best.pth.tar',
+                    'description': 'Model trained with equal weights for all loss components',
+                    'status': 'needs_training'
                 },
                 'mse_only': {
                     'type': 'transformer',
-                    'path': 'output/ntu_mse_only_cv/model_best.pth.tar'
+                    'path': 'output/ntu_mse_only_cv/model_best.pth.tar',
+                    'description': 'Model trained with MSE loss only (no physical constraints)',
+                    'status': 'needs_training'
                 }
             },
             'eval_models': {
@@ -130,7 +136,8 @@ class AblationExperiments:
                     'dataset': 'ntu',
                     'setting': 'cv',
                     'batch_size': 32,
-                    'test_samples': 2000
+                    'train_samples': 10000,  # Small training set for ablation retraining
+                    'test_samples': 2000     # Small test set for ablation evaluation
                 }
             },
             'metrics': [

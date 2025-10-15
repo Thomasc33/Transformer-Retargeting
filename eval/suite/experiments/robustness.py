@@ -72,7 +72,7 @@ class RobustnessExperiments:
                     'dataset': 'ntu',
                     'setting': 'cv',
                     'batch_size': 32,
-                    'test_samples': 2000
+                    'test_samples': 2000  # Small sample for robustness analysis
                 }
             },
             'metrics': [
@@ -129,7 +129,7 @@ class RobustnessExperiments:
                     'dataset': 'ntu',
                     'setting': 'cv',
                     'batch_size': 32,
-                    'test_samples': 2000
+                    'test_samples': 2000  # Small sample for robustness analysis
                 }
             },
             'metrics': [
@@ -176,7 +176,7 @@ class RobustnessExperiments:
                     'dataset': 'ntu',
                     'setting': 'cv',
                     'batch_size': 32,
-                    'test_samples': 5000
+                    'test_samples': 5000  # Medium sample for per-class analysis
                 }
             },
             'metrics': [
@@ -228,7 +228,7 @@ class RobustnessExperiments:
                     'dataset': 'ntu',
                     'setting': 'cv',
                     'batch_size': 32,
-                    'test_samples': 5000
+                    'test_samples': 5000  # Medium sample for per-subject analysis
                 }
             },
             'metrics': [

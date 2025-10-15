@@ -9,8 +9,6 @@
 #SBATCH --time=04:00:00
 #SBATCH --output=logs/test_training_1gpu_%j.out
 #SBATCH --error=logs/test_training_1gpu_%j.err
-#SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --mail-user=carrt313@gmail.com
 
 module load pytorch/2.3.0-cuda12.1
 

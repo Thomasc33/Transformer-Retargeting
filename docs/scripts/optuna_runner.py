@@ -139,8 +139,6 @@ def generate_optuna_script(config):
 #SBATCH --cpus-per-task=8
 #SBATCH --output=logs/optuna_{config['study_name']}_%j.out
 #SBATCH --error=logs/optuna_{config['study_name']}_%j.err
-#SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --mail-user=carrt313@gmail.com
 
 echo "🔬 OPTUNA HYPERPARAMETER TUNING"
 echo "================================"

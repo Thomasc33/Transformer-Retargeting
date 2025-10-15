@@ -21,7 +21,7 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 from pretrain import SkeletonAutoEncoder
-from data import load_data, get_cross_data
+from src.data import load_data, get_cross_data
 from evaluation_suite.comprehensive_mlm_evaluation import ComprehensiveMLMEvaluator
 from evaluation_suite.raw_vs_mlm_comparison import ComprehensiveComparator
 

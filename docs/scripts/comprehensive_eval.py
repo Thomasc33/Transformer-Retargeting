@@ -310,8 +310,7 @@ class ComprehensiveEvaluator:
 
     def _create_slurm_script(self, model_path: str, model_type: str, config: Dict[str, Any], job_name: str) -> str:
         """Create SLURM script for evaluation."""
-        email = config.get('email', 'carrt313@gmail.com')
-        
+
         script = f"""#!/bin/bash
 #SBATCH --job-name={job_name}
 #SBATCH --partition=GPU
@@ -323,8 +322,6 @@ class ComprehensiveEvaluator:
 #SBATCH --mem=64GB
 #SBATCH --output=logs/{job_name}_%j.out
 #SBATCH --error=logs/{job_name}_%j.err
-#SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --mail-user={email}
 
 # Load modules and set environment
 module load pytorch/2.3.0-cuda12.1

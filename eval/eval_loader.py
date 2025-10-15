@@ -9,7 +9,7 @@ import sys
 
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-from data import parse_file_name
+from src.data import parse_file_name
 
 class Dataset(Dataset):
     def __init__(self, x, y):
@@ -29,7 +29,7 @@ class Dataloaders(object):
         self.dataset_lower = dataset.lower()
 
         # Load the appropriate data using the load_data function from data.py
-        from data import load_data, datasets
+        from src.data import load_data, datasets
 
         # Map dataset names to expected format in data.py
         dataset_mapping = {

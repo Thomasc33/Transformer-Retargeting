@@ -101,9 +101,9 @@ class EvalModelIntegration:
             Dictionary containing evaluation results
         """
         try:
-            # Prepare command arguments
+            # Prepare command arguments - use real evaluation script
             cmd = [
-                'python', '/users/tcarr23/Transformer-Retargeting/simple_eval_working.py',
+                'python', '/users/tcarr23/Transformer-Retargeting/real_eval_working.py',
                 '--model-type', model_type,
                 '--eval-model', eval_model_type,
                 '--dataset', dataset,
@@ -111,10 +111,19 @@ class EvalModelIntegration:
                 '--output-dir', output_dir
             ]
 
+            # Add test samples parameter to control evaluation time
+            if test_samples is not None:
+                cmd.extend(['--test_samples', str(test_samples)])
+                self.logger.info(f"Using limited dataset ({test_samples} samples) for {dataset}_{setting}")
+            else:
+                # For full dataset, use a reasonable sample size for real evaluation
+                cmd.extend(['--test_samples', '2000'])  # Use 2k samples for more reliable results
+                self.logger.info(f"Using real evaluation with 2k samples for {dataset}_{setting}")
+
             # For transformer, add model path
             if model_type == 'transformer' and model_path:
                 cmd.extend(['--model-path', model_path])
-            
+
             self.logger.info(f"Running eval_model.py with command: {' '.join(cmd)}")
             
             # Run the command

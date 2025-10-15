@@ -365,8 +365,6 @@ def create_slurm_script(config: Dict[str, Any]) -> str:
 #SBATCH --mem=32GB
 #SBATCH --output=logs/{job_name}_%j.out
 #SBATCH --error=logs/{job_name}_%j.err
-#SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --mail-user=carrt313@gmail.com
 
 echo "Job started at $(date)"
 echo "Running on node: $(hostname)"

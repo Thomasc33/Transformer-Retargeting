@@ -28,7 +28,7 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 from pretrain import SkeletonAutoEncoder
-from data import load_data, get_cross_data
+from src.data import load_data, get_cross_data
 try:
     from src.evaluation.eval_model import (
         calculate_bone_length_consistency, calculate_joint_angle_limits,
