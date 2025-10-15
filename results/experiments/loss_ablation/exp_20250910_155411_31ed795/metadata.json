@@ -1,0 +1,8 @@
+{
+  "experiment_name": "loss_ablation",
+  "experiment_id": "exp_20250910_155411_31ed795",
+  "created_at": "2025-09-10T15:54:11.815582",
+  "git_commit": "31ed795",
+  "slurm_job_id": "6566499",
+  "slurm_script_path": "loss_ablation"
+}

@@ -1,0 +1,1156 @@
+{
+  "experiment_name": "privacy_utility_mixformer",
+  "experiment_id": "exp_20250910_174834_31ed795",
+  "config": {
+    "name": "Privacy vs Utility - MixFormer",
+    "description": "Evaluate privacy-utility tradeoff using MixFormer for AR, RI, and GC tasks",
+    "evaluation_type": "privacy_utility",
+    "models": {
+      "raw": {
+        "type": "raw",
+        "path": "raw"
+      },
+      "transformer": {
+        "type": "transformer",
+        "path": "model.pth"
+      },
+      "dmr": {
+        "type": "dmr",
+        "path": "trained_models/dmr_ntu_cv_final.pth"
+      },
+      "pmr": {
+        "type": "pmr",
+        "path": "trained_models/pmr_ntu_cv_final.pth"
+      }
+    },
+    "eval_models": {
+      "mixformer_ar": {
+        "type": "mixformer",
+        "task": "ar",
+        "path": "output/ntu_mixformer_ar_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      },
+      "mixformer_ri": {
+        "type": "mixformer",
+        "task": "ri",
+        "path": "output/ntu_mixformer_ri_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      },
+      "mixformer_gc": {
+        "type": "mixformer",
+        "task": "gc",
+        "path": "output/ntu_mixformer_gc_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      }
+    },
+    "data": {
+      "ntu_cv": {
+        "type": "paired",
+        "dataset": "ntu",
+        "setting": "cv",
+        "batch_size": 32,
+        "test_samples": 5000
+      },
+      "ntu_cs": {
+        "type": "paired",
+        "dataset": "ntu",
+        "setting": "cs",
+        "batch_size": 32,
+        "test_samples": 5000
+      }
+    },
+    "metrics": [
+      "action_recognition_accuracy",
+      "reidentification_accuracy",
+      "gender_classification_accuracy",
+      "anonymization_rate",
+      "privacy_utility_tradeoff"
+    ],
+    "output_dir": "privacy_utility_mixformer"
+  },
+  "results": {
+    "raw": {
+      "ntu_cv": {
+        "raw_mixformer_ar_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "raw",
+              "--eval_model",
+              "mixformer",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "ar",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/raw_mixformer_ar_ntu_cv",
+              "--ar_model_weights",
+              "output/ntu_mixformer_ar_cview/model_best.pth.tar",
+              "--test_samples",
+              "5000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "raw_mixformer_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_mixformer_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/raw_mixformer_ar_ntu_cs"
+        },
+        "raw_mixformer_ri_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "raw",
+              "--eval_model",
+              "mixformer",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "ri",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/raw_mixformer_ri_ntu_cv",
+              "--ri_model_weights",
+              "output/ntu_mixformer_ri_cview/model_best.pth.tar",
+              "--test_samples",
+              "5000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "raw_mixformer_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_mixformer_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/raw_mixformer_ri_ntu_cs"
+        },
+        "raw_mixformer_gc_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "raw",
+              "--eval_model",
+              "mixformer",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "gc",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/raw_mixformer_gc_ntu_cv",
+              "--gc_model_weights",
+              "output/ntu_mixformer_gc_cview/model_best.pth.tar",
+              "--test_samples",
+              "5000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "raw_mixformer_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_mixformer_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/raw_mixformer_gc_ntu_cs"
+        },
+        "transformer_mixformer_ar_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "transformer",
+              "--eval_model",
+              "mixformer",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "ar",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/transformer_mixformer_ar_ntu_cv",
+              "--ar_model_weights",
+              "output/ntu_mixformer_ar_cview/model_best.pth.tar",
+              "--transformer_model_path",
+              "model.pth",
+              "--test_samples",
+              "5000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "transformer_mixformer_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_mixformer_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/transformer_mixformer_ar_ntu_cs"
+        },
+        "transformer_mixformer_ri_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "transformer",
+              "--eval_model",
+              "mixformer",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "ri",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/transformer_mixformer_ri_ntu_cv",
+              "--ri_model_weights",
+              "output/ntu_mixformer_ri_cview/model_best.pth.tar",
+              "--transformer_model_path",
+              "model.pth",
+              "--test_samples",
+              "5000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "transformer_mixformer_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_mixformer_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/transformer_mixformer_ri_ntu_cs"
+        },
+        "transformer_mixformer_gc_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "transformer",
+              "--eval_model",
+              "mixformer",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "gc",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/transformer_mixformer_gc_ntu_cv",
+              "--gc_model_weights",
+              "output/ntu_mixformer_gc_cview/model_best.pth.tar",
+              "--transformer_model_path",
+              "model.pth",
+              "--test_samples",
+              "5000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "transformer_mixformer_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_mixformer_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/transformer_mixformer_gc_ntu_cs"
+        },
+        "dmr_mixformer_ar_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "dmr",
+              "--eval_model",
+              "mixformer",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "ar",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/dmr_mixformer_ar_ntu_cv",
+              "--ar_model_weights",
+              "output/ntu_mixformer_ar_cview/model_best.pth.tar",
+              "--test_samples",
+              "5000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "dmr_mixformer_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_mixformer_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/dmr_mixformer_ar_ntu_cs"
+        },
+        "dmr_mixformer_ri_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "dmr",
+              "--eval_model",
+              "mixformer",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "ri",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/dmr_mixformer_ri_ntu_cv",
+              "--ri_model_weights",
+              "output/ntu_mixformer_ri_cview/model_best.pth.tar",
+              "--test_samples",
+              "5000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "dmr_mixformer_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_mixformer_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/dmr_mixformer_ri_ntu_cs"
+        },
+        "dmr_mixformer_gc_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "dmr",
+              "--eval_model",
+              "mixformer",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "gc",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/dmr_mixformer_gc_ntu_cv",
+              "--gc_model_weights",
+              "output/ntu_mixformer_gc_cview/model_best.pth.tar",
+              "--test_samples",
+              "5000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "dmr_mixformer_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_mixformer_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/dmr_mixformer_gc_ntu_cs"
+        },
+        "pmr_mixformer_ar_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "pmr",
+              "--eval_model",
+              "mixformer",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "ar",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/pmr_mixformer_ar_ntu_cv",
+              "--ar_model_weights",
+              "output/ntu_mixformer_ar_cview/model_best.pth.tar",
+              "--test_samples",
+              "5000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "pmr_mixformer_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_mixformer_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/pmr_mixformer_ar_ntu_cs"
+        },
+        "pmr_mixformer_ri_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "pmr",
+              "--eval_model",
+              "mixformer",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "ri",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/pmr_mixformer_ri_ntu_cv",
+              "--ri_model_weights",
+              "output/ntu_mixformer_ri_cview/model_best.pth.tar",
+              "--test_samples",
+              "5000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "pmr_mixformer_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_mixformer_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/pmr_mixformer_ri_ntu_cs"
+        },
+        "pmr_mixformer_gc_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "pmr",
+              "--eval_model",
+              "mixformer",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "gc",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/pmr_mixformer_gc_ntu_cv",
+              "--gc_model_weights",
+              "output/ntu_mixformer_gc_cview/model_best.pth.tar",
+              "--test_samples",
+              "5000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "pmr_mixformer_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_mixformer_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/pmr_mixformer_gc_ntu_cs"
+        }
+      },
+      "ntu_cs": {
+        "raw_mixformer_ar_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "raw",
+              "--eval_model",
+              "mixformer",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "ar",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/raw_mixformer_ar_ntu_cv",
+              "--ar_model_weights",
+              "output/ntu_mixformer_ar_cview/model_best.pth.tar",
+              "--test_samples",
+              "5000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "raw_mixformer_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_mixformer_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/raw_mixformer_ar_ntu_cs"
+        },
+        "raw_mixformer_ri_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "raw",
+              "--eval_model",
+              "mixformer",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "ri",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/raw_mixformer_ri_ntu_cv",
+              "--ri_model_weights",
+              "output/ntu_mixformer_ri_cview/model_best.pth.tar",
+              "--test_samples",
+              "5000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "raw_mixformer_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_mixformer_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/raw_mixformer_ri_ntu_cs"
+        },
+        "raw_mixformer_gc_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "raw",
+              "--eval_model",
+              "mixformer",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "gc",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/raw_mixformer_gc_ntu_cv",
+              "--gc_model_weights",
+              "output/ntu_mixformer_gc_cview/model_best.pth.tar",
+              "--test_samples",
+              "5000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "raw_mixformer_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_mixformer_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/raw_mixformer_gc_ntu_cs"
+        },
+        "transformer_mixformer_ar_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "transformer",
+              "--eval_model",
+              "mixformer",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "ar",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/transformer_mixformer_ar_ntu_cv",
+              "--ar_model_weights",
+              "output/ntu_mixformer_ar_cview/model_best.pth.tar",
+              "--transformer_model_path",
+              "model.pth",
+              "--test_samples",
+              "5000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "transformer_mixformer_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_mixformer_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/transformer_mixformer_ar_ntu_cs"
+        },
+        "transformer_mixformer_ri_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "transformer",
+              "--eval_model",
+              "mixformer",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "ri",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/transformer_mixformer_ri_ntu_cv",
+              "--ri_model_weights",
+              "output/ntu_mixformer_ri_cview/model_best.pth.tar",
+              "--transformer_model_path",
+              "model.pth",
+              "--test_samples",
+              "5000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "transformer_mixformer_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_mixformer_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/transformer_mixformer_ri_ntu_cs"
+        },
+        "transformer_mixformer_gc_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "transformer",
+              "--eval_model",
+              "mixformer",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "gc",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/transformer_mixformer_gc_ntu_cv",
+              "--gc_model_weights",
+              "output/ntu_mixformer_gc_cview/model_best.pth.tar",
+              "--transformer_model_path",
+              "model.pth",
+              "--test_samples",
+              "5000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "transformer_mixformer_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_mixformer_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/transformer_mixformer_gc_ntu_cs"
+        },
+        "dmr_mixformer_ar_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "dmr",
+              "--eval_model",
+              "mixformer",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "ar",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/dmr_mixformer_ar_ntu_cv",
+              "--ar_model_weights",
+              "output/ntu_mixformer_ar_cview/model_best.pth.tar",
+              "--test_samples",
+              "5000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "dmr_mixformer_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_mixformer_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/dmr_mixformer_ar_ntu_cs"
+        },
+        "dmr_mixformer_ri_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "dmr",
+              "--eval_model",
+              "mixformer",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "ri",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/dmr_mixformer_ri_ntu_cv",
+              "--ri_model_weights",
+              "output/ntu_mixformer_ri_cview/model_best.pth.tar",
+              "--test_samples",
+              "5000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "dmr_mixformer_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_mixformer_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/dmr_mixformer_ri_ntu_cs"
+        },
+        "dmr_mixformer_gc_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "dmr",
+              "--eval_model",
+              "mixformer",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "gc",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/dmr_mixformer_gc_ntu_cv",
+              "--gc_model_weights",
+              "output/ntu_mixformer_gc_cview/model_best.pth.tar",
+              "--test_samples",
+              "5000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "dmr_mixformer_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_mixformer_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/dmr_mixformer_gc_ntu_cs"
+        },
+        "pmr_mixformer_ar_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "pmr",
+              "--eval_model",
+              "mixformer",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "ar",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/pmr_mixformer_ar_ntu_cv",
+              "--ar_model_weights",
+              "output/ntu_mixformer_ar_cview/model_best.pth.tar",
+              "--test_samples",
+              "5000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "pmr_mixformer_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_mixformer_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/pmr_mixformer_ar_ntu_cs"
+        },
+        "pmr_mixformer_ri_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "pmr",
+              "--eval_model",
+              "mixformer",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "ri",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/pmr_mixformer_ri_ntu_cv",
+              "--ri_model_weights",
+              "output/ntu_mixformer_ri_cview/model_best.pth.tar",
+              "--test_samples",
+              "5000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "pmr_mixformer_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_mixformer_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/pmr_mixformer_ri_ntu_cs"
+        },
+        "pmr_mixformer_gc_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "pmr",
+              "--eval_model",
+              "mixformer",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "gc",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/pmr_mixformer_gc_ntu_cv",
+              "--gc_model_weights",
+              "output/ntu_mixformer_gc_cview/model_best.pth.tar",
+              "--test_samples",
+              "5000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "pmr_mixformer_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_mixformer_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_mixformer/exp_20250910_174834_31ed795/artifacts/pmr_mixformer_gc_ntu_cs"
+        }
+      }
+    }
+  },
+  "metrics": {
+    "raw": {
+      "ntu_cv": {},
+      "ntu_cs": {}
+    },
+    "aggregate": {}
+  },
+  "duration": 17.14189863204956,
+  "timestamp": "2025-09-10T17:48:51.480374"
+}

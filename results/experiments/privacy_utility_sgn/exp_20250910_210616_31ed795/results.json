@@ -1,0 +1,2902 @@
+{
+  "experiment_name": "privacy_utility_sgn",
+  "experiment_id": "exp_20250910_210616_31ed795",
+  "config": {
+    "name": "Privacy vs Utility - SGN",
+    "description": "Evaluate privacy-utility tradeoff using SGN for AR, RI, and GC tasks",
+    "evaluation_type": "privacy_utility",
+    "models": {
+      "raw": {
+        "type": "raw",
+        "path": "raw"
+      },
+      "transformer": {
+        "type": "transformer",
+        "path": "model.pth"
+      },
+      "dmr": {
+        "type": "dmr",
+        "path": "trained_models/dmr_ntu_cv_final.pth"
+      },
+      "pmr": {
+        "type": "pmr",
+        "path": "trained_models/pmr_ntu_cv_final.pth"
+      }
+    },
+    "eval_models": {
+      "sgn_ar": {
+        "type": "sgn",
+        "task": "ar",
+        "path": "output/ntu_ar_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      },
+      "sgn_ri": {
+        "type": "sgn",
+        "task": "ri",
+        "path": "output/ntu_ri_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      },
+      "sgn_gc": {
+        "type": "sgn",
+        "task": "gc",
+        "path": "output/ntu_gc_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      }
+    },
+    "data": {
+      "ntu_cv": {
+        "type": "paired",
+        "dataset": "ntu",
+        "setting": "cv",
+        "batch_size": 32,
+        "test_samples": 5000
+      },
+      "ntu_cs": {
+        "type": "paired",
+        "dataset": "ntu",
+        "setting": "cs",
+        "batch_size": 32,
+        "test_samples": 5000
+      }
+    },
+    "metrics": [
+      "action_recognition_accuracy",
+      "reidentification_accuracy",
+      "gender_classification_accuracy",
+      "anonymization_rate",
+      "privacy_utility_tradeoff"
+    ],
+    "output_dir": "privacy_utility_sgn"
+  },
+  "results": {
+    "raw": {
+      "ntu_cv": {
+        "raw_sgn_ar_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        },
+        "raw_sgn_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_sgn_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/raw_sgn_ar_ntu_cs"
+        },
+        "raw_sgn_ri_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        },
+        "raw_sgn_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_sgn_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/raw_sgn_ri_ntu_cs"
+        },
+        "raw_sgn_gc_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        },
+        "raw_sgn_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_sgn_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/raw_sgn_gc_ntu_cs"
+        },
+        "transformer_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_sgn_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/transformer_sgn_ar_ntu_cs"
+        },
+        "transformer_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_sgn_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/transformer_sgn_ri_ntu_cs"
+        },
+        "transformer_sgn_gc_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_sgn_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/transformer_sgn_gc_ntu_cs"
+        },
+        "dmr_sgn_ar_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_sgn_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/dmr_sgn_ar_ntu_cs"
+        },
+        "dmr_sgn_ri_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_sgn_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/dmr_sgn_ri_ntu_cs"
+        },
+        "dmr_sgn_gc_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_sgn_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/dmr_sgn_gc_ntu_cs"
+        },
+        "pmr_sgn_ar_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_sgn_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/pmr_sgn_ar_ntu_cs"
+        },
+        "pmr_sgn_ri_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_sgn_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/pmr_sgn_ri_ntu_cs"
+        },
+        "pmr_sgn_gc_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_sgn_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/pmr_sgn_gc_ntu_cs"
+        }
+      },
+      "ntu_cs": {
+        "raw_sgn_ar_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        },
+        "raw_sgn_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_sgn_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/raw_sgn_ar_ntu_cs"
+        },
+        "raw_sgn_ri_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        },
+        "raw_sgn_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_sgn_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/raw_sgn_ri_ntu_cs"
+        },
+        "raw_sgn_gc_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        },
+        "raw_sgn_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_sgn_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/raw_sgn_gc_ntu_cs"
+        },
+        "transformer_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_sgn_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/transformer_sgn_ar_ntu_cs"
+        },
+        "transformer_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_sgn_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/transformer_sgn_ri_ntu_cs"
+        },
+        "transformer_sgn_gc_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_sgn_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/transformer_sgn_gc_ntu_cs"
+        },
+        "dmr_sgn_ar_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_sgn_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/dmr_sgn_ar_ntu_cs"
+        },
+        "dmr_sgn_ri_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_sgn_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/dmr_sgn_ri_ntu_cs"
+        },
+        "dmr_sgn_gc_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_sgn_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/dmr_sgn_gc_ntu_cs"
+        },
+        "pmr_sgn_ar_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_sgn_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/pmr_sgn_ar_ntu_cs"
+        },
+        "pmr_sgn_ri_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_sgn_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/pmr_sgn_ri_ntu_cs"
+        },
+        "pmr_sgn_gc_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_sgn_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/pmr_sgn_gc_ntu_cs"
+        }
+      }
+    },
+    "transformer": {
+      "ntu_cv": {
+        "raw_sgn_ar_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        },
+        "raw_sgn_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_sgn_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/raw_sgn_ar_ntu_cs"
+        },
+        "raw_sgn_ri_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        },
+        "raw_sgn_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_sgn_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/raw_sgn_ri_ntu_cs"
+        },
+        "raw_sgn_gc_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        },
+        "raw_sgn_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_sgn_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/raw_sgn_gc_ntu_cs"
+        },
+        "transformer_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_sgn_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/transformer_sgn_ar_ntu_cs"
+        },
+        "transformer_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_sgn_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/transformer_sgn_ri_ntu_cs"
+        },
+        "transformer_sgn_gc_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_sgn_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/transformer_sgn_gc_ntu_cs"
+        },
+        "dmr_sgn_ar_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_sgn_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/dmr_sgn_ar_ntu_cs"
+        },
+        "dmr_sgn_ri_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_sgn_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/dmr_sgn_ri_ntu_cs"
+        },
+        "dmr_sgn_gc_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_sgn_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/dmr_sgn_gc_ntu_cs"
+        },
+        "pmr_sgn_ar_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_sgn_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/pmr_sgn_ar_ntu_cs"
+        },
+        "pmr_sgn_ri_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_sgn_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/pmr_sgn_ri_ntu_cs"
+        },
+        "pmr_sgn_gc_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_sgn_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/pmr_sgn_gc_ntu_cs"
+        }
+      },
+      "ntu_cs": {
+        "raw_sgn_ar_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        },
+        "raw_sgn_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_sgn_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/raw_sgn_ar_ntu_cs"
+        },
+        "raw_sgn_ri_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        },
+        "raw_sgn_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_sgn_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/raw_sgn_ri_ntu_cs"
+        },
+        "raw_sgn_gc_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        },
+        "raw_sgn_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_sgn_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/raw_sgn_gc_ntu_cs"
+        },
+        "transformer_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_sgn_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/transformer_sgn_ar_ntu_cs"
+        },
+        "transformer_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_sgn_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/transformer_sgn_ri_ntu_cs"
+        },
+        "transformer_sgn_gc_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_sgn_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/transformer_sgn_gc_ntu_cs"
+        },
+        "dmr_sgn_ar_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_sgn_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/dmr_sgn_ar_ntu_cs"
+        },
+        "dmr_sgn_ri_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_sgn_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/dmr_sgn_ri_ntu_cs"
+        },
+        "dmr_sgn_gc_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_sgn_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/dmr_sgn_gc_ntu_cs"
+        },
+        "pmr_sgn_ar_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_sgn_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/pmr_sgn_ar_ntu_cs"
+        },
+        "pmr_sgn_ri_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_sgn_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/pmr_sgn_ri_ntu_cs"
+        },
+        "pmr_sgn_gc_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_sgn_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/pmr_sgn_gc_ntu_cs"
+        }
+      }
+    },
+    "dmr": {
+      "ntu_cv": {
+        "raw_sgn_ar_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        },
+        "raw_sgn_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_sgn_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/raw_sgn_ar_ntu_cs"
+        },
+        "raw_sgn_ri_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        },
+        "raw_sgn_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_sgn_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/raw_sgn_ri_ntu_cs"
+        },
+        "raw_sgn_gc_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        },
+        "raw_sgn_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_sgn_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/raw_sgn_gc_ntu_cs"
+        },
+        "transformer_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_sgn_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/transformer_sgn_ar_ntu_cs"
+        },
+        "transformer_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_sgn_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/transformer_sgn_ri_ntu_cs"
+        },
+        "transformer_sgn_gc_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_sgn_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/transformer_sgn_gc_ntu_cs"
+        },
+        "dmr_sgn_ar_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_sgn_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/dmr_sgn_ar_ntu_cs"
+        },
+        "dmr_sgn_ri_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_sgn_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/dmr_sgn_ri_ntu_cs"
+        },
+        "dmr_sgn_gc_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_sgn_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/dmr_sgn_gc_ntu_cs"
+        },
+        "pmr_sgn_ar_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_sgn_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/pmr_sgn_ar_ntu_cs"
+        },
+        "pmr_sgn_ri_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_sgn_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/pmr_sgn_ri_ntu_cs"
+        },
+        "pmr_sgn_gc_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_sgn_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/pmr_sgn_gc_ntu_cs"
+        }
+      },
+      "ntu_cs": {
+        "raw_sgn_ar_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        },
+        "raw_sgn_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_sgn_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/raw_sgn_ar_ntu_cs"
+        },
+        "raw_sgn_ri_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        },
+        "raw_sgn_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_sgn_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/raw_sgn_ri_ntu_cs"
+        },
+        "raw_sgn_gc_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        },
+        "raw_sgn_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_sgn_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/raw_sgn_gc_ntu_cs"
+        },
+        "transformer_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_sgn_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/transformer_sgn_ar_ntu_cs"
+        },
+        "transformer_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_sgn_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/transformer_sgn_ri_ntu_cs"
+        },
+        "transformer_sgn_gc_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_sgn_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/transformer_sgn_gc_ntu_cs"
+        },
+        "dmr_sgn_ar_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_sgn_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/dmr_sgn_ar_ntu_cs"
+        },
+        "dmr_sgn_ri_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_sgn_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/dmr_sgn_ri_ntu_cs"
+        },
+        "dmr_sgn_gc_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_sgn_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/dmr_sgn_gc_ntu_cs"
+        },
+        "pmr_sgn_ar_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_sgn_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/pmr_sgn_ar_ntu_cs"
+        },
+        "pmr_sgn_ri_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_sgn_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/pmr_sgn_ri_ntu_cs"
+        },
+        "pmr_sgn_gc_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_sgn_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/pmr_sgn_gc_ntu_cs"
+        }
+      }
+    },
+    "pmr": {
+      "ntu_cv": {
+        "raw_sgn_ar_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        },
+        "raw_sgn_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_sgn_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/raw_sgn_ar_ntu_cs"
+        },
+        "raw_sgn_ri_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        },
+        "raw_sgn_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_sgn_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/raw_sgn_ri_ntu_cs"
+        },
+        "raw_sgn_gc_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        },
+        "raw_sgn_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_sgn_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/raw_sgn_gc_ntu_cs"
+        },
+        "transformer_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_sgn_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/transformer_sgn_ar_ntu_cs"
+        },
+        "transformer_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_sgn_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/transformer_sgn_ri_ntu_cs"
+        },
+        "transformer_sgn_gc_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_sgn_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/transformer_sgn_gc_ntu_cs"
+        },
+        "dmr_sgn_ar_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_sgn_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/dmr_sgn_ar_ntu_cs"
+        },
+        "dmr_sgn_ri_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_sgn_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/dmr_sgn_ri_ntu_cs"
+        },
+        "dmr_sgn_gc_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_sgn_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/dmr_sgn_gc_ntu_cs"
+        },
+        "pmr_sgn_ar_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_sgn_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/pmr_sgn_ar_ntu_cs"
+        },
+        "pmr_sgn_ri_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_sgn_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/pmr_sgn_ri_ntu_cs"
+        },
+        "pmr_sgn_gc_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_sgn_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/pmr_sgn_gc_ntu_cs"
+        }
+      },
+      "ntu_cs": {
+        "raw_sgn_ar_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        },
+        "raw_sgn_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_sgn_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/raw_sgn_ar_ntu_cs"
+        },
+        "raw_sgn_ri_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        },
+        "raw_sgn_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_sgn_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/raw_sgn_ri_ntu_cs"
+        },
+        "raw_sgn_gc_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        },
+        "raw_sgn_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_sgn_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/raw_sgn_gc_ntu_cs"
+        },
+        "transformer_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_sgn_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/transformer_sgn_ar_ntu_cs"
+        },
+        "transformer_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_sgn_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/transformer_sgn_ri_ntu_cs"
+        },
+        "transformer_sgn_gc_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_sgn_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/transformer_sgn_gc_ntu_cs"
+        },
+        "dmr_sgn_ar_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_sgn_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/dmr_sgn_ar_ntu_cs"
+        },
+        "dmr_sgn_ri_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_sgn_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/dmr_sgn_ri_ntu_cs"
+        },
+        "dmr_sgn_gc_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_sgn_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/dmr_sgn_gc_ntu_cs"
+        },
+        "pmr_sgn_ar_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ar_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_sgn_ar_ar",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/pmr_sgn_ar_ntu_cs"
+        },
+        "pmr_sgn_ri_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ri_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_sgn_ri_ri",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/pmr_sgn_ri_ntu_cs"
+        },
+        "pmr_sgn_gc_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_gc_ntu_cs": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_sgn_gc_gc",
+          "output_dir": "results/experiments/privacy_utility_sgn/exp_20250910_210616_31ed795/artifacts/pmr_sgn_gc_ntu_cs"
+        }
+      }
+    }
+  },
+  "metrics": {
+    "raw": {
+      "ntu_cv": {},
+      "ntu_cs": {}
+    },
+    "transformer": {
+      "ntu_cv": {},
+      "ntu_cs": {}
+    },
+    "dmr": {
+      "ntu_cv": {},
+      "ntu_cs": {}
+    },
+    "pmr": {
+      "ntu_cv": {},
+      "ntu_cs": {}
+    },
+    "aggregate": {}
+  },
+  "duration": 19.969892024993896,
+  "timestamp": "2025-09-10T21:06:36.388577"
+}

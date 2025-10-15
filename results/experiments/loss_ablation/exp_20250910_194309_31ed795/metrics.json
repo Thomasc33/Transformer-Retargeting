@@ -1,0 +1,24 @@
+{
+  "baseline": {
+    "ntu_cv": {}
+  },
+  "no_bone_length": {
+    "ntu_cv": {}
+  },
+  "no_foot_contact": {
+    "ntu_cv": {}
+  },
+  "no_joint_limit": {
+    "ntu_cv": {}
+  },
+  "no_fid_velocity": {
+    "ntu_cv": {}
+  },
+  "no_end_effector": {
+    "ntu_cv": {}
+  },
+  "no_smoothing": {
+    "ntu_cv": {}
+  },
+  "aggregate": {}
+}

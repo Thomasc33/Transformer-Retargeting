@@ -1,0 +1,15 @@
+{
+  "dmr": {
+    "ntu_cv_small": {},
+    "ntu_cv_batch": {}
+  },
+  "pmr": {
+    "ntu_cv_small": {},
+    "ntu_cv_batch": {}
+  },
+  "raw": {
+    "ntu_cv_small": {},
+    "ntu_cv_batch": {}
+  },
+  "aggregate": {}
+}

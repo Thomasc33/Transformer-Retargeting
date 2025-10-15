@@ -1,0 +1,77 @@
+{
+  "job_id": "6567074",
+  "experiment_name": "loss_ablation",
+  "experiment_config": {
+    "name": "Loss Function Ablation",
+    "description": "Ablation study removing individual loss components",
+    "evaluation_type": "ablation",
+    "models": {
+      "baseline": {
+        "type": "transformer",
+        "path": "output/ntu_baseline_cv/model_best.pth.tar"
+      },
+      "no_bone_length": {
+        "type": "transformer",
+        "path": "output/ntu_no_bone_cv/model_best.pth.tar"
+      },
+      "no_foot_contact": {
+        "type": "transformer",
+        "path": "output/ntu_no_foot_cv/model_best.pth.tar"
+      },
+      "no_joint_limit": {
+        "type": "transformer",
+        "path": "output/ntu_no_joint_cv/model_best.pth.tar"
+      },
+      "no_fid_velocity": {
+        "type": "transformer",
+        "path": "output/ntu_no_fid_cv/model_best.pth.tar"
+      },
+      "no_end_effector": {
+        "type": "transformer",
+        "path": "output/ntu_no_ee_cv/model_best.pth.tar"
+      },
+      "no_smoothing": {
+        "type": "transformer",
+        "path": "output/ntu_no_smooth_cv/model_best.pth.tar"
+      }
+    },
+    "eval_models": {
+      "sgn_ar": {
+        "type": "sgn",
+        "task": "ar",
+        "path": "output/ntu_ar_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      },
+      "sgn_ri": {
+        "type": "sgn",
+        "task": "ri",
+        "path": "output/ntu_ri_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      }
+    },
+    "data": {
+      "ntu_cv": {
+        "type": "paired",
+        "dataset": "ntu",
+        "setting": "cv",
+        "batch_size": 32,
+        "test_samples": 2000
+      }
+    },
+    "metrics": [
+      "action_recognition_accuracy",
+      "reidentification_accuracy",
+      "mse",
+      "bone_length_consistency",
+      "joint_angle_limits",
+      "temporal_smoothness",
+      "velocity_consistency",
+      "foot_contact_consistency",
+      "fid_score"
+    ],
+    "output_dir": "loss_ablation"
+  },
+  "script_path": "eval/suite/runners/jobs/loss_ablation_20250910_181228.sbatch",
+  "submit_time": "2025-09-10T18:12:28.325605",
+  "status": "submitted"
+}

@@ -1,0 +1,136 @@
+{
+  "job_id": "6568851",
+  "experiment_name": "efficiency_analysis",
+  "experiment_config": {
+    "name": "Efficiency Analysis",
+    "description": "Measure inference speed (FPS), memory requirements, and computational efficiency",
+    "evaluation_type": "efficiency",
+    "models": {
+      "transformer": {
+        "type": "transformer",
+        "path": "model.pth"
+      },
+      "dmr": {
+        "type": "dmr",
+        "path": "trained_models/dmr_ntu_cv_final.pth"
+      },
+      "pmr": {
+        "type": "pmr",
+        "path": "trained_models/pmr_ntu_cv_final.pth"
+      },
+      "raw": {
+        "type": "raw",
+        "path": "raw"
+      }
+    },
+    "data": {
+      "ntu_cv_single": {
+        "type": "paired",
+        "dataset": "ntu",
+        "setting": "cv",
+        "batch_size": 1,
+        "test_samples": 100
+      },
+      "ntu_cv_batch_small": {
+        "type": "paired",
+        "dataset": "ntu",
+        "setting": "cv",
+        "batch_size": 8,
+        "test_samples": 500
+      },
+      "ntu_cv_batch_large": {
+        "type": "paired",
+        "dataset": "ntu",
+        "setting": "cv",
+        "batch_size": 32,
+        "test_samples": 1000
+      }
+    },
+    "metrics": [
+      "inference_time_per_sample_ms",
+      "inference_time_per_batch_ms",
+      "frames_per_second_fps",
+      "memory_usage_peak_mb",
+      "memory_usage_average_mb",
+      "gpu_utilization_percent",
+      "cpu_utilization_percent",
+      "throughput_samples_per_second",
+      "model_size_mb",
+      "model_parameters_count",
+      "flops_count",
+      "energy_consumption_estimate"
+    ],
+    "benchmarks": {
+      "single_sample_timing": {
+        "description": "Measure inference time for single samples",
+        "iterations": 100,
+        "warmup_iterations": 10
+      },
+      "batch_processing_timing": {
+        "description": "Measure inference time for different batch sizes",
+        "batch_sizes": [
+          1,
+          4,
+          8,
+          16,
+          32
+        ],
+        "iterations": 50
+      },
+      "memory_profiling": {
+        "description": "Profile memory usage during inference",
+        "profile_duration": 60,
+        "sampling_interval": 0.1
+      },
+      "gpu_profiling": {
+        "description": "Profile GPU utilization and memory",
+        "profile_duration": 60,
+        "sampling_interval": 0.1
+      },
+      "scalability_analysis": {
+        "description": "Test performance with increasing load",
+        "concurrent_requests": [
+          1,
+          2,
+          4,
+          8,
+          16
+        ],
+        "duration_per_test": 30
+      }
+    },
+    "hardware_configs": [
+      {
+        "name": "single_gpu_v100",
+        "description": "Single V100 GPU configuration",
+        "gpus": 1,
+        "gpu_type": "V100",
+        "batch_size": 32
+      },
+      {
+        "name": "single_gpu_a100",
+        "description": "Single A100 GPU configuration",
+        "gpus": 1,
+        "gpu_type": "A100",
+        "batch_size": 64
+      },
+      {
+        "name": "cpu_only",
+        "description": "CPU-only configuration",
+        "gpus": 0,
+        "batch_size": 8
+      }
+    ],
+    "analysis": {
+      "performance_comparison": true,
+      "scalability_analysis": true,
+      "resource_efficiency": true,
+      "real_time_capability": true,
+      "cost_effectiveness": true
+    },
+    "output_dir": "efficiency_analysis"
+  },
+  "script_path": "eval/suite/runners/jobs/efficiency_analysis_20250910_200559.sbatch",
+  "submit_time": "2025-09-10T20:05:59.648083",
+  "status": "submitted"
+}

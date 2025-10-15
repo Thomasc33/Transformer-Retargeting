@@ -1,0 +1,717 @@
+{
+  "experiment_name": "baseline_comparison",
+  "experiment_id": "exp_20250910_174859_31ed795",
+  "config": {
+    "name": "Baseline Comparison",
+    "description": "Compare all baseline models (Raw, DMR, PMR, Transformer) across all tasks",
+    "evaluation_type": "baseline_comparison",
+    "models": {
+      "raw": {
+        "type": "raw",
+        "path": "raw"
+      },
+      "transformer": {
+        "type": "transformer",
+        "path": "model.pth"
+      },
+      "dmr": {
+        "type": "dmr",
+        "path": "trained_models/dmr_ntu_cv_final.pth"
+      },
+      "pmr": {
+        "type": "pmr",
+        "path": "trained_models/pmr_ntu_cv_final.pth"
+      }
+    },
+    "eval_models": {
+      "sgn_ar": {
+        "type": "sgn",
+        "task": "ar",
+        "path": "output/ntu_ar_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      },
+      "sgn_ri": {
+        "type": "sgn",
+        "task": "ri",
+        "path": "output/ntu_ri_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      },
+      "mixformer_ar": {
+        "type": "mixformer",
+        "task": "ar",
+        "path": "output/ntu_mixformer_ar_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      },
+      "mixformer_ri": {
+        "type": "mixformer",
+        "task": "ri",
+        "path": "output/ntu_mixformer_ri_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      }
+    },
+    "data": {
+      "ntu_cv": {
+        "type": "paired",
+        "dataset": "ntu",
+        "setting": "cv",
+        "batch_size": 32,
+        "test_samples": 10000
+      }
+    },
+    "metrics": [
+      "action_recognition_accuracy",
+      "reidentification_accuracy",
+      "mse",
+      "bone_length_consistency",
+      "temporal_smoothness",
+      "velocity_consistency"
+    ],
+    "output_dir": "baseline_comparison"
+  },
+  "results": {
+    "raw": {
+      "ntu_cv": {
+        "raw_sgn_ar_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "raw",
+              "--eval_model",
+              "sgn",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "ar",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/baseline_comparison/exp_20250910_174859_31ed795/artifacts/raw_sgn_ar_ntu_cv",
+              "--ar_model_weights",
+              "output/ntu_ar_cview/model_best.pth.tar",
+              "--test_samples",
+              "10000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "raw_sgn_ri_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "raw",
+              "--eval_model",
+              "sgn",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "ri",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/baseline_comparison/exp_20250910_174859_31ed795/artifacts/raw_sgn_ri_ntu_cv",
+              "--ri_model_weights",
+              "output/ntu_ri_cview/model_best.pth.tar",
+              "--test_samples",
+              "10000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "raw_mixformer_ar_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "raw",
+              "--eval_model",
+              "mixformer",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "ar",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/baseline_comparison/exp_20250910_174859_31ed795/artifacts/raw_mixformer_ar_ntu_cv",
+              "--ar_model_weights",
+              "output/ntu_mixformer_ar_cview/model_best.pth.tar",
+              "--test_samples",
+              "10000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "raw_mixformer_ri_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "raw",
+              "--eval_model",
+              "mixformer",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "ri",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/baseline_comparison/exp_20250910_174859_31ed795/artifacts/raw_mixformer_ri_ntu_cv",
+              "--ri_model_weights",
+              "output/ntu_mixformer_ri_cview/model_best.pth.tar",
+              "--test_samples",
+              "10000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "transformer_sgn_ar_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "transformer",
+              "--eval_model",
+              "sgn",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "ar",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/baseline_comparison/exp_20250910_174859_31ed795/artifacts/transformer_sgn_ar_ntu_cv",
+              "--ar_model_weights",
+              "output/ntu_ar_cview/model_best.pth.tar",
+              "--transformer_model_path",
+              "model.pth",
+              "--test_samples",
+              "10000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "transformer_sgn_ri_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "transformer",
+              "--eval_model",
+              "sgn",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "ri",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/baseline_comparison/exp_20250910_174859_31ed795/artifacts/transformer_sgn_ri_ntu_cv",
+              "--ri_model_weights",
+              "output/ntu_ri_cview/model_best.pth.tar",
+              "--transformer_model_path",
+              "model.pth",
+              "--test_samples",
+              "10000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "transformer_mixformer_ar_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "transformer",
+              "--eval_model",
+              "mixformer",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "ar",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/baseline_comparison/exp_20250910_174859_31ed795/artifacts/transformer_mixformer_ar_ntu_cv",
+              "--ar_model_weights",
+              "output/ntu_mixformer_ar_cview/model_best.pth.tar",
+              "--transformer_model_path",
+              "model.pth",
+              "--test_samples",
+              "10000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "transformer_mixformer_ri_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "transformer",
+              "--eval_model",
+              "mixformer",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "ri",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/baseline_comparison/exp_20250910_174859_31ed795/artifacts/transformer_mixformer_ri_ntu_cv",
+              "--ri_model_weights",
+              "output/ntu_mixformer_ri_cview/model_best.pth.tar",
+              "--transformer_model_path",
+              "model.pth",
+              "--test_samples",
+              "10000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "dmr_sgn_ar_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "dmr",
+              "--eval_model",
+              "sgn",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "ar",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/baseline_comparison/exp_20250910_174859_31ed795/artifacts/dmr_sgn_ar_ntu_cv",
+              "--ar_model_weights",
+              "output/ntu_ar_cview/model_best.pth.tar",
+              "--test_samples",
+              "10000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "dmr_sgn_ri_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "dmr",
+              "--eval_model",
+              "sgn",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "ri",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/baseline_comparison/exp_20250910_174859_31ed795/artifacts/dmr_sgn_ri_ntu_cv",
+              "--ri_model_weights",
+              "output/ntu_ri_cview/model_best.pth.tar",
+              "--test_samples",
+              "10000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "dmr_mixformer_ar_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "dmr",
+              "--eval_model",
+              "mixformer",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "ar",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/baseline_comparison/exp_20250910_174859_31ed795/artifacts/dmr_mixformer_ar_ntu_cv",
+              "--ar_model_weights",
+              "output/ntu_mixformer_ar_cview/model_best.pth.tar",
+              "--test_samples",
+              "10000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "dmr_mixformer_ri_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "dmr",
+              "--eval_model",
+              "mixformer",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "ri",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/baseline_comparison/exp_20250910_174859_31ed795/artifacts/dmr_mixformer_ri_ntu_cv",
+              "--ri_model_weights",
+              "output/ntu_mixformer_ri_cview/model_best.pth.tar",
+              "--test_samples",
+              "10000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "pmr_sgn_ar_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "pmr",
+              "--eval_model",
+              "sgn",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "ar",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/baseline_comparison/exp_20250910_174859_31ed795/artifacts/pmr_sgn_ar_ntu_cv",
+              "--ar_model_weights",
+              "output/ntu_ar_cview/model_best.pth.tar",
+              "--test_samples",
+              "10000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "pmr_sgn_ri_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "pmr",
+              "--eval_model",
+              "sgn",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "ri",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/baseline_comparison/exp_20250910_174859_31ed795/artifacts/pmr_sgn_ri_ntu_cv",
+              "--ri_model_weights",
+              "output/ntu_ri_cview/model_best.pth.tar",
+              "--test_samples",
+              "10000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "pmr_mixformer_ar_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "pmr",
+              "--eval_model",
+              "mixformer",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "ar",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/baseline_comparison/exp_20250910_174859_31ed795/artifacts/pmr_mixformer_ar_ntu_cv",
+              "--ar_model_weights",
+              "output/ntu_mixformer_ar_cview/model_best.pth.tar",
+              "--test_samples",
+              "10000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "pmr_mixformer_ri_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "docs/scripts/standalone_eval.py",
+              "--model_type",
+              "pmr",
+              "--eval_model",
+              "mixformer",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--task",
+              "ri",
+              "--batch_size",
+              "32",
+              "--output_dir",
+              "results/experiments/baseline_comparison/exp_20250910_174859_31ed795/artifacts/pmr_mixformer_ri_ntu_cv",
+              "--ri_model_weights",
+              "output/ntu_mixformer_ri_cview/model_best.pth.tar",
+              "--test_samples",
+              "10000"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        }
+      }
+    }
+  },
+  "metrics": {
+    "raw": {
+      "ntu_cv": {}
+    },
+    "aggregate": {}
+  },
+  "duration": 9.84260606765747,
+  "timestamp": "2025-09-10T17:49:09.037455"
+}

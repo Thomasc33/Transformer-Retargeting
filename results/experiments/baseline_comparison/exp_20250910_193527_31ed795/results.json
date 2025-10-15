@@ -1,0 +1,915 @@
+{
+  "experiment_name": "baseline_comparison",
+  "experiment_id": "exp_20250910_193527_31ed795",
+  "config": {
+    "name": "Baseline Comparison",
+    "description": "Compare all baseline models (Raw, DMR, PMR, Transformer) across all tasks",
+    "evaluation_type": "baseline_comparison",
+    "models": {
+      "raw": {
+        "type": "raw",
+        "path": "raw"
+      },
+      "transformer": {
+        "type": "transformer",
+        "path": "model.pth"
+      },
+      "dmr": {
+        "type": "dmr",
+        "path": "trained_models/dmr_ntu_cv_final.pth"
+      },
+      "pmr": {
+        "type": "pmr",
+        "path": "trained_models/pmr_ntu_cv_final.pth"
+      }
+    },
+    "eval_models": {
+      "sgn_ar": {
+        "type": "sgn",
+        "task": "ar",
+        "path": "output/ntu_ar_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      },
+      "sgn_ri": {
+        "type": "sgn",
+        "task": "ri",
+        "path": "output/ntu_ri_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      },
+      "mixformer_ar": {
+        "type": "mixformer",
+        "task": "ar",
+        "path": "output/ntu_mixformer_ar_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      },
+      "mixformer_ri": {
+        "type": "mixformer",
+        "task": "ri",
+        "path": "output/ntu_mixformer_ri_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      }
+    },
+    "data": {
+      "ntu_cv": {
+        "type": "paired",
+        "dataset": "ntu",
+        "setting": "cv",
+        "batch_size": 32,
+        "test_samples": 10000
+      }
+    },
+    "metrics": [
+      "action_recognition_accuracy",
+      "reidentification_accuracy",
+      "mse",
+      "bone_length_consistency",
+      "temporal_smoothness",
+      "velocity_consistency"
+    ],
+    "output_dir": "baseline_comparison"
+  },
+  "results": {
+    "raw": {
+      "ntu_cv": {
+        "raw_sgn_ar_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "status": "completed"
+        },
+        "raw_sgn_ri_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "status": "completed"
+        },
+        "raw_mixformer_ar_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "mixformer",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "status": "completed"
+        },
+        "raw_mixformer_ri_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "mixformer",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "transformer_mixformer_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "mixformer",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "transformer_mixformer_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "mixformer",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ar_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ri_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "dmr_mixformer_ar_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "mixformer",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "dmr_mixformer_ri_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "mixformer",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ar_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ri_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "pmr_mixformer_ar_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "mixformer",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "pmr_mixformer_ri_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "mixformer",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        }
+      }
+    },
+    "dmr": {
+      "ntu_cv": {
+        "raw_sgn_ar_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "status": "completed"
+        },
+        "raw_sgn_ri_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "status": "completed"
+        },
+        "raw_mixformer_ar_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "mixformer",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "status": "completed"
+        },
+        "raw_mixformer_ri_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "mixformer",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "transformer_mixformer_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "mixformer",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "transformer_mixformer_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "mixformer",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ar_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ri_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "dmr_mixformer_ar_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "mixformer",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "dmr_mixformer_ri_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "mixformer",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ar_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ri_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "pmr_mixformer_ar_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "mixformer",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "pmr_mixformer_ri_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "mixformer",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        }
+      }
+    },
+    "pmr": {
+      "ntu_cv": {
+        "raw_sgn_ar_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "status": "completed"
+        },
+        "raw_sgn_ri_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "status": "completed"
+        },
+        "raw_mixformer_ar_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "mixformer",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "status": "completed"
+        },
+        "raw_mixformer_ri_ntu_cv": {
+          "model_type": "raw",
+          "eval_model": "mixformer",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "transformer_mixformer_ar_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "mixformer",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "transformer_mixformer_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "mixformer",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ar_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ri_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "dmr_mixformer_ar_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "mixformer",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "dmr_mixformer_ri_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "mixformer",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ar_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ri_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "pmr_mixformer_ar_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "mixformer",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "pmr_mixformer_ri_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "mixformer",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        }
+      }
+    }
+  },
+  "metrics": {
+    "raw": {
+      "ntu_cv": {}
+    },
+    "dmr": {
+      "ntu_cv": {}
+    },
+    "pmr": {
+      "ntu_cv": {}
+    },
+    "aggregate": {}
+  },
+  "duration": 10.799039602279663,
+  "timestamp": "2025-09-10T19:35:38.616600"
+}

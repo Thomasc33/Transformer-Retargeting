@@ -1,0 +1,185 @@
+{
+  "job_id": "6566954",
+  "experiment_name": "motion_visualizations",
+  "experiment_config": {
+    "name": "Motion Visualizations",
+    "description": "Create animated sequences showing source-to-retargeted transfers, overlays, and key actions",
+    "evaluation_type": "motion_visualization",
+    "models": {
+      "transformer": {
+        "type": "transformer",
+        "path": "model.pth"
+      },
+      "dmr": {
+        "type": "dmr",
+        "path": "trained_models/dmr_ntu_cv_final.pth"
+      },
+      "pmr": {
+        "type": "pmr",
+        "path": "trained_models/pmr_ntu_cv_final.pth"
+      },
+      "raw": {
+        "type": "raw",
+        "path": "raw"
+      }
+    },
+    "data": {
+      "ntu_cv_visualization": {
+        "type": "paired",
+        "dataset": "ntu",
+        "setting": "cv",
+        "batch_size": 1,
+        "test_samples": 50,
+        "selection_criteria": [
+          "high_privacy_utility_tradeoff",
+          "representative_actions",
+          "diverse_subjects",
+          "varying_motion_complexity"
+        ]
+      }
+    },
+    "visualizations": [
+      {
+        "type": "animated_sequences",
+        "description": "Create animated sequences showing source-to-retargeted transfers",
+        "output_formats": [
+          "mp4",
+          "gif"
+        ],
+        "frame_rate": 30,
+        "duration": 5
+      },
+      {
+        "type": "side_by_side_comparison",
+        "description": "Side-by-side comparison of source vs retargeted motions",
+        "output_formats": [
+          "mp4",
+          "png_sequence"
+        ],
+        "include_skeleton_overlay": true
+      },
+      {
+        "type": "overlay_visualization",
+        "description": "Generate overlays of source versus retargeted joint positions",
+        "output_formats": [
+          "png",
+          "svg"
+        ],
+        "transparency_levels": [
+          0.3,
+          0.5,
+          0.7
+        ],
+        "color_coding": {
+          "source": "blue",
+          "retargeted": "red",
+          "overlay": "purple"
+        }
+      },
+      {
+        "type": "trajectory_plots",
+        "description": "Plot joint trajectories over time",
+        "joints_of_interest": [
+          "head",
+          "hands",
+          "feet",
+          "spine"
+        ],
+        "plot_types": [
+          "2d_projection",
+          "3d_trajectory"
+        ],
+        "output_formats": [
+          "png",
+          "pdf"
+        ]
+      },
+      {
+        "type": "joint_velocity_plots",
+        "description": "Visualize joint velocity profiles",
+        "joints_of_interest": [
+          "all_joints",
+          "key_joints"
+        ],
+        "metrics": [
+          "velocity_magnitude",
+          "acceleration"
+        ],
+        "output_formats": [
+          "png",
+          "pdf"
+        ]
+      },
+      {
+        "type": "bone_length_plots",
+        "description": "Visualize bone length consistency over time",
+        "bones_of_interest": [
+          "major_bones",
+          "all_bones"
+        ],
+        "show_consistency_metrics": true,
+        "output_formats": [
+          "png",
+          "pdf"
+        ]
+      },
+      {
+        "type": "privacy_utility_examples",
+        "description": "Visualize key actions with varying privacy-utility tradeoffs",
+        "action_categories": [
+          "high_utility_high_privacy",
+          "high_utility_low_privacy",
+          "low_utility_high_privacy",
+          "balanced_tradeoff"
+        ],
+        "output_formats": [
+          "mp4",
+          "png_grid"
+        ]
+      }
+    ],
+    "analysis": {
+      "motion_quality_assessment": {
+        "description": "Assess visual quality of generated motions",
+        "criteria": [
+          "naturalness",
+          "smoothness",
+          "realism"
+        ]
+      },
+      "visual_artifacts_detection": {
+        "description": "Identify and catalog visual artifacts",
+        "artifact_types": [
+          "jitter",
+          "unnatural_poses",
+          "bone_length_violations"
+        ]
+      },
+      "motion_smoothness_visual": {
+        "description": "Visual assessment of motion smoothness",
+        "metrics": [
+          "temporal_consistency",
+          "velocity_smoothness"
+        ]
+      },
+      "comparative_analysis": {
+        "description": "Compare motion quality across different models",
+        "comparison_types": [
+          "model_comparison",
+          "action_comparison",
+          "subject_comparison"
+        ]
+      }
+    },
+    "output_dir": "motion_visualizations",
+    "interactive_features": {
+      "web_viewer": true,
+      "playback_controls": true,
+      "model_switching": true,
+      "metric_overlay": true
+    }
+  },
+  "script_path": "eval/suite/runners/jobs/motion_visualizations_20250910_175746.sbatch",
+  "submit_time": "2025-09-10T17:57:46.206122",
+  "status": "submitted"
+}

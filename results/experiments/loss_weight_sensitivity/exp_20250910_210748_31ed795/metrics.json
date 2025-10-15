@@ -1,0 +1,12 @@
+{
+  "optimal_weights": {
+    "ntu_cv": {}
+  },
+  "equal_weights": {
+    "ntu_cv": {}
+  },
+  "mse_only": {
+    "ntu_cv": {}
+  },
+  "aggregate": {}
+}

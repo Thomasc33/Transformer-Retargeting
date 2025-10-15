@@ -1,0 +1,27 @@
+{
+  "temporal_30": {
+    "ntu_cv": {}
+  },
+  "temporal_50": {
+    "ntu_cv": {}
+  },
+  "temporal_70": {
+    "ntu_cv": {}
+  },
+  "spatial_30": {
+    "ntu_cv": {}
+  },
+  "spatial_50": {
+    "ntu_cv": {}
+  },
+  "spatial_70": {
+    "ntu_cv": {}
+  },
+  "combined_30_30": {
+    "ntu_cv": {}
+  },
+  "combined_70_70": {
+    "ntu_cv": {}
+  },
+  "aggregate": {}
+}

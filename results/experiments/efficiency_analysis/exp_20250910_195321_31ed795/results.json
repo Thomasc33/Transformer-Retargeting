@@ -1,0 +1,1056 @@
+{
+  "experiment_name": "efficiency_analysis",
+  "experiment_id": "exp_20250910_195321_31ed795",
+  "config": {
+    "name": "Efficiency Analysis",
+    "description": "Measure inference speed and memory requirements",
+    "evaluation_type": "efficiency",
+    "models": {
+      "transformer": {
+        "type": "transformer",
+        "path": "model.pth"
+      },
+      "dmr": {
+        "type": "dmr",
+        "path": "trained_models/dmr_ntu_cv_final.pth"
+      },
+      "pmr": {
+        "type": "pmr",
+        "path": "trained_models/pmr_ntu_cv_final.pth"
+      },
+      "raw": {
+        "type": "raw",
+        "path": "raw"
+      }
+    },
+    "eval_models": {
+      "sgn_ar": {
+        "type": "sgn",
+        "task": "ar",
+        "path": "output/ntu_ar_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      }
+    },
+    "data": {
+      "ntu_cv_small": {
+        "type": "paired",
+        "dataset": "ntu",
+        "setting": "cv",
+        "batch_size": 1,
+        "test_samples": 100
+      },
+      "ntu_cv_batch": {
+        "type": "paired",
+        "dataset": "ntu",
+        "setting": "cv",
+        "batch_size": 32,
+        "test_samples": 1000
+      }
+    },
+    "metrics": [
+      "inference_time_per_sample",
+      "inference_time_per_batch",
+      "memory_usage_peak",
+      "memory_usage_average",
+      "gpu_utilization",
+      "throughput_samples_per_second",
+      "model_size_mb",
+      "flops_count"
+    ],
+    "benchmarks": {
+      "single_sample_timing": true,
+      "batch_processing_timing": true,
+      "memory_profiling": true,
+      "gpu_profiling": true,
+      "model_complexity_analysis": true
+    },
+    "hardware_configs": [
+      {
+        "name": "single_gpu",
+        "gpus": 1,
+        "batch_size": 32
+      },
+      {
+        "name": "cpu_only",
+        "gpus": 0,
+        "batch_size": 8
+      }
+    ],
+    "output_dir": "efficiency_analysis"
+  },
+  "results": {
+    "transformer": {
+      "ntu_cv_small": {
+        "transformer_sgn_ar_ntu_cv_small": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_ar_ntu_cv_batch": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_sgn_ar_ar",
+          "output_dir": "results/experiments/efficiency_analysis/exp_20250910_195321_31ed795/artifacts/transformer_sgn_ar_ntu_cv_batch"
+        },
+        "dmr_sgn_ar_ntu_cv_small": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ar_ntu_cv_batch": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_sgn_ar_ar",
+          "output_dir": "results/experiments/efficiency_analysis/exp_20250910_195321_31ed795/artifacts/dmr_sgn_ar_ntu_cv_batch"
+        },
+        "pmr_sgn_ar_ntu_cv_small": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ar_ntu_cv_batch": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_sgn_ar_ar",
+          "output_dir": "results/experiments/efficiency_analysis/exp_20250910_195321_31ed795/artifacts/pmr_sgn_ar_ntu_cv_batch"
+        },
+        "raw_sgn_ar_ntu_cv_small": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        },
+        "raw_sgn_ar_ntu_cv_batch": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_sgn_ar_ar",
+          "output_dir": "results/experiments/efficiency_analysis/exp_20250910_195321_31ed795/artifacts/raw_sgn_ar_ntu_cv_batch"
+        }
+      },
+      "ntu_cv_batch": {
+        "transformer_sgn_ar_ntu_cv_small": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_ar_ntu_cv_batch": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_sgn_ar_ar",
+          "output_dir": "results/experiments/efficiency_analysis/exp_20250910_195321_31ed795/artifacts/transformer_sgn_ar_ntu_cv_batch"
+        },
+        "dmr_sgn_ar_ntu_cv_small": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ar_ntu_cv_batch": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_sgn_ar_ar",
+          "output_dir": "results/experiments/efficiency_analysis/exp_20250910_195321_31ed795/artifacts/dmr_sgn_ar_ntu_cv_batch"
+        },
+        "pmr_sgn_ar_ntu_cv_small": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ar_ntu_cv_batch": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_sgn_ar_ar",
+          "output_dir": "results/experiments/efficiency_analysis/exp_20250910_195321_31ed795/artifacts/pmr_sgn_ar_ntu_cv_batch"
+        },
+        "raw_sgn_ar_ntu_cv_small": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        },
+        "raw_sgn_ar_ntu_cv_batch": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_sgn_ar_ar",
+          "output_dir": "results/experiments/efficiency_analysis/exp_20250910_195321_31ed795/artifacts/raw_sgn_ar_ntu_cv_batch"
+        }
+      }
+    },
+    "dmr": {
+      "ntu_cv_small": {
+        "transformer_sgn_ar_ntu_cv_small": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_ar_ntu_cv_batch": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_sgn_ar_ar",
+          "output_dir": "results/experiments/efficiency_analysis/exp_20250910_195321_31ed795/artifacts/transformer_sgn_ar_ntu_cv_batch"
+        },
+        "dmr_sgn_ar_ntu_cv_small": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ar_ntu_cv_batch": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_sgn_ar_ar",
+          "output_dir": "results/experiments/efficiency_analysis/exp_20250910_195321_31ed795/artifacts/dmr_sgn_ar_ntu_cv_batch"
+        },
+        "pmr_sgn_ar_ntu_cv_small": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ar_ntu_cv_batch": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_sgn_ar_ar",
+          "output_dir": "results/experiments/efficiency_analysis/exp_20250910_195321_31ed795/artifacts/pmr_sgn_ar_ntu_cv_batch"
+        },
+        "raw_sgn_ar_ntu_cv_small": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        },
+        "raw_sgn_ar_ntu_cv_batch": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_sgn_ar_ar",
+          "output_dir": "results/experiments/efficiency_analysis/exp_20250910_195321_31ed795/artifacts/raw_sgn_ar_ntu_cv_batch"
+        }
+      },
+      "ntu_cv_batch": {
+        "transformer_sgn_ar_ntu_cv_small": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_ar_ntu_cv_batch": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_sgn_ar_ar",
+          "output_dir": "results/experiments/efficiency_analysis/exp_20250910_195321_31ed795/artifacts/transformer_sgn_ar_ntu_cv_batch"
+        },
+        "dmr_sgn_ar_ntu_cv_small": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ar_ntu_cv_batch": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_sgn_ar_ar",
+          "output_dir": "results/experiments/efficiency_analysis/exp_20250910_195321_31ed795/artifacts/dmr_sgn_ar_ntu_cv_batch"
+        },
+        "pmr_sgn_ar_ntu_cv_small": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ar_ntu_cv_batch": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_sgn_ar_ar",
+          "output_dir": "results/experiments/efficiency_analysis/exp_20250910_195321_31ed795/artifacts/pmr_sgn_ar_ntu_cv_batch"
+        },
+        "raw_sgn_ar_ntu_cv_small": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        },
+        "raw_sgn_ar_ntu_cv_batch": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_sgn_ar_ar",
+          "output_dir": "results/experiments/efficiency_analysis/exp_20250910_195321_31ed795/artifacts/raw_sgn_ar_ntu_cv_batch"
+        }
+      }
+    },
+    "pmr": {
+      "ntu_cv_small": {
+        "transformer_sgn_ar_ntu_cv_small": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_ar_ntu_cv_batch": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_sgn_ar_ar",
+          "output_dir": "results/experiments/efficiency_analysis/exp_20250910_195321_31ed795/artifacts/transformer_sgn_ar_ntu_cv_batch"
+        },
+        "dmr_sgn_ar_ntu_cv_small": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ar_ntu_cv_batch": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_sgn_ar_ar",
+          "output_dir": "results/experiments/efficiency_analysis/exp_20250910_195321_31ed795/artifacts/dmr_sgn_ar_ntu_cv_batch"
+        },
+        "pmr_sgn_ar_ntu_cv_small": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ar_ntu_cv_batch": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_sgn_ar_ar",
+          "output_dir": "results/experiments/efficiency_analysis/exp_20250910_195321_31ed795/artifacts/pmr_sgn_ar_ntu_cv_batch"
+        },
+        "raw_sgn_ar_ntu_cv_small": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        },
+        "raw_sgn_ar_ntu_cv_batch": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_sgn_ar_ar",
+          "output_dir": "results/experiments/efficiency_analysis/exp_20250910_195321_31ed795/artifacts/raw_sgn_ar_ntu_cv_batch"
+        }
+      },
+      "ntu_cv_batch": {
+        "transformer_sgn_ar_ntu_cv_small": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_ar_ntu_cv_batch": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_sgn_ar_ar",
+          "output_dir": "results/experiments/efficiency_analysis/exp_20250910_195321_31ed795/artifacts/transformer_sgn_ar_ntu_cv_batch"
+        },
+        "dmr_sgn_ar_ntu_cv_small": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ar_ntu_cv_batch": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_sgn_ar_ar",
+          "output_dir": "results/experiments/efficiency_analysis/exp_20250910_195321_31ed795/artifacts/dmr_sgn_ar_ntu_cv_batch"
+        },
+        "pmr_sgn_ar_ntu_cv_small": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ar_ntu_cv_batch": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_sgn_ar_ar",
+          "output_dir": "results/experiments/efficiency_analysis/exp_20250910_195321_31ed795/artifacts/pmr_sgn_ar_ntu_cv_batch"
+        },
+        "raw_sgn_ar_ntu_cv_small": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        },
+        "raw_sgn_ar_ntu_cv_batch": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_sgn_ar_ar",
+          "output_dir": "results/experiments/efficiency_analysis/exp_20250910_195321_31ed795/artifacts/raw_sgn_ar_ntu_cv_batch"
+        }
+      }
+    },
+    "raw": {
+      "ntu_cv_small": {
+        "transformer_sgn_ar_ntu_cv_small": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_ar_ntu_cv_batch": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_sgn_ar_ar",
+          "output_dir": "results/experiments/efficiency_analysis/exp_20250910_195321_31ed795/artifacts/transformer_sgn_ar_ntu_cv_batch"
+        },
+        "dmr_sgn_ar_ntu_cv_small": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ar_ntu_cv_batch": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_sgn_ar_ar",
+          "output_dir": "results/experiments/efficiency_analysis/exp_20250910_195321_31ed795/artifacts/dmr_sgn_ar_ntu_cv_batch"
+        },
+        "pmr_sgn_ar_ntu_cv_small": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ar_ntu_cv_batch": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_sgn_ar_ar",
+          "output_dir": "results/experiments/efficiency_analysis/exp_20250910_195321_31ed795/artifacts/pmr_sgn_ar_ntu_cv_batch"
+        },
+        "raw_sgn_ar_ntu_cv_small": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        },
+        "raw_sgn_ar_ntu_cv_batch": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_sgn_ar_ar",
+          "output_dir": "results/experiments/efficiency_analysis/exp_20250910_195321_31ed795/artifacts/raw_sgn_ar_ntu_cv_batch"
+        }
+      },
+      "ntu_cv_batch": {
+        "transformer_sgn_ar_ntu_cv_small": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        },
+        "transformer_sgn_ar_ntu_cv_batch": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "transformer_sgn_ar_ar",
+          "output_dir": "results/experiments/efficiency_analysis/exp_20250910_195321_31ed795/artifacts/transformer_sgn_ar_ntu_cv_batch"
+        },
+        "dmr_sgn_ar_ntu_cv_small": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ar_ntu_cv_batch": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "dmr_sgn_ar_ar",
+          "output_dir": "results/experiments/efficiency_analysis/exp_20250910_195321_31ed795/artifacts/dmr_sgn_ar_ntu_cv_batch"
+        },
+        "pmr_sgn_ar_ntu_cv_small": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.72,
+            "ri": 0.68,
+            "gc": 0.62
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.18,
+            "velocity_consistency": 0.82
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.59,
+            "joint_angle_limits": 0.61,
+            "temporal_smoothness": 0.82,
+            "foot_contact_consistency": 0.5760000000000001,
+            "fid_score": 1.7999999999999998
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ar_ntu_cv_batch": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "pmr_sgn_ar_ar",
+          "output_dir": "results/experiments/efficiency_analysis/exp_20250910_195321_31ed795/artifacts/pmr_sgn_ar_ntu_cv_batch"
+        },
+        "raw_sgn_ar_ntu_cv_small": {
+          "model_type": "raw",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.85,
+            "ri": 0.82,
+            "gc": 0.78
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.05,
+            "velocity_consistency": 0.92
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.85,
+            "joint_angle_limits": 0.8049999999999999,
+            "temporal_smoothness": 0.92,
+            "foot_contact_consistency": 0.81,
+            "fid_score": 0.5
+          },
+          "status": "completed"
+        },
+        "raw_sgn_ar_ntu_cv_batch": {
+          "status": "skipped_duplicate_combo",
+          "reuse_from": "raw_sgn_ar_ar",
+          "output_dir": "results/experiments/efficiency_analysis/exp_20250910_195321_31ed795/artifacts/raw_sgn_ar_ntu_cv_batch"
+        }
+      }
+    }
+  },
+  "metrics": {
+    "transformer": {
+      "ntu_cv_small": {},
+      "ntu_cv_batch": {}
+    },
+    "dmr": {
+      "ntu_cv_small": {},
+      "ntu_cv_batch": {}
+    },
+    "pmr": {
+      "ntu_cv_small": {},
+      "ntu_cv_batch": {}
+    },
+    "raw": {
+      "ntu_cv_small": {},
+      "ntu_cv_batch": {}
+    },
+    "aggregate": {}
+  },
+  "duration": 20.708900928497314,
+  "timestamp": "2025-09-10T19:53:42.657059"
+}

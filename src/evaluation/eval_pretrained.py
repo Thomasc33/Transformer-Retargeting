@@ -25,9 +25,9 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 # Import necessary modules
-from pretrain import SkeletonAutoEncoder
-from data import get_cross_data, load_data
-from eval_model import (
+from src.training.pretrain import SkeletonAutoEncoder
+from src.data import get_cross_data, load_data
+from src.evaluation.eval_model_main import (
     calculate_bone_length_consistency, calculate_joint_angle_limits,
     calculate_temporal_smoothness, calculate_velocity_consistency,
     calculate_foot_contact_consistency, calculate_fid_for_skeletons,

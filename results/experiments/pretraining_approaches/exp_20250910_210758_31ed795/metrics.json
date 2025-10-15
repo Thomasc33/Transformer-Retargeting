@@ -1,0 +1,12 @@
+{
+  "no_pretraining": {
+    "ntu_cv": {}
+  },
+  "frozen_encoder": {
+    "ntu_cv": {}
+  },
+  "fine_tuned_encoder": {
+    "ntu_cv": {}
+  },
+  "aggregate": {}
+}

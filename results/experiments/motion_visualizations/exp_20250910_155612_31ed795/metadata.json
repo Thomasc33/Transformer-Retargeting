@@ -1,0 +1,8 @@
+{
+  "experiment_name": "motion_visualizations",
+  "experiment_id": "exp_20250910_155612_31ed795",
+  "created_at": "2025-09-10T15:56:12.234811",
+  "git_commit": "31ed795",
+  "slurm_job_id": "6566508",
+  "slurm_script_path": "motion_visualizations"
+}

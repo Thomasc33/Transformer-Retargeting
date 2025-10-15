@@ -1,0 +1,52 @@
+{
+  "job_id": "6566946",
+  "experiment_name": "loss_weight_sensitivity",
+  "experiment_config": {
+    "name": "Loss Weight Sensitivity",
+    "description": "Hyperparameter optimization of loss weights (completed with Optuna)",
+    "evaluation_type": "weight_sensitivity",
+    "completed": true,
+    "models": {
+      "optimal_weights": {
+        "type": "transformer",
+        "path": "model.pth"
+      },
+      "equal_weights": {
+        "type": "transformer",
+        "path": "output/ntu_equal_weights_cv/model_best.pth.tar"
+      },
+      "mse_only": {
+        "type": "transformer",
+        "path": "output/ntu_mse_only_cv/model_best.pth.tar"
+      }
+    },
+    "eval_models": {
+      "sgn_ar": {
+        "type": "sgn",
+        "task": "ar",
+        "path": "output/ntu_ar_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      }
+    },
+    "data": {
+      "ntu_cv": {
+        "type": "paired",
+        "dataset": "ntu",
+        "setting": "cv",
+        "batch_size": 32,
+        "test_samples": 2000
+      }
+    },
+    "metrics": [
+      "action_recognition_accuracy",
+      "reidentification_accuracy",
+      "mse",
+      "physical_plausibility_score"
+    ],
+    "output_dir": "loss_weight_sensitivity",
+    "notes": "This experiment was completed using Optuna optimization. Results show optimal weights for each loss component."
+  },
+  "script_path": "eval/suite/runners/jobs/loss_weight_sensitivity_20250910_175745.sbatch",
+  "submit_time": "2025-09-10T17:57:45.997718",
+  "status": "submitted"
+}

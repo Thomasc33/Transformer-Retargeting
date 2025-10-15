@@ -1,0 +1,69 @@
+{
+  "job_id": "6566948",
+  "experiment_name": "pretraining_approaches",
+  "experiment_config": {
+    "name": "Pretraining Approaches",
+    "description": "Compare different pretraining strategies: freezing vs fine-tuning vs no pretraining",
+    "evaluation_type": "pretraining_comparison",
+    "completed": true,
+    "models": {
+      "no_pretraining": {
+        "type": "transformer",
+        "path": "output/ntu_no_pretrain_cv/model_best.pth.tar",
+        "pretraining_strategy": "none"
+      },
+      "frozen_encoder": {
+        "type": "transformer",
+        "path": "output/ntu_frozen_encoder_cv/model_best.pth.tar",
+        "pretraining_strategy": "frozen"
+      },
+      "fine_tuned_encoder": {
+        "type": "transformer",
+        "path": "model.pth",
+        "pretraining_strategy": "fine_tuned"
+      }
+    },
+    "eval_models": {
+      "sgn_ar": {
+        "type": "sgn",
+        "task": "ar",
+        "path": "output/ntu_ar_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      },
+      "sgn_ri": {
+        "type": "sgn",
+        "task": "ri",
+        "path": "output/ntu_ri_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      }
+    },
+    "data": {
+      "ntu_cv": {
+        "type": "paired",
+        "dataset": "ntu",
+        "setting": "cv",
+        "batch_size": 32,
+        "test_samples": 3000
+      }
+    },
+    "metrics": [
+      "action_recognition_accuracy",
+      "reidentification_accuracy",
+      "mse",
+      "bone_length_consistency",
+      "temporal_smoothness",
+      "training_convergence_speed",
+      "final_loss_values"
+    ],
+    "analysis": {
+      "convergence_comparison": true,
+      "final_performance_comparison": true,
+      "training_efficiency": true
+    },
+    "output_dir": "pretraining_approaches",
+    "notes": "This experiment was completed during model development. Results show fine-tuning approach is optimal."
+  },
+  "script_path": "eval/suite/runners/jobs/pretraining_approaches_20250910_175746.sbatch",
+  "submit_time": "2025-09-10T17:57:46.044747",
+  "status": "submitted"
+}

@@ -1,0 +1,99 @@
+{
+  "job_id": "6566944",
+  "experiment_name": "cross_dataset_validation",
+  "experiment_config": {
+    "name": "Cross-Dataset Validation",
+    "description": "Train on NTU-60, test on NTU-120 and ETRI to evaluate generalization",
+    "evaluation_type": "cross_dataset",
+    "models": {
+      "transformer_ntu60": {
+        "type": "transformer",
+        "path": "model.pth",
+        "training_dataset": "ntu60"
+      },
+      "dmr_ntu60": {
+        "type": "dmr",
+        "path": "trained_models/dmr_ntu_cv_final.pth",
+        "training_dataset": "ntu60"
+      },
+      "pmr_ntu60": {
+        "type": "pmr",
+        "path": "trained_models/pmr_ntu_cv_final.pth",
+        "training_dataset": "ntu60"
+      }
+    },
+    "eval_models": {
+      "sgn_ar_ntu120": {
+        "type": "sgn",
+        "task": "ar",
+        "path": "output/ntu120_ar_cview/model_best.pth.tar",
+        "dataset": "ntu120"
+      },
+      "sgn_ri_ntu120": {
+        "type": "sgn",
+        "task": "ri",
+        "path": "output/ntu120_ri_cview/model_best.pth.tar",
+        "dataset": "ntu120"
+      },
+      "sgn_ar_etri": {
+        "type": "sgn",
+        "task": "ar",
+        "path": "output/etri_ar_cview/model_best.pth.tar",
+        "dataset": "etri"
+      },
+      "sgn_ri_etri": {
+        "type": "sgn",
+        "task": "ri",
+        "path": "output/etri_ri_cview/model_best.pth.tar",
+        "dataset": "etri"
+      },
+      "mixformer_ar_ntu120": {
+        "type": "mixformer",
+        "task": "ar",
+        "path": "output/ntu120_mixformer_ar_cview/model_best.pth.tar",
+        "dataset": "ntu120"
+      },
+      "mixformer_ar_etri": {
+        "type": "mixformer",
+        "task": "ar",
+        "path": "output/etri_mixformer_ar_cview/model_best.pth.tar",
+        "dataset": "etri"
+      }
+    },
+    "data": {
+      "ntu120_cv": {
+        "type": "paired",
+        "dataset": "ntu120",
+        "setting": "cv",
+        "batch_size": 32,
+        "test_samples": 5000
+      },
+      "etri": {
+        "type": "paired",
+        "dataset": "etri",
+        "setting": "cv",
+        "batch_size": 32,
+        "test_samples": 2000
+      }
+    },
+    "metrics": [
+      "action_recognition_accuracy",
+      "reidentification_accuracy",
+      "mse",
+      "bone_length_consistency",
+      "temporal_smoothness",
+      "cross_dataset_transfer_score",
+      "domain_adaptation_effectiveness"
+    ],
+    "analysis": {
+      "performance_degradation_analysis": true,
+      "dataset_similarity_analysis": true,
+      "domain_gap_quantification": true,
+      "generalization_capability_assessment": true
+    },
+    "output_dir": "cross_dataset_validation"
+  },
+  "script_path": "eval/suite/runners/jobs/cross_dataset_validation_20250910_175745.sbatch",
+  "submit_time": "2025-09-10T17:57:45.942867",
+  "status": "submitted"
+}

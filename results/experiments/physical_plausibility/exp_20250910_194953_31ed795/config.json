@@ -1,0 +1,46 @@
+{
+  "name": "Physical Plausibility",
+  "description": "Evaluate all physical plausibility metrics (BLC, JAL, TS, VC, FCC, FID)",
+  "evaluation_type": "physical_plausibility",
+  "models": {
+    "transformer": {
+      "type": "transformer",
+      "path": "model.pth"
+    },
+    "dmr": {
+      "type": "dmr",
+      "path": "trained_models/dmr_ntu_cv_final.pth"
+    },
+    "pmr": {
+      "type": "pmr",
+      "path": "trained_models/pmr_ntu_cv_final.pth"
+    }
+  },
+  "eval_models": {
+    "sgn_ar": {
+      "type": "sgn",
+      "task": "ar",
+      "path": "output/ntu_ar_cview/model_best.pth.tar",
+      "dataset": "ntu"
+    }
+  },
+  "data": {
+    "ntu_cv": {
+      "type": "paired",
+      "dataset": "ntu",
+      "setting": "cv",
+      "batch_size": 16,
+      "test_samples": 2000
+    }
+  },
+  "metrics": [
+    "bone_length_consistency",
+    "joint_angle_limits",
+    "temporal_smoothness",
+    "velocity_consistency",
+    "foot_contact_consistency",
+    "fid_score",
+    "mse"
+  ],
+  "output_dir": "physical_plausibility"
+}

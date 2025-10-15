@@ -1,0 +1,283 @@
+# Comprehensive Experiment Configuration
+# Based on experiments.md
+
+# Global settings
+global:
+  results_dir: "results"
+  cache_dir: "results/cache"
+  random_seed: 42
+  device: "cuda"
+  num_workers: 4
+
+# Primary Evaluation Experiments (Section 4 of experiments.md)
+primary_experiments:
+  privacy_utility_sgn:
+    name: "Privacy vs Utility - SGN"
+    description: "Evaluate privacy-utility tradeoff using SGN for AR, RI, and GC tasks"
+    priority: 1
+    estimated_time: "4 hours"
+
+  privacy_utility_mixformer:
+    name: "Privacy vs Utility - MixFormer"
+    description: "Evaluate privacy-utility tradeoff using MixFormer for AR, RI, and GC tasks"
+    priority: 1
+    estimated_time: "4 hours"
+
+  baseline_comparison:
+    name: "Baseline Comparison"
+    description: "Compare all baseline models across all tasks"
+    priority: 1
+    estimated_time: "6 hours"
+
+  physical_plausibility:
+    name: "Physical Plausibility"
+    description: "Comprehensive physical plausibility evaluation"
+    priority: 1
+    estimated_time: "3 hours"
+
+# Loss Function Analysis (Section 3 of experiments.md)
+loss_analysis_experiments:
+  loss_ablation:
+    name: "Loss Function Ablation"
+    description: "Single loss component ablation studies"
+    priority: 2
+    estimated_time: "8 hours"
+    components:
+      - "bone_length"
+      - "foot_contact"
+      - "joint_limit"
+      - "fid_velocity"
+      - "end_effector"
+      - "smoothing"
+
+  loss_weight_sensitivity:
+    name: "Loss Weight Sensitivity"
+    description: "Hyperparameter optimization of loss weights"
+    priority: 2
+    estimated_time: "12 hours"
+    completed: true  # Already done with Optuna
+
+# Pretraining Strategy Analysis (Section 2 of experiments.md)
+pretraining_experiments:
+  masking_configurations:
+    name: "Masking Configurations"
+    description: "Test different temporal and spatial masking ratios"
+    priority: 2
+    estimated_time: "10 hours"
+    temporal_ratios: [0.3, 0.5, 0.7]
+    spatial_ratios: [0.3, 0.5, 0.7]
+    completed: true  # Already done
+
+  pretraining_approaches:
+    name: "Pretraining Approaches"
+    description: "Compare different pretraining strategies"
+    priority: 2
+    estimated_time: "6 hours"
+    approaches:
+      - "no_pretraining"
+      - "frozen_encoder"
+      - "fine_tuned_encoder"
+    completed: true  # Already done
+
+# Robustness Analysis (Section 5 of experiments.md)
+robustness_experiments:
+  training_stability:
+    name: "Training Stability"
+    description: "Repeat key experiments with different random seeds"
+    priority: 3
+    estimated_time: "20 hours"
+    num_seeds: 5
+    seeds: [42, 123, 456, 789, 999]
+
+  teacher_forcing_analysis:
+    name: "Teacher Forcing Analysis"
+    description: "Compare different teacher forcing decay schedules"
+    priority: 3
+    estimated_time: "8 hours"
+    schedules:
+      - "linear"
+      - "exponential"
+      - "step"
+      - "no_decay"
+
+  per_class_analysis:
+    name: "Per-Class Performance"
+    description: "Analyze performance for each action class"
+    priority: 3
+    estimated_time: "4 hours"
+
+  per_subject_analysis:
+    name: "Per-Subject Anonymization"
+    description: "Analyze anonymization effectiveness per subject"
+    priority: 3
+    estimated_time: "4 hours"
+
+# Generalization & Efficiency (Section 6 of experiments.md)
+generalization_experiments:
+  cross_dataset_validation:
+    name: "Cross-Dataset Validation"
+    description: "Train on NTU-60, test on NTU-120 and ETRI"
+    priority: 2
+    estimated_time: "6 hours"
+
+  efficiency_analysis:
+    name: "Efficiency Analysis"
+    description: "Measure inference speed and memory requirements"
+    priority: 3
+    estimated_time: "2 hours"
+
+# Qualitative Analysis (Section 7 of experiments.md)
+qualitative_experiments:
+  motion_visualizations:
+    name: "Motion Visualizations"
+    description: "Create animated sequences and overlays"
+    priority: 4
+    estimated_time: "4 hours"
+
+  attention_visualization:
+    name: "Attention Visualization"
+    description: "Create attention heatmaps and analysis"
+    priority: 4
+    estimated_time: "3 hours"
+
+# Experiment Sets for Easy Execution
+experiment_sets:
+  critical:
+    description: "Critical experiments that must be completed"
+    experiments:
+      - "privacy_utility_sgn"
+      - "privacy_utility_mixformer"
+      - "baseline_comparison"
+      - "physical_plausibility"
+    estimated_time: "17 hours"
+
+  complete:
+    description: "All experiments from experiments.md"
+    experiments:
+      # Primary Evaluation (Section 4)
+      - "privacy_utility_sgn"
+      - "privacy_utility_mixformer"
+      - "baseline_comparison"
+      - "physical_plausibility"
+      - "cross_dataset_validation"
+      # Loss Analysis (Section 3)
+      - "loss_ablation"
+      - "loss_weight_sensitivity"
+      # Pretraining Analysis (Section 2)
+      - "masking_configurations"
+      - "pretraining_approaches"
+      # Robustness Analysis (Section 5)
+      - "training_stability"
+      - "teacher_forcing_analysis"
+      - "per_class_analysis"
+      - "per_subject_analysis"
+      # Generalization & Efficiency (Section 6)
+      - "efficiency_analysis"
+      # Qualitative Analysis (Section 7)
+      - "motion_visualizations"
+      - "attention_visualization"
+    estimated_time: "85 hours"
+
+  quick:
+    description: "Quick experiments for testing"
+    experiments:
+      - "baseline_comparison"
+      - "physical_plausibility"
+    estimated_time: "9 hours"
+
+  paper_ready:
+    description: "Experiments needed for paper submission"
+    experiments:
+      # Core evaluation
+      - "privacy_utility_sgn"
+      - "privacy_utility_mixformer"
+      - "baseline_comparison"
+      - "physical_plausibility"
+      # Generalization
+      - "cross_dataset_validation"
+      # Analysis
+      - "loss_ablation"
+      - "per_class_analysis"
+      - "per_subject_analysis"
+      # Efficiency
+      - "efficiency_analysis"
+      # Qualitative
+      - "motion_visualizations"
+    estimated_time: "50 hours"
+
+# HPC Configuration (based on train.bash)
+hpc:
+  default_partition: "GPU"
+  default_time: "240:00:00"
+  default_nodes: 1
+  default_ntasks_per_node: 4
+  default_gres: "gpu:4"
+  default_mem: "200GB"
+
+  # Job templates for different experiment types
+  job_templates:
+    quick:
+      time: "4:00:00"
+      mem: "64GB"
+      gres: "gpu:1"
+      ntasks_per_node: 1
+    standard:
+      time: "12:00:00"
+      mem: "128GB"
+      gres: "gpu:2"
+      ntasks_per_node: 2
+    long:
+      time: "48:00:00"
+      mem: "200GB"
+      gres: "gpu:4"
+      ntasks_per_node: 4
+    multi_seed:
+      time: "72:00:00"
+      mem: "200GB"
+      gres: "gpu:4"
+      ntasks_per_node: 4
+      array: "1-5"
+
+# Visualization Configuration
+visualization:
+  default_style: "seaborn-v0_8"
+  figure_size: [12, 8]
+  dpi: 300
+  formats: ["png", "pdf"]
+
+  # Color schemes for different model types
+  colors:
+    raw: "#1f77b4"
+    transformer: "#ff7f0e"
+    dmr: "#2ca02c"
+    pmr: "#d62728"
+
+  # Plot types for different metrics
+  plot_types:
+    accuracy: "bar"
+    mse: "line"
+    physical_metrics: "radar"
+    comparison: "heatmap"
+
+# Report Configuration
+reporting:
+  template_dir: "evaluation_suite/reports/templates"
+  output_dir: "evaluation_suite/reports/outputs"
+
+  # Report types
+  types:
+    executive_summary:
+      template: "executive_summary.tex"
+      include_plots: true
+      max_pages: 4
+
+    technical_report:
+      template: "technical_report.tex"
+      include_plots: true
+      include_tables: true
+      include_code: false
+
+    comparison_report:
+      template: "comparison_report.tex"
+      focus: "model_comparison"
+      include_statistical_tests: true

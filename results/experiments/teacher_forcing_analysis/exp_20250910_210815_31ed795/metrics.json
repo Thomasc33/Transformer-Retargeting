@@ -1,0 +1,15 @@
+{
+  "linear_decay": {
+    "ntu_cv": {}
+  },
+  "exponential_decay": {
+    "ntu_cv": {}
+  },
+  "step_decay": {
+    "ntu_cv": {}
+  },
+  "no_decay": {
+    "ntu_cv": {}
+  },
+  "aggregate": {}
+}

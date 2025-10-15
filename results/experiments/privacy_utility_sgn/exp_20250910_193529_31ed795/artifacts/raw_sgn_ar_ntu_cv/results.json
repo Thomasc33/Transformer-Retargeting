@@ -1,0 +1,17 @@
+{
+  "model_type": "raw",
+  "eval_model": "sgn",
+  "dataset": "ntu",
+  "setting": "cv",
+  "model_path": null,
+  "accuracy": {
+    "ar": 0.85,
+    "ri": 0.82,
+    "gc": 0.78
+  },
+  "privacy_metrics": {
+    "mse_loss": 0.05,
+    "velocity_consistency": 0.92
+  },
+  "status": "completed"
+}

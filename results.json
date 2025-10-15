@@ -1,0 +1,43 @@
+{
+  "project": {
+    "name": "Transformer Motion Retargeting",
+    "description": "Privacy-preserving motion retargeting using transformers",
+    "status": "retraining_required",
+    "last_updated": "2025-10-15T00:00:00"
+  },
+  "models": {
+    "mixformer": {
+      "ntu_cv": {
+        "status": "verified_working",
+        "ar_accuracy": 0.74,
+        "ri_accuracy": 0.86,
+        "samples": 1000
+      }
+    },
+    "sgn": {
+      "ntu_cv": {
+        "status": "verified_working",
+        "ar_accuracy": 0.90,
+        "ri_accuracy": 0.82,
+        "samples": 1000
+      }
+    },
+    "tmr": {
+      "ntu_cv": {
+        "status": "broken_needs_retraining",
+        "ar_accuracy": 0.0,
+        "privacy_score": 0.94,
+        "samples": 1000,
+        "issue": "copying_input_identity_function"
+      }
+    }
+  },
+  "experiments": {},
+  "visualizations": {},
+  "status": {
+    "baseline_models": "verified_working",
+    "tmr_model": "broken_needs_retraining",
+    "retraining_plan": "created",
+    "next_step": "implement_cooperative_ar_loss"
+  }
+}

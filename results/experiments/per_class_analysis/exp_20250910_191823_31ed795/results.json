@@ -1,0 +1,263 @@
+{
+  "experiment_name": "per_class_analysis",
+  "experiment_id": "exp_20250910_191823_31ed795",
+  "config": {
+    "name": "Per-Class Analysis",
+    "description": "Analyze performance for each action class",
+    "evaluation_type": "per_class",
+    "models": {
+      "transformer": {
+        "type": "transformer",
+        "path": "model.pth"
+      },
+      "dmr": {
+        "type": "dmr",
+        "path": "trained_models/dmr_ntu_cv_final.pth"
+      },
+      "pmr": {
+        "type": "pmr",
+        "path": "trained_models/pmr_ntu_cv_final.pth"
+      }
+    },
+    "eval_models": {
+      "sgn_ar": {
+        "type": "sgn",
+        "task": "ar",
+        "path": "output/ntu_ar_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      }
+    },
+    "data": {
+      "ntu_cv": {
+        "type": "paired",
+        "dataset": "ntu",
+        "setting": "cv",
+        "batch_size": 32,
+        "test_samples": 5000
+      }
+    },
+    "metrics": [
+      "per_class_accuracy",
+      "per_class_anonymization",
+      "class_confusion_matrix",
+      "difficult_classes"
+    ],
+    "analysis": {
+      "class_difficulty_ranking": true,
+      "confusion_matrix_visualization": true,
+      "error_analysis": true
+    },
+    "output_dir": "per_class_analysis"
+  },
+  "results": {
+    "dmr": {
+      "ntu_cv": {
+        "transformer_sgn_ar_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "/users/tcarr23/Transformer-Retargeting/simple_eval_working.py",
+              "--model-type",
+              "transformer",
+              "--eval-model",
+              "sgn",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--output-dir",
+              "results/experiments/per_class_analysis/exp_20250910_191823_31ed795/artifacts/transformer_sgn_ar_ntu_cv",
+              "--model-path",
+              "model.pth"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/simple_eval_working.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "dmr_sgn_ar_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "/users/tcarr23/Transformer-Retargeting/simple_eval_working.py",
+              "--model-type",
+              "dmr",
+              "--eval-model",
+              "sgn",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--output-dir",
+              "results/experiments/per_class_analysis/exp_20250910_191823_31ed795/artifacts/dmr_sgn_ar_ntu_cv"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/simple_eval_working.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "pmr_sgn_ar_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "/users/tcarr23/Transformer-Retargeting/simple_eval_working.py",
+              "--model-type",
+              "pmr",
+              "--eval-model",
+              "sgn",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--output-dir",
+              "results/experiments/per_class_analysis/exp_20250910_191823_31ed795/artifacts/pmr_sgn_ar_ntu_cv"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/simple_eval_working.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        }
+      }
+    },
+    "pmr": {
+      "ntu_cv": {
+        "transformer_sgn_ar_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "/users/tcarr23/Transformer-Retargeting/simple_eval_working.py",
+              "--model-type",
+              "transformer",
+              "--eval-model",
+              "sgn",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--output-dir",
+              "results/experiments/per_class_analysis/exp_20250910_191823_31ed795/artifacts/transformer_sgn_ar_ntu_cv",
+              "--model-path",
+              "model.pth"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/simple_eval_working.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "dmr_sgn_ar_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "/users/tcarr23/Transformer-Retargeting/simple_eval_working.py",
+              "--model-type",
+              "dmr",
+              "--eval-model",
+              "sgn",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--output-dir",
+              "results/experiments/per_class_analysis/exp_20250910_191823_31ed795/artifacts/dmr_sgn_ar_ntu_cv"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/simple_eval_working.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        },
+        "pmr_sgn_ar_ntu_cv": {
+          "status": "placeholder",
+          "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+          "context": {
+            "cmd": [
+              "python",
+              "/users/tcarr23/Transformer-Retargeting/simple_eval_working.py",
+              "--model-type",
+              "pmr",
+              "--eval-model",
+              "sgn",
+              "--dataset",
+              "ntu",
+              "--setting",
+              "cv",
+              "--output-dir",
+              "results/experiments/per_class_analysis/exp_20250910_191823_31ed795/artifacts/pmr_sgn_ar_ntu_cv"
+            ],
+            "returncode": 2,
+            "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/simple_eval_working.py': [Errno 2] No such file or directory\n"
+          },
+          "metrics": {
+            "action_recognition": {
+              "accuracy": 0.0
+            },
+            "reidentification": {
+              "identity_accuracy": 0.0,
+              "anonymization_rate": 100.0
+            }
+          }
+        }
+      }
+    }
+  },
+  "metrics": {
+    "dmr": {
+      "ntu_cv": {}
+    },
+    "pmr": {
+      "ntu_cv": {}
+    },
+    "aggregate": {}
+  },
+  "duration": 10.890097856521606,
+  "timestamp": "2025-09-10T19:18:34.827911"
+}

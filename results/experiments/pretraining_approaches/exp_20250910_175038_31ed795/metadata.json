@@ -1,0 +1,8 @@
+{
+  "experiment_name": "pretraining_approaches",
+  "experiment_id": "exp_20250910_175038_31ed795",
+  "created_at": "2025-09-10T17:50:38.844702",
+  "git_commit": "31ed795",
+  "slurm_job_id": "6566796",
+  "slurm_script_path": "pretraining_approaches"
+}

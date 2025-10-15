@@ -1,0 +1,39 @@
+{
+  "status": "placeholder",
+  "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+  "context": {
+    "cmd": [
+      "python",
+      "docs/scripts/standalone_eval.py",
+      "--model_type",
+      "pmr",
+      "--eval_model",
+      "sgn",
+      "--dataset",
+      "ntu",
+      "--setting",
+      "cv",
+      "--task",
+      "ar",
+      "--batch_size",
+      "32",
+      "--output_dir",
+      "results/experiments/baseline_comparison/exp_20250910_174859_31ed795/artifacts/pmr_sgn_ar_ntu_cv",
+      "--ar_model_weights",
+      "output/ntu_ar_cview/model_best.pth.tar",
+      "--test_samples",
+      "10000"
+    ],
+    "returncode": 2,
+    "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/docs/scripts/standalone_eval.py': [Errno 2] No such file or directory\n"
+  },
+  "metrics": {
+    "action_recognition": {
+      "accuracy": 0.0
+    },
+    "reidentification": {
+      "identity_accuracy": 0.0,
+      "anonymization_rate": 100.0
+    }
+  }
+}

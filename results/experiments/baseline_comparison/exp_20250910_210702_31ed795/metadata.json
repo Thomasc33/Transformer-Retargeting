@@ -1,0 +1,8 @@
+{
+  "experiment_name": "baseline_comparison",
+  "experiment_id": "exp_20250910_210702_31ed795",
+  "created_at": "2025-09-10T21:07:02.503802",
+  "git_commit": "31ed795",
+  "slurm_job_id": "6569721",
+  "slurm_script_path": "eval-baseline_comparison"
+}

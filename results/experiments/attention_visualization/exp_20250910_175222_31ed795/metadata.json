@@ -1,0 +1,8 @@
+{
+  "experiment_name": "attention_visualization",
+  "experiment_id": "exp_20250910_175222_31ed795",
+  "created_at": "2025-09-10T17:52:22.029324",
+  "git_commit": "31ed795",
+  "slurm_job_id": "6566803",
+  "slurm_script_path": "attention_visualization"
+}

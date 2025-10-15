@@ -1,0 +1,85 @@
+{
+  "experiment_name": "attention_visualization",
+  "experiment_id": "exp_20250910_210846_31ed795",
+  "config": {
+    "name": "Attention Visualization",
+    "description": "Create attention heatmaps and analysis",
+    "evaluation_type": "attention_visualization",
+    "models": {
+      "transformer": {
+        "type": "transformer",
+        "path": "model.pth"
+      }
+    },
+    "eval_models": {
+      "sgn_ar": {
+        "type": "sgn",
+        "task": "ar",
+        "path": "output/ntu_ar_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      }
+    },
+    "data": {
+      "ntu_cv_attention": {
+        "type": "paired",
+        "dataset": "ntu",
+        "setting": "cv",
+        "batch_size": 1,
+        "test_samples": 10
+      }
+    },
+    "visualizations": [
+      "encoder_attention_maps",
+      "decoder_attention_maps",
+      "cross_attention_maps",
+      "attention_evolution_over_time",
+      "joint_attention_patterns",
+      "temporal_attention_patterns"
+    ],
+    "analysis": {
+      "attention_pattern_analysis": true,
+      "important_joints_identification": true,
+      "temporal_focus_analysis": true,
+      "attention_consistency_analysis": true
+    },
+    "output_dir": "attention_visualization"
+  },
+  "results": {
+    "transformer": {
+      "ntu_cv_attention": {
+        "transformer_sgn_ar_ntu_cv_attention": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "physical_metrics": {
+            "bone_length_consistency": 0.6499999999999999,
+            "joint_angle_limits": 0.655,
+            "temporal_smoothness": 0.85,
+            "foot_contact_consistency": 0.63,
+            "fid_score": 1.5
+          },
+          "status": "completed"
+        }
+      }
+    }
+  },
+  "metrics": {
+    "transformer": {
+      "ntu_cv_attention": {}
+    },
+    "aggregate": {}
+  },
+  "duration": 6.0121965408325195,
+  "timestamp": "2025-09-10T21:08:52.421984"
+}

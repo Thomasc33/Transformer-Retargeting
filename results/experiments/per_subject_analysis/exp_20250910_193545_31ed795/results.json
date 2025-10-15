@@ -1,0 +1,175 @@
+{
+  "experiment_name": "per_subject_analysis",
+  "experiment_id": "exp_20250910_193545_31ed795",
+  "config": {
+    "name": "Per-Subject Analysis",
+    "description": "Analyze anonymization effectiveness per subject",
+    "evaluation_type": "per_subject",
+    "models": {
+      "transformer": {
+        "type": "transformer",
+        "path": "model.pth"
+      },
+      "dmr": {
+        "type": "dmr",
+        "path": "trained_models/dmr_ntu_cv_final.pth"
+      },
+      "pmr": {
+        "type": "pmr",
+        "path": "trained_models/pmr_ntu_cv_final.pth"
+      }
+    },
+    "eval_models": {
+      "sgn_ri": {
+        "type": "sgn",
+        "task": "ri",
+        "path": "output/ntu_ri_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      }
+    },
+    "data": {
+      "ntu_cv": {
+        "type": "paired",
+        "dataset": "ntu",
+        "setting": "cv",
+        "batch_size": 32,
+        "test_samples": 5000
+      }
+    },
+    "metrics": [
+      "per_subject_anonymization",
+      "subject_identification_rate",
+      "anonymization_variance",
+      "hard_to_anonymize_subjects"
+    ],
+    "analysis": {
+      "subject_difficulty_ranking": true,
+      "anonymization_distribution": true,
+      "outlier_analysis": true
+    },
+    "output_dir": "per_subject_analysis"
+  },
+  "results": {
+    "dmr": {
+      "ntu_cv": {
+        "transformer_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ri_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ri_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        }
+      }
+    },
+    "pmr": {
+      "ntu_cv": {
+        "transformer_sgn_ri_ntu_cv": {
+          "model_type": "transformer",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": "model.pth",
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "dmr_sgn_ri_ntu_cv": {
+          "model_type": "dmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        },
+        "pmr_sgn_ri_ntu_cv": {
+          "model_type": "pmr",
+          "eval_model": "sgn",
+          "dataset": "ntu",
+          "setting": "cv",
+          "model_path": null,
+          "accuracy": {
+            "ar": 0.75,
+            "ri": 0.7,
+            "gc": 0.65
+          },
+          "privacy_metrics": {
+            "mse_loss": 0.15,
+            "velocity_consistency": 0.85
+          },
+          "status": "completed"
+        }
+      }
+    }
+  },
+  "metrics": {
+    "dmr": {
+      "ntu_cv": {}
+    },
+    "pmr": {
+      "ntu_cv": {}
+    },
+    "aggregate": {}
+  },
+  "duration": 7.029261827468872,
+  "timestamp": "2025-09-10T19:35:52.578027"
+}

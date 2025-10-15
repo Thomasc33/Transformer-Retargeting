@@ -1,0 +1,33 @@
+{
+  "status": "placeholder",
+  "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+  "context": {
+    "cmd": [
+      "python",
+      "/users/tcarr23/Transformer-Retargeting/simple_eval_working.py",
+      "--model-type",
+      "transformer",
+      "--eval-model",
+      "sgn",
+      "--dataset",
+      "ntu",
+      "--setting",
+      "cv",
+      "--output-dir",
+      "results/experiments/per_class_analysis/exp_20250910_191823_31ed795/artifacts/transformer_sgn_ar_ntu_cv",
+      "--model-path",
+      "model.pth"
+    ],
+    "returncode": 2,
+    "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/simple_eval_working.py': [Errno 2] No such file or directory\n"
+  },
+  "metrics": {
+    "action_recognition": {
+      "accuracy": 0.0
+    },
+    "reidentification": {
+      "identity_accuracy": 0.0,
+      "anonymization_rate": 100.0
+    }
+  }
+}

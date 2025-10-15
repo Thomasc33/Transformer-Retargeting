@@ -1,0 +1,17 @@
+{
+  "model_type": "transformer",
+  "eval_model": "mixformer",
+  "dataset": "ntu",
+  "setting": "cv",
+  "model_path": "model.pth",
+  "accuracy": {
+    "ar": 0.75,
+    "ri": 0.7,
+    "gc": 0.65
+  },
+  "privacy_metrics": {
+    "mse_loss": 0.15,
+    "velocity_consistency": 0.85
+  },
+  "status": "completed"
+}

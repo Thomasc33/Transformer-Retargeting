@@ -1,0 +1,55 @@
+{
+  "job_id": "6566951",
+  "experiment_name": "per_class_analysis",
+  "experiment_config": {
+    "name": "Per-Class Analysis",
+    "description": "Analyze performance for each action class",
+    "evaluation_type": "per_class",
+    "models": {
+      "transformer": {
+        "type": "transformer",
+        "path": "model.pth"
+      },
+      "dmr": {
+        "type": "dmr",
+        "path": "trained_models/dmr_ntu_cv_final.pth"
+      },
+      "pmr": {
+        "type": "pmr",
+        "path": "trained_models/pmr_ntu_cv_final.pth"
+      }
+    },
+    "eval_models": {
+      "sgn_ar": {
+        "type": "sgn",
+        "task": "ar",
+        "path": "output/ntu_ar_cview/model_best.pth.tar",
+        "dataset": "ntu"
+      }
+    },
+    "data": {
+      "ntu_cv": {
+        "type": "paired",
+        "dataset": "ntu",
+        "setting": "cv",
+        "batch_size": 32,
+        "test_samples": 5000
+      }
+    },
+    "metrics": [
+      "per_class_accuracy",
+      "per_class_anonymization",
+      "class_confusion_matrix",
+      "difficult_classes"
+    ],
+    "analysis": {
+      "class_difficulty_ranking": true,
+      "confusion_matrix_visualization": true,
+      "error_analysis": true
+    },
+    "output_dir": "per_class_analysis"
+  },
+  "script_path": "eval/suite/runners/jobs/per_class_analysis_20250910_175746.sbatch",
+  "submit_time": "2025-09-10T17:57:46.124049",
+  "status": "submitted"
+}

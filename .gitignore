@@ -1,19 +1,38 @@
 __pycache__/
 wandb/
 
+# Logs and outputs
 *.log
 *.pkl
 *.skeleton
 *.npz
 *.out
 *.err
-*.gif
 
+# Model files (too large for git)
+*.pth
+*.tar
+!trained_models/*.pth
+!trained_models/*.tar
+
+# Results and test outputs
+results/
+test_results/
+logs/
+output/
+
+# Dataset files
 data/ntu120/denoised_data/actors_info/*.txt
 data/ntu/denoised_data/actors_info/*.txt
+data/*.pt
+!data/ntu_cv_paired_comprehensive.pt
 
+# Old/archived files
 experimentsold/
 results_old/
 archive/
 rm/
 scripts/generated/
+
+*.md
+!README.md

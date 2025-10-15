@@ -1,0 +1,6 @@
+{
+  "transformer": {
+    "ntu_cv_attention": {}
+  },
+  "aggregate": {}
+}

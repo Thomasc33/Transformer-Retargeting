@@ -1,0 +1,15 @@
+{
+  "transformer": {
+    "ntu_cv_samples": {}
+  },
+  "dmr": {
+    "ntu_cv_samples": {}
+  },
+  "pmr": {
+    "ntu_cv_samples": {}
+  },
+  "raw": {
+    "ntu_cv_samples": {}
+  },
+  "aggregate": {}
+}

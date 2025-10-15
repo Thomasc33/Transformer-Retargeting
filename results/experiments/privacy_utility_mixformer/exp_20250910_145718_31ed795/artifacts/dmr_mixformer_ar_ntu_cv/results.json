@@ -1,0 +1,37 @@
+{
+  "status": "placeholder",
+  "note": "eval_model.py failed or unavailable; wrote placeholder outputs for visibility",
+  "context": {
+    "cmd": [
+      "python",
+      "eval_model.py",
+      "--model_type",
+      "dmr",
+      "--eval_model",
+      "mixformer",
+      "--dataset",
+      "ntu",
+      "--setting",
+      "cv",
+      "--task",
+      "ar",
+      "--batch_size",
+      "32",
+      "--output_dir",
+      "results/experiments/privacy_utility_mixformer/exp_20250910_145718_31ed795/artifacts/dmr_mixformer_ar_ntu_cv",
+      "--test_samples",
+      "5000"
+    ],
+    "returncode": 2,
+    "stderr": "python: can't open file '/users/tcarr23/Transformer-Retargeting/eval/eval_model.py': [Errno 2] No such file or directory\n"
+  },
+  "metrics": {
+    "action_recognition": {
+      "accuracy": 0.0
+    },
+    "reidentification": {
+      "identity_accuracy": 0.0,
+      "anonymization_rate": 100.0
+    }
+  }
+}
