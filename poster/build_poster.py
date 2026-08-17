@@ -811,6 +811,7 @@ footer{
   border-top:1.5mm solid var(--gold); padding-top:3mm;
 }
 .code{ font-family:ui-monospace,"SF Mono",Menlo,monospace; font-size:15pt; }
+.ack{ color:var(--muted); }
 
 /* ---------- screen preview only ---------- */
 @media screen{
@@ -1020,6 +1021,8 @@ html,body{{ width:{PW + 2*m:g}mm; height:{PH + 2*m:g}mm; overflow:hidden; }}
   <footer>
     <div>Carr, Xu, Yuan &amp; Lu &nbsp;·&nbsp; UNC Charlotte &amp; Utah State
          University &nbsp;·&nbsp; Incerta Intelligence</div>
+    <div class="ack">Supported in part by the U.S. National Science Foundation
+         (1840080, 2103829, and 2348391)</div>
     <div>Code &amp; interactive demo &nbsp;<span class="code">{PROJECT_URL}</span></div>
   </footer>
 
