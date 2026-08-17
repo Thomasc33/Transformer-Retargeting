@@ -254,10 +254,11 @@ def beta_tradeoff(w=860, h=516):
              f'stroke="{GATE}" stroke-width="3.4"/>')
     s.append(f'<circle cx="{X(0.2):.1f}" cy="{Y(17.3):.1f}" r="11" fill="none" '
              f'stroke="{GATE}" stroke-width="3.4"/>')
-    s.append(f'<rect x="{X(0.30):.1f}" y="{Y(88):.1f}" width="330" height="80" rx="8" '
+    cy = mt + 0.30 * ph
+    s.append(f'<rect x="{X(0.34):.1f}" y="{cy:.1f}" width="330" height="80" rx="8" '
              f'fill="#FBF7EA" stroke="{GATE}" stroke-width="1.8"/>')
-    s.append(_txt(X(0.30) + 14, Y(88) + 27, "β = 0.2 operating point", 22, "start", GATE, "700"))
-    s.append(_txt(X(0.30) + 14, Y(88) + 53, "76.8% AR   ·   17.3% RI", 22, "start", INK, "500"))
+    s.append(_txt(X(0.34) + 14, cy + 27, "β = 0.2 operating point", 22, "start", GATE, "700"))
+    s.append(_txt(X(0.34) + 14, cy + 53, "76.8% AR   ·   17.3% RI", 22, "start", INK, "500"))
 
     s.append(f'<rect x="{ml}" y="{mt}" width="{pw}" height="{ph}" fill="none" '
              f'stroke="#3D4642" stroke-width="1.4"/>')
@@ -265,7 +266,7 @@ def beta_tradeoff(w=860, h=516):
                   "retargeting strength  β   (0 = passthrough,  1 = full retarget)",
                   22, "middle", INK, "600"))
     s.append(f'<g transform="translate(26,{mt+ph/2}) rotate(-90)">'
-             + _txt(0, 0, "accuracy (%)", 22, "middle", INK, "600") + "</g>")
+             + _txt(0, 0, "AR / RI  (%)", 22, "middle", INK, "600") + "</g>")
 
     s.append(f'<line x1="{ml+pw-232}" y1="{mt+14}" x2="{ml+pw-196}" y2="{mt+14}" '
              f'stroke="{ACTION}" stroke-width="4"/>')
@@ -527,7 +528,7 @@ def task_strip(src_svg, out_svg, cell):
 
 # ---------------------------------------------------------------------------
 # 6. Cross-identity quadruplet  (source: src/data/datasets.py :: Cross_Data)
-#     x1 = (P1,A1)  x2 = (P2,A2)  y1 = (P1,A2)  y2 = (P2,A1)
+#     x1 = (A,X)  x2 = (B,Y)  y1 = (A,Y)  y2 = (B,X)  -- person, action
 #     model(x1, x2) is supervised against y2.
 # ---------------------------------------------------------------------------
 def quadruplet(w=660, h=428):
@@ -552,9 +553,12 @@ def quadruplet(w=660, h=428):
     def cell(r, c):
         return x0 + c * (cw + gx), y0 + r * (ch + gy)
 
-    for c, lab in enumerate(["Action A\u2081", "Action A\u2082"]):
+    # Person A/B and Action X/Y, matching the architecture figure. Numbered
+    # subscripts here and lettered names there made two figures about the same
+    # four sequences look like they were about different things.
+    for c, lab in enumerate(["Action X", "Action Y"]):
         s.append(_txt(x0 + c * (cw + gx) + cw / 2, 42, lab, 22, "middle", INK, "700"))
-    for r, lab in enumerate(["Person P\u2081", "Person P\u2082"]):
+    for r, lab in enumerate(["Person A", "Person B"]):
         cy = y0 + r * (ch + gy) + ch / 2
         s.append(f'<g transform="translate(30,{cy}) rotate(-90)">'
                  + _txt(0, 0, lab, 22, "middle", INK, "700") + "</g>")

@@ -290,7 +290,7 @@ def qualitative_panel(n_frames: int = 4) -> str:
 N_FRAMES = {"140x100": 7, "180x90": 8, "a0": 4, "36x48": 4}
 
 CHART_H = {
-    "140x100": {"scatter": 495, "ablation": 479, "beta": 481, "quad": 418},
+    "140x100": {"scatter": 495, "ablation": 448, "beta": 450, "quad": 418},
     "180x90":  {"scatter": 780, "ablation": 640, "beta": 560, "quad": 470},
     "a0":      {"scatter": 760, "ablation": 620, "beta": 560, "quad": 470},
     "36x48":   {"scatter": 740, "ablation": 600, "beta": 546, "quad": 470},
@@ -364,8 +364,8 @@ def sections(tsne_action: str, tsne_ident: str, n_frames: int = 4,
           <figcaption>The decoder attends to each stream separately, then blends
             them with a learned per-channel gate <b>&alpha;</b>. Generation is
             autoregressive under a causal mask.</figcaption>
-          <figcaption><b>22.5M parameters</b> (action 4.9M, identity 0.8M,
-            decoder 17.0M), against 4.94M for DMR and 0.99M for PMR.</figcaption>
+          <figcaption><b>22.5M parameters</b>, three quarters of them in the
+            decoder, against 4.9M for DMR and 1.0M for PMR.</figcaption>
           <figcaption>Retargeting runs once, offline, at collection time.
             Downstream consumers of the shared skeletons pay nothing.</figcaption>
         </div>
@@ -376,10 +376,10 @@ def sections(tsne_action: str, tsne_ident: str, n_frames: int = 4,
         <figcaption>The decoder attends to each stream separately, then blends them
           with a learned per-channel gate <b>&alpha;</b>, autoregressively under a
           causal mask.
-          <br><br><b>22.5M parameters</b> total (action 4.9M &middot; identity 0.8M &middot;
-          decoder 17.0M), against 4.94M for DMR and 0.99M for PMR. Retargeting runs
-          once, offline at collection time. Downstream consumers of the shared
-          skeletons pay nothing.</figcaption>
+          <br><br><b>22.5M parameters</b>, three quarters of them in the decoder,
+          against 4.9M for DMR and 1.0M for PMR. Retargeting runs once, offline at
+          collection time. Downstream consumers of the shared skeletons pay
+          nothing.</figcaption>
       </section>"""
 
     S["stages"] = """
@@ -456,7 +456,8 @@ def sections(tsne_action: str, tsne_ident: str, n_frames: int = 4,
           </tbody>
         </table>
         <figcaption>Mean of 3 seeds; &plusmn;0.7 AR / &plusmn;0.2 RI (SGN). Ours is the only
-          method below 24% RI <i>and</i> above 46% AR under both evaluators.</figcaption>
+          method more private than PMR <i>and</i> more useful than DMR, under both
+          evaluators.</figcaption>
       </section>"""
 
     S["notes"] = """
@@ -484,8 +485,10 @@ def sections(tsne_action: str, tsne_ident: str, n_frames: int = 4,
         <figcaption>Removing the <b>action backbone</b> or the <b>temporal
           convolutions</b> costs ~5 points of accuracy: utility lives in the action
           encoder's capacity. <b>Every variant still beats PMR's 24.2% RI</b>, so the
-          factorised architecture carries the privacy gain, not any single loss
-          term.</figcaption>
+          factorised architecture carries the privacy gain, not any single loss term.
+          <br><br>The sweep runs at batch size 32, so compare rows here rather than
+          against the main table. Rows prefixed &minus; drop that component; the two
+          identity rows change how the identity stream is pooled.</figcaption>
       </section>"""
 
     S["beta"] = f"""
@@ -538,7 +541,7 @@ def sections(tsne_action: str, tsne_ident: str, n_frames: int = 4,
           <li><b>Replacing</b> identity beats suppressing it: noise loses utility
               faster than it buys privacy.</li>
           <li><b>Asymmetric architecture</b> does the disentangling; the losses
-              refine it rather than create it.</li>
+              only refine it.</li>
           <li>A single post-hoc <b>&beta;</b> exposes the whole privacy–utility curve
               from one trained model.</li>
         </ul>
@@ -559,7 +562,7 @@ def sections(tsne_action: str, tsne_ident: str, n_frames: int = 4,
 # HTML
 # ---------------------------------------------------------------------------
 def build(page: str = "140x100", print_ready: bool = False) -> str:
-    PW, PH, NCOL, SCALE, SIDE, PAGE_LABEL, LAND = PAGES[page]
+    PW, PH, NCOL, SCALE, SIDE, _label, LAND = PAGES[page]
     tsne_action = b64(ASSETS / "tsne_action_by_action_clf_umap.png")
     tsne_ident = b64(ASSETS / "tsne_action_by_identity_clf_umap.png")
 
@@ -995,8 +998,8 @@ html,body{{ width:{PW + 2*m:g}mm; height:{PH + 2*m:g}mm; overflow:hidden; }}
     <div class="stat hero">
       <div class="t">Privacy gain</div>
       <div class="k" style="color:var(--identity)">75.4 → 12.2<small>%</small></div>
-      <div class="l">Re-identification collapses by <b>63.2 points</b>, within
-                     5× of the 2.5% chance floor</div>
+      <div class="l">Re-identification falls from <b>30× chance</b> to
+                     <b>4.9×</b>, against a 2.5% floor</div>
     </div>
     <div class="stat">
       <div class="t">Utility kept</div>
@@ -1007,8 +1010,8 @@ html,body{{ width:{PW + 2*m:g}mm; height:{PH + 2*m:g}mm; overflow:hidden; }}
     <div class="stat">
       <div class="t">Pareto</div>
       <div class="k" style="color:var(--ours)">Both<small> axes</small></div>
-      <div class="l">First method to beat <b>both</b> DMR and PMR on privacy
-                     <i>and</i> utility</div>
+      <div class="l">The only method that beats <b>both</b> DMR and PMR on
+                     privacy <i>and</i> utility</div>
     </div>
     <div class="stat">
       <div class="t">Tunable</div>
@@ -1021,9 +1024,9 @@ html,body{{ width:{PW + 2*m:g}mm; height:{PH + 2*m:g}mm; overflow:hidden; }}
   <div class="cols">{cols}</div>
 
   <footer>
-    <div><b>DisentangledTMR</b> · Carr, Xu, Yuan &amp; Lu · ECCV 2026, Malmö ·
-         UNC Charlotte &amp; Utah State University</div>
-    <div class="code">{PROJECT_URL} &nbsp;·&nbsp; MIT licensed &nbsp;·&nbsp; {PAGE_LABEL}</div>
+    <div>Carr, Xu, Yuan &amp; Lu &nbsp;·&nbsp; UNC Charlotte &amp; Utah State
+         University &nbsp;·&nbsp; Incerta Intelligence</div>
+    <div>Code &amp; interactive demo &nbsp;<span class="code">{PROJECT_URL}</span></div>
   </footer>
 
 </div>
