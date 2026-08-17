@@ -290,7 +290,7 @@ def qualitative_panel(n_frames: int = 4) -> str:
 N_FRAMES = {"140x100": 7, "180x90": 8, "a0": 4, "36x48": 4}
 
 CHART_H = {
-    "140x100": {"scatter": 495, "ablation": 448, "beta": 450, "quad": 418},
+    "140x100": {"scatter": 458, "ablation": 425, "beta": 428, "quad": 418},
     "180x90":  {"scatter": 780, "ablation": 640, "beta": 560, "quad": 470},
     "a0":      {"scatter": 760, "ablation": 620, "beta": 560, "quad": 470},
     "36x48":   {"scatter": 740, "ablation": 600, "beta": 546, "quad": 470},
@@ -321,9 +321,9 @@ def sections(tsne_action: str, tsne_ident: str, n_frames: int = 4,
            re-identifies the actor in raw NTU skeletons
            <span class="hl">75.4% of the time</span> across 40 identities,
            30&times; chance.</p>
-        <p>Yet skeletons are exactly the modality we want to share for health
-           monitoring, elder care and behaviour analysis. Blurring or adding noise
-           destroys the action along with the identity.</p>
+        <p>Yet skeletons are exactly what we want to share for health monitoring
+           and elder care. Blurring or adding noise destroys the action along with
+           the identity.</p>
       </section>"""
 
     S["idea"] = """
@@ -366,8 +366,9 @@ def sections(tsne_action: str, tsne_ident: str, n_frames: int = 4,
             autoregressive under a causal mask.</figcaption>
           <figcaption><b>22.5M parameters</b>, three quarters of them in the
             decoder, against 4.9M for DMR and 1.0M for PMR.</figcaption>
-          <figcaption>Retargeting runs once, offline, at collection time.
-            Downstream consumers of the shared skeletons pay nothing.</figcaption>
+          <figcaption>Retargeting runs once, offline, at collection time, so
+            downstream consumers pay no inference cost. They do retrain on the
+            shared skeletons.</figcaption>
         </div>
       </section>""" if wide_arch else f"""
       <section>
@@ -378,8 +379,8 @@ def sections(tsne_action: str, tsne_ident: str, n_frames: int = 4,
           causal mask.
           <br><br><b>22.5M parameters</b>, three quarters of them in the decoder,
           against 4.9M for DMR and 1.0M for PMR. Retargeting runs once, offline at
-          collection time. Downstream consumers of the shared skeletons pay
-          nothing.</figcaption>
+          collection time, so downstream consumers pay no inference cost. They do
+          retrain on the shared skeletons.</figcaption>
       </section>"""
 
     S["stages"] = """
@@ -390,9 +391,10 @@ def sections(tsne_action: str, tsne_ident: str, n_frames: int = 4,
         <ol class="steps">
           <li><b>Encoder pre-training.</b> Both encoders learn with classification
               heads plus the four disentanglement losses. Decoder frozen.</li>
-          <li><b>Decoder training.</b> Reconstruction plus physical plausibility
-              (bone length, smoothness, velocity, end-effector, foot contact,
-              joint limits). Teacher forcing 1.0 &rarr; 0.5.</li>
+          <li><b>Decoder training.</b> Encoders frozen. Reconstruction plus
+              physical plausibility (bone length, smoothness, velocity,
+              end-effector, foot contact, joint limits). Teacher forcing
+              1.0 &rarr; 0.5.</li>
           <li><b>End-to-end fine-tuning.</b> All components jointly, teacher
               forcing 0.5 &rarr; 0.3, with output-level adversarial and
               cooperative heads.</li>
@@ -417,14 +419,14 @@ def sections(tsne_action: str, tsne_ident: str, n_frames: int = 4,
         <div class="tsne">
           <div>
             <img src="data:image/png;base64,{tsne_action}" alt="action embedding coloured by action class">
-            <div class="cap" style="color:var(--action)">Five action classes</div>
-            <div class="sub">Each class lands in its own tight cluster. The action
-                             code carries the semantics.</div>
+            <div class="cap" style="color:var(--action)">Five of the 49 classes</div>
+            <div class="sub">Five shown for legibility; each lands in its own tight
+                             cluster. The action code carries the semantics.</div>
           </div>
           <div>
             <img src="data:image/png;base64,{tsne_ident}" alt="action embedding coloured by identity">
-            <div class="cap" style="color:var(--identity)">40 identities</div>
-            <div class="sub">Colouring the action embedding by actor leaves no
+            <div class="cap" style="color:var(--identity)">All 40 identities</div>
+            <div class="sub">Colouring the same embedding by actor leaves no
                              recoverable structure.</div>
           </div>
         </div>
@@ -435,7 +437,8 @@ def sections(tsne_action: str, tsne_ident: str, n_frames: int = 4,
         <h2 class="a">Main results</h2>
         <p class="small" style="margin-bottom:1mm">NTU RGB+D 60, cross-view.
           AR = action recognition (higher better), RI = re-identification of the
-          <i>source</i> actor (lower better). Chance RI = 2.5%.</p>
+          <i>source</i> actor (lower better). Chance RI = 2.5%. Recognisers are
+          <b>retrained on the retargeted skeletons</b>.</p>
         <table class="res">
           <colgroup><col class="m"><col class="v"><col class="v"><col class="v"><col class="v"></colgroup>
           <thead>
@@ -495,8 +498,9 @@ def sections(tsne_action: str, tsne_ident: str, n_frames: int = 4,
       <section class="tint">
         <h2 class="g">One knob at test time</h2>
         <figure>{beta}</figure>
-        <figcaption>Frozen recognisers score every &beta;, so the operating point
-          sweeps <i>without retraining</i>. At <b>&beta; = 0.2</b> the curve knees:
+        <figcaption>Recognisers here are <b>frozen</b>, trained on raw skeletons,
+          so this curve is a different measurement from the main table: it is what a
+          consumer sees who does <i>not</i> retrain. At <b>&beta; = 0.2</b> it knees:
           re-identification has already fallen 75.4 &rarr; 17.3% while action accuracy
           still holds at 76.8%. Deployments pick &beta; from their own risk
           budget.</figcaption>
@@ -1016,8 +1020,8 @@ html,body{{ width:{PW + 2*m:g}mm; height:{PH + 2*m:g}mm; overflow:hidden; }}
     <div class="stat">
       <div class="t">Tunable</div>
       <div class="k" style="color:var(--gate)">β<small> = 0.2</small></div>
-      <div class="l">One knob trades privacy for utility at test time:
-                     <b>76.8% AR at 17.3% RI</b></div>
+      <div class="l">Frozen recognisers, no retraining: <b>76.8% AR at
+                     17.3% RI</b>. Not comparable to the table</div>
     </div>
   </div>
 

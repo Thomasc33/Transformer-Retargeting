@@ -51,9 +51,12 @@ SCATTER_DATA = {
 }
 OURS_ERR = {"sgn_ar": 0.7, "sgn_ri": 0.2, "mix_ar": 1.1, "mix_ri": 0.4}
 
+# Both reference points sit hard against the top-right corner, so their labels
+# go to the LEFT of the markers: centred above, they clipped the axis and each
+# other once the panel got shorter.
 LABEL_OFFSET = {
-    "Raw Skeleton":   (0, -22, "middle"),
-    "Gaussian Noise": (0, -22, "middle"),
+    "Raw Skeleton":   (-22, -12, "end"),
+    "Gaussian Noise": (-22, 8, "end"),
     "DMR":            (14, 4, "start"),
     "PMR":            (0, 26, "middle"),
     "Ours":           (16, 2, "start"),
