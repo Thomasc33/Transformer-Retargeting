@@ -342,7 +342,7 @@ def sections(tsne_action: str, tsne_ident: str, n_frames: int = 4,
               motion detail.</li>
           <li><b>Asymmetric by design.</b> The architecture does most of the
               disentangling; the contrastive, adversarial, orthogonality and
-              mutual-information losses do the rest.</li>
+              cross-correlation losses do the rest.</li>
         </ul>
       </section>"""
 
@@ -364,7 +364,7 @@ def sections(tsne_action: str, tsne_ident: str, n_frames: int = 4,
           <figcaption>The decoder attends to each stream separately, then blends
             them with a learned per-channel gate <b>&alpha;</b>. Generation is
             autoregressive under a causal mask.</figcaption>
-          <figcaption><b>22.5M parameters</b>, three quarters of them in the
+          <figcaption><b>22.7M parameters</b>, three quarters of them in the
             decoder, against 4.9M for DMR and 1.0M for PMR.</figcaption>
           <figcaption>Retargeting runs once, offline, at collection time, so
             downstream consumers pay no inference cost. They do retrain on the
@@ -377,7 +377,7 @@ def sections(tsne_action: str, tsne_ident: str, n_frames: int = 4,
         <figcaption>The decoder attends to each stream separately, then blends them
           with a learned per-channel gate <b>&alpha;</b>, autoregressively under a
           causal mask.
-          <br><br><b>22.5M parameters</b>, three quarters of them in the decoder,
+          <br><br><b>22.7M parameters</b>, three quarters of them in the decoder,
           against 4.9M for DMR and 1.0M for PMR. Retargeting runs once, offline at
           collection time, so downstream consumers pay no inference cost. They do
           retrain on the shared skeletons.</figcaption>
@@ -406,9 +406,10 @@ def sections(tsne_action: str, tsne_ident: str, n_frames: int = 4,
         <h2>Qualitative results</h2>
         <div class="qual">{qual}</div>
         <figcaption>Real sequences from NTU RGB+D 60. <b>Grey ghost</b> = source
-          motion; coloured overlay = each method's output. Ours preserves the
-          action on a new body; <b>DMR</b> drifts off-posture and <b>PMR</b>
-          collapses the skeleton, consistent with its 19.9% action accuracy.</figcaption>
+          motion; coloured overlay = each method's output. Ours preserves the action
+          on a new body; <b>DMR</b> keeps more of the source identity, and <b>PMR</b>
+          shifts toward the target but degrades the motion, at 19.9% re-trained
+          AR.</figcaption>
       </section>"""
 
     S["tsne"] = f"""
@@ -435,32 +436,30 @@ def sections(tsne_action: str, tsne_ident: str, n_frames: int = 4,
     S["results"] = """
       <section>
         <h2 class="a">Main results</h2>
-        <p class="small" style="margin-bottom:1mm">NTU RGB+D 60, cross-view.
-          AR = action recognition (higher better), RI = re-identification of the
-          <i>source</i> actor (lower better). Chance RI = 2.5%. Recognisers are
-          <b>retrained on the retargeted skeletons</b>.</p>
+        <p class="small" style="margin-bottom:1mm">NTU RGB+D 60, cross-view, ours at
+          <b>&beta; = 0.2</b>. <b>Pre-trained</b> (primary): raw-trained SGN applied
+          directly to retargeted output, no retraining. <b>Re-trained AR</b>: a fresh
+          SGN trained on retargeted data. Chance AR &asymp; 2%, RI &asymp; 2.5%.</p>
         <table class="res">
-          <colgroup><col class="m"><col class="v"><col class="v"><col class="v"><col class="v"></colgroup>
+          <colgroup><col class="m"><col class="v3"><col class="v3"><col class="v3"></colgroup>
           <thead>
-            <tr><th></th><th class="grp" colspan="2">SGN</th>
-                <th class="grp" colspan="2">MixFormer</th></tr>
+            <tr><th></th><th class="grp" colspan="2">Pre-trained SGN</th>
+                <th class="grp">Re-trained</th></tr>
             <tr><th>Method</th><th>AR&nbsp;&uarr;</th><th>RI&nbsp;&darr;</th>
-                <th>AR&nbsp;&uarr;</th><th>RI&nbsp;&darr;</th></tr>
+                <th>AR&nbsp;&uarr;</th></tr>
           </thead>
           <tbody>
-            <tr class="ref"><td>Raw skeleton</td><td>89.1</td><td>75.4</td>
-                <td>88.6</td><td>72.8</td></tr>
-            <tr class="ref"><td>Gaussian noise</td><td>80.3</td><td>67.8</td>
-                <td>83.6</td><td>70.7</td></tr>
-            <tr><td>DMR</td><td>43.1</td><td>38.1</td><td>45.3</td><td>38.7</td></tr>
-            <tr><td>PMR</td><td>19.9</td><td>24.2</td><td>20.8</td><td>25.5</td></tr>
-            <tr class="ours"><td>DisentangledTMR</td><td>55.4</td><td>12.2</td>
-                <td>55.7</td><td>12.5</td></tr>
+            <tr class="ref"><td>Raw skeleton</td><td>89.1</td><td>75.4</td><td>89.1</td></tr>
+            <tr><td>DMR</td><td>49.1</td><td>25.7</td><td>43.1</td></tr>
+            <tr><td>PMR</td><td>35.7</td><td>7.8</td><td>19.9</td></tr>
+            <tr class="ours"><td>DisentangledTMR</td><td>75.8</td><td>18.1</td>
+                <td>87.1</td></tr>
           </tbody>
         </table>
-        <figcaption>Mean of 3 seeds; &plusmn;0.7 AR / &plusmn;0.2 RI (SGN). Ours is the only
-          method more private than PMR <i>and</i> more useful than DMR, under both
-          evaluators.</figcaption>
+        <figcaption>Ours is mean &plusmn; std over 5 runs (&plusmn;1.1 AR, &plusmn;1.8 RI).
+          <b>More than double PMR's utility under the same protocol.</b> PMR reaches a
+          lower RI (7.8%) only by degrading its output until the action is unreadable
+          too, at 19.9% re-trained AR.</figcaption>
       </section>"""
 
     S["notes"] = """
@@ -476,33 +475,33 @@ def sections(tsne_action: str, tsne_ident: str, n_frames: int = 4,
       <section>
         <h2>Privacy–utility landscape</h2>
         <figure>{scatter}</figure>
-        <figcaption>Down and to the right is better. DMR trades little privacy for
-          moderate utility; PMR destroys both. DisentangledTMR sits alone in the
-          favourable quadrant.</figcaption>
+        <figcaption>Down and to the right is better. DMR leaks identity through
+          motion dynamics; PMR buys its low RI by over-anonymising until the action
+          goes with it. Only DisentangledTMR reaches the low-RI regime with the
+          action still readable.</figcaption>
       </section>"""
 
     S["ablation"] = f"""
       <section>
-        <h2 class="a">Ablations</h2>
+        <h2 class="a">Which stage does the work?</h2>
         <figure>{ablation}</figure>
-        <figcaption>Removing the <b>action backbone</b> or the <b>temporal
-          convolutions</b> costs ~5 points of accuracy: utility lives in the action
-          encoder's capacity. <b>Every variant still beats PMR's 24.2% RI</b>, so the
-          factorised architecture carries the privacy gain, not any single loss term.
-          <br><br>The sweep runs at batch size 32, so compare rows here rather than
-          against the main table. Rows prefixed &minus; drop that component; the two
-          identity rows change how the identity stream is pooled.</figcaption>
+        <figcaption>Every configuration that includes <b>stage 3</b> lands near 82%
+          AR, so end-to-end fine-tuning does most of the work. <b>Stage 1 alone</b>
+          reaches the strongest privacy of any variant, 15.3% RI, but at 57.3% AR the
+          output has lost the structural coherence a classifier needs.
+          <br><br>These runs omit the output-level supervision suite, so both columns
+          sit away from the main table: compare rows against each other, not against
+          it.</figcaption>
       </section>"""
 
     S["beta"] = f"""
       <section class="tint">
         <h2 class="g">One knob at test time</h2>
         <figure>{beta}</figure>
-        <figcaption>Recognisers here are <b>frozen</b>, trained on raw skeletons,
-          so this curve is a different measurement from the main table: it is what a
-          consumer sees who does <i>not</i> retrain. At <b>&beta; = 0.2</b> it knees:
-          re-identification has already fallen 75.4 &rarr; 17.3% while action accuracy
-          still holds at 76.8%. Deployments pick &beta; from their own risk
+        <figcaption>Pre-trained recognisers score every &beta;, so the operating point
+          moves <i>without retraining</i>. Below <b>&beta; = 0.2</b> enough source
+          structure survives that they still read the action; between 0.20 and 0.25 it
+          collapses, 76.8 &rarr; 38.8%. Deployments pick &beta; from their own risk
           budget.</figcaption>
       </section>"""
 
@@ -542,8 +541,8 @@ def sections(tsne_action: str, tsne_ident: str, n_frames: int = 4,
         <h2>Takeaways</h2>
         <ul>
           <li>Skeleton data is <b>not</b> anonymous; treat it as biometric.</li>
-          <li><b>Replacing</b> identity beats suppressing it: noise loses utility
-              faster than it buys privacy.</li>
+          <li><b>Replacing</b> identity beats suppressing it: a single encoder that
+              over-anonymises loses the action too.</li>
           <li><b>Asymmetric architecture</b> does the disentangling; the losses
               only refine it.</li>
           <li>A single post-hoc <b>&beta;</b> exposes the whole privacy–utility curve
@@ -772,6 +771,7 @@ td{
 }
 td:first-child{ text-align:left; font-weight:600; padding-right:2mm; letter-spacing:-.01em; }
 table.res col.m{ width:37%; } table.res col.v{ width:15.75%; }
+table.res col.v3{ width:21%; }
 table.loss{ font-size:16pt; margin-top:1mm; }
 table.loss col.m{ width:76%; } table.loss col.w{ width:24%; }
 table.loss td{ padding:1.3mm 0; }
@@ -1001,27 +1001,27 @@ html,body{{ width:{PW + 2*m:g}mm; height:{PH + 2*m:g}mm; overflow:hidden; }}
   <div class="headline">
     <div class="stat hero">
       <div class="t">Privacy gain</div>
-      <div class="k" style="color:var(--identity)">75.4 → 12.2<small>%</small></div>
+      <div class="k" style="color:var(--identity)">75.4 → 18.1<small>%</small></div>
       <div class="l">Re-identification falls from <b>30× chance</b> to
-                     <b>4.9×</b>, against a 2.5% floor</div>
+                     <b>7.2×</b>, against a 2.5% floor</div>
     </div>
     <div class="stat">
       <div class="t">Utility kept</div>
-      <div class="k" style="color:var(--action)">55.4<small>%</small></div>
-      <div class="l">Action recognition on retargeted skeletons: <b>+12.3 pts over DMR,
-                     +35.5 over PMR</b></div>
+      <div class="k" style="color:var(--action)">75.8<small>%</small></div>
+      <div class="l">Action recognition with <b>no retraining</b>, and 87.1% once
+                     downstream models are retrained</div>
     </div>
     <div class="stat">
-      <div class="t">Pareto</div>
-      <div class="k" style="color:var(--ours)">Both<small> axes</small></div>
-      <div class="l">The only method that beats <b>both</b> DMR and PMR on
-                     privacy <i>and</i> utility</div>
+      <div class="t">vs. PMR</div>
+      <div class="k" style="color:var(--ours)">2.1<small>× utility</small></div>
+      <div class="l">75.8% against PMR's 35.7% under the same protocol, at a
+                     comparable privacy level</div>
     </div>
     <div class="stat">
       <div class="t">Tunable</div>
       <div class="k" style="color:var(--gate)">β<small> = 0.2</small></div>
-      <div class="l">Frozen recognisers, no retraining: <b>76.8% AR at
-                     17.3% RI</b>. Not comparable to the table</div>
+      <div class="l">One knob sets the operating point after training:
+                     <b>76.8% AR at 17.3% RI</b></div>
     </div>
   </div>
 

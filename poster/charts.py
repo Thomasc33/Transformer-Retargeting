@@ -41,25 +41,29 @@ def _txt(x, y, s, size=13, anchor="start", fill=INK, weight="400",
 # ---------------------------------------------------------------------------
 # 1. Privacy-utility scatter  (source: scripts/plot_privacy_utility_scatter.py)
 # ---------------------------------------------------------------------------
+# Paper Table 1, NTU60 (X-View), ours at the recommended beta = 0.2.
+# Pre-trained protocol only: raw-trained SGN applied directly to retargeted
+# output, which is the paper's primary metric for BOTH AR and RI. The re-trained
+# protocol has no RI counterpart by design (retraining an identity classifier on
+# anonymised data assumes the labels anonymisation removes), so a two-evaluator
+# scatter cannot be drawn.
 SCATTER_DATA = {
-    # name: (sgn_ar, sgn_ri, mix_ar, mix_ri)
-    "Raw Skeleton":   (89.1, 75.4, 88.6, 72.8),
-    "Gaussian Noise": (80.3, 67.8, 83.6, 70.7),
-    "DMR":            (43.1, 38.1, 45.3, 38.7),
-    "PMR":            (19.9, 24.2, 20.8, 25.5),
-    "Ours":           (55.4, 12.2, 55.7, 12.5),
+    # name: (ar, ri)  pre-trained SGN
+    "Raw Skeleton": (89.1, 75.4),
+    "DMR":          (49.1, 25.7),
+    "PMR":          (35.7, 7.8),
+    "Ours":         (75.8, 18.1),
 }
-OURS_ERR = {"sgn_ar": 0.7, "sgn_ri": 0.2, "mix_ar": 1.1, "mix_ri": 0.4}
+OURS_ERR = {"ar": 1.1, "ri": 1.8}      # mean +/- std over 5 runs
 
 # Both reference points sit hard against the top-right corner, so their labels
 # go to the LEFT of the markers: centred above, they clipped the axis and each
 # other once the panel got shorter.
 LABEL_OFFSET = {
-    "Raw Skeleton":   (-22, -12, "end"),
-    "Gaussian Noise": (-22, 8, "end"),
-    "DMR":            (14, 4, "start"),
-    "PMR":            (0, 26, "middle"),
-    "Ours":           (16, 2, "start"),
+    "Raw Skeleton": (-22, -12, "end"),
+    "DMR":          (16, 4, "start"),
+    "PMR":          (18, 7, "start"),
+    "Ours":         (-24, -16, "end"),
 }
 
 
@@ -102,30 +106,21 @@ def privacy_utility_scatter(w=860, h=700):
              f'stroke="#3D4642" stroke-width="1.4"/>')
 
     # points
-    for name, (sar, sri, mar, mri) in SCATTER_DATA.items():
+    for name, (ar, ri) in SCATTER_DATA.items():
         c = METHOD_COLOR[name]
         is_ours = name == "Ours"
         r = 15 if is_ours else 11
         if is_ours:
-            for (ax, ay, ex, ey) in [(sar, sri, OURS_ERR["sgn_ar"], OURS_ERR["sgn_ri"]),
-                                     (mar, mri, OURS_ERR["mix_ar"], OURS_ERR["mix_ri"])]:
-                s.append(f'<line x1="{X(ax-ex):.1f}" y1="{Y(ay):.1f}" x2="{X(ax+ex):.1f}" '
-                         f'y2="{Y(ay):.1f}" stroke="{c}" stroke-width="2.4"/>')
-                s.append(f'<line x1="{X(ax):.1f}" y1="{Y(ay-ey):.1f}" x2="{X(ax):.1f}" '
-                         f'y2="{Y(ay+ey):.1f}" stroke="{c}" stroke-width="2.4"/>')
-        # SGN = circle
-        s.append(f'<circle cx="{X(sar):.1f}" cy="{Y(sri):.1f}" r="{r}" fill="{c}" '
+            ex, ey = OURS_ERR["ar"], OURS_ERR["ri"]
+            s.append(f'<line x1="{X(ar-ex):.1f}" y1="{Y(ri):.1f}" x2="{X(ar+ex):.1f}" '
+                     f'y2="{Y(ri):.1f}" stroke="{c}" stroke-width="2.6"/>')
+            s.append(f'<line x1="{X(ar):.1f}" y1="{Y(ri-ey):.1f}" x2="{X(ar):.1f}" '
+                     f'y2="{Y(ri+ey):.1f}" stroke="{c}" stroke-width="2.6"/>')
+        s.append(f'<circle cx="{X(ar):.1f}" cy="{Y(ri):.1f}" r="{r}" fill="{c}" '
                  f'stroke="#ffffff" stroke-width="2.4"/>')
-        # MixFormer = triangle
-        tx, ty, t = X(mar), Y(mri), r + 2
-        s.append(f'<polygon points="{tx:.1f},{ty-t:.1f} {tx-t*0.92:.1f},{ty+t*0.72:.1f} '
-                 f'{tx+t*0.92:.1f},{ty+t*0.72:.1f}" fill="{c}" stroke="#ffffff" '
-                 f'stroke-width="2.4"/>')
-
         dx, dy, anch = LABEL_OFFSET[name]
-        lx, ly = (X((sar + mar) / 2) + dx, Y((sri + mri) / 2) + dy)
-        s.append(_txt(lx, ly, name, 23 if is_ours else 20, anch,
-                      INK if is_ours else "#101820", "700" if is_ours else "500"))
+        s.append(_txt(X(ar) + dx, Y(ri) + dy, name, 23 if is_ours else 20, anch,
+                      INK, "700" if is_ours else "500"))
 
     # axis titles
     s.append(_txt(ml + pw / 2, h - 30, "Action recognition  (AR %)  → higher is better",
@@ -134,14 +129,10 @@ def privacy_utility_scatter(w=860, h=700):
              + _txt(0, 0, "Re-identification  (RI %)  ← lower is better", 20, "middle",
                     INK, "600") + "</g>")
 
-    # legend
-    lx, ly = ml + 16, mt + 22
-    s.append(f'<rect x="{lx-10}" y="{ly-20}" width="286" height="72" rx="8" '
-             f'fill="#ffffff" stroke="{GRID}" stroke-width="1.4" opacity="0.96"/>')
-    s.append(f'<circle cx="{lx+8}" cy="{ly-1}" r="9" fill="#3D4642"/>')
-    s.append(_txt(lx + 26, ly + 5, "SGN evaluator", 20, "start", "#101820"))
-    s.append(f'<polygon points="{lx+8},{ly+16} {lx-1},{ly+31} {lx+17},{ly+31}" fill="#3D4642"/>')
-    s.append(_txt(lx + 26, ly + 30, "MixFormer evaluator", 20, "start", "#101820"))
+    s.append(_txt(ml + 16, mt + 26, "pre-trained SGN, NTU60 (X-View)", 19, "start",
+                  MUTED, "600", "italic"))
+    s.append(_txt(ml + 16, mt + 50, "ours at β = 0.2,  bars = ±1 std over 5 runs", 19,
+                  "start", MUTED, "600", "italic"))
 
     s.append("</svg>")
     return "".join(s)
@@ -150,27 +141,33 @@ def privacy_utility_scatter(w=860, h=700):
 # ---------------------------------------------------------------------------
 # 2. Ablation bars  (source: scripts/plot_ablation_barchart.py — SGN, batch 32)
 # ---------------------------------------------------------------------------
+# Supplement Table S5: stage ablation on NTU60 (X-View), beta = 0.2, pre-trained
+# SGN. These variants train WITHOUT the output-level supervision suite, so both
+# columns sit away from the main table; the paper's own instruction is that "the
+# comparison of interest is across rows".
+#
+# The component ablation (Static Identity, Full-Seq, No Adversarial, ...) is
+# described only qualitatively in the paper and appears in neither the paper nor
+# the supplement, so it cannot be printed.
 ABLATIONS = [
-    ("Full model", 45.3, 13.6),
-    ("Static identity", 46.6, 14.6),
-    ("− Adversarial", 44.9, 14.8),
-    ("Full-seq identity", 44.5, 12.9),
-    ("− Orthogonality", 43.5, 13.2),
-    ("− Action backbone", 40.2, 12.6),
-    ("− Temporal convs", 40.0, 13.8),
+    ("Stage 3 only", 82.6, 52.4),
+    ("Stages 2 \u2192 3", 82.5, 55.3),
+    ("Stages 1 \u2192 3", 82.3, 53.4),
+    ("Stages 1 \u2192 2", 81.1, 35.5),
+    ("Stage 1 only", 57.3, 15.3),
 ]
 
 
 def ablation_bars(w=860, h=556):
-    ml, mr, mt, mb = 286, 82, 52, 56
+    ml, mr, mt, mb = 244, 82, 52, 56
     pw, ph = w - ml - mr, h - mt - mb
     row = ph / len(ABLATIONS)
-    vmax = 50.0
+    vmax = 90.0
 
     s = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}">']
     s.append(f'<rect width="{w}" height="{h}" fill="#ffffff"/>')
 
-    for v in range(0, int(vmax) + 1, 10):
+    for v in range(0, int(vmax) + 1, 20):
         x = ml + v / vmax * pw
         s.append(f'<line x1="{x:.1f}" y1="{mt}" x2="{x:.1f}" y2="{mt+ph}" '
                  f'stroke="{GRID}" stroke-width="1"/>')
@@ -196,12 +193,6 @@ def ablation_bars(w=860, h=556):
         s.append(_txt(ml + ri / vmax * pw + 10, y + row / 2 + gap / 2 + bh / 2 + 6,
                       f"{ri:.1f}", 20, "start", IDENTITY, "700" if full else "500"))
 
-    # PMR reference line for RI
-    xr = ml + 24.2 / vmax * pw
-    s.append(f'<line x1="{xr:.1f}" y1="{mt-6}" x2="{xr:.1f}" y2="{mt+ph+4}" '
-             f'stroke="{IDENTITY}" stroke-width="1.8" stroke-dasharray="7 6" opacity="0.45"/>')
-    s.append(_txt(xr + 8, mt - 12, "PMR re-ID 24.2%", 19, "start", IDENTITY, "600"))
-
     s.append(_txt(ml + pw / 2, h - 8, "percent (%)", 22, "middle", INK, "700"))
     s.append(f'<rect x="{ml}" y="{mt-34}" width="17" height="17" rx="3" fill="{ACTION}"/>')
     s.append(_txt(ml + 24, mt - 20, "AR ↑", 21, "start", ACTION, "700"))
@@ -215,8 +206,8 @@ def ablation_bars(w=860, h=556):
 # 3. Beta trade-off  (source: scripts/plot_soft_retarget_tradeoff.py)
 # ---------------------------------------------------------------------------
 BETAS = [0.00, 0.03, 0.05, 0.08, 0.10, 0.15, 0.20, 0.25, 0.30, 0.50, 0.70, 1.00]
-FROZEN_AR = [89.1, 84.9, 84.8, 83.8, 82.7, 80.0, 76.8, 38.8, 42.8, 27.7, 13.0, 2.0]
-FROZEN_RI = [75.4, 69.5, 61.4, 60.9, 52.0, 37.5, 17.3, 9.6, 14.3, 3.1, 8.2, 4.7]
+PRETRAINED_AR = [89.1, 84.9, 84.8, 83.8, 82.7, 80.0, 76.8, 38.8, 42.8, 27.7, 13.0, 2.0]
+PRETRAINED_RI = [75.4, 69.5, 61.4, 60.9, 52.0, 37.5, 17.3, 9.6, 14.3, 3.1, 8.2, 4.7]
 
 
 def beta_tradeoff(w=860, h=516):
@@ -243,7 +234,7 @@ def beta_tradeoff(w=860, h=516):
     s.append(f'<rect x="{X(0.175):.1f}" y="{mt}" width="{X(0.225)-X(0.175):.1f}" '
              f'height="{ph}" fill="#A49665" opacity="0.16"/>')
 
-    for vals, col, dash in [(FROZEN_AR, ACTION, ""), (FROZEN_RI, IDENTITY, "9 6")]:
+    for vals, col, dash in [(PRETRAINED_AR, ACTION, ""), (PRETRAINED_RI, IDENTITY, "9 6")]:
         pts = " ".join(f"{X(b):.1f},{Y(v):.1f}" for b, v in zip(BETAS, vals))
         s.append(f'<polyline points="{pts}" fill="none" stroke="{col}" stroke-width="4" '
                  f'stroke-linejoin="round" stroke-linecap="round"'
