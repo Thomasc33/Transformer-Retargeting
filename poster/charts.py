@@ -208,6 +208,10 @@ def ablation_bars(w=860, h=556):
 BETAS = [0.00, 0.03, 0.05, 0.08, 0.10, 0.15, 0.20, 0.25, 0.30, 0.50, 0.70, 1.00]
 PRETRAINED_AR = [89.1, 84.9, 84.8, 83.8, 82.7, 80.0, 76.8, 38.8, 42.8, 27.7, 13.0, 2.0]
 PRETRAINED_RI = [75.4, 69.5, 61.4, 60.9, 52.0, 37.5, 17.3, 9.6, 14.3, 3.1, 8.2, 4.7]
+# Table S11 publishes the re-trained protocol across the same sweep. It is half
+# the paper's point (Fig. 5b): pre-trained AR falls off a cliff after beta=0.2,
+# but a recogniser that adapts holds ~85% almost the whole way.
+RETRAINED_AR = [89.1, 86.8, 87.8, 87.2, 87.3, 86.9, 87.1, 85.3, 85.4, 84.6, 81.9, 55.4]
 
 
 def beta_tradeoff(w=860, h=516):
@@ -234,7 +238,9 @@ def beta_tradeoff(w=860, h=516):
     s.append(f'<rect x="{X(0.175):.1f}" y="{mt}" width="{X(0.225)-X(0.175):.1f}" '
              f'height="{ph}" fill="#A49665" opacity="0.16"/>')
 
-    for vals, col, dash in [(PRETRAINED_AR, ACTION, ""), (PRETRAINED_RI, IDENTITY, "9 6")]:
+    for vals, col, dash in [(RETRAINED_AR, GATE, "3 7"),
+                            (PRETRAINED_AR, ACTION, ""),
+                            (PRETRAINED_RI, IDENTITY, "9 6")]:
         pts = " ".join(f"{X(b):.1f},{Y(v):.1f}" for b, v in zip(BETAS, vals))
         s.append(f'<polyline points="{pts}" fill="none" stroke="{col}" stroke-width="4" '
                  f'stroke-linejoin="round" stroke-linecap="round"'
@@ -262,12 +268,20 @@ def beta_tradeoff(w=860, h=516):
     s.append(f'<g transform="translate(26,{mt+ph/2}) rotate(-90)">'
              + _txt(0, 0, "AR / RI  (%)", 22, "middle", INK, "600") + "</g>")
 
-    s.append(f'<line x1="{ml+pw-232}" y1="{mt+14}" x2="{ml+pw-196}" y2="{mt+14}" '
-             f'stroke="{ACTION}" stroke-width="4"/>')
-    s.append(_txt(ml + pw - 188, mt + 20, "AR ↑", 21, "start", ACTION, "700"))
-    s.append(f'<line x1="{ml+pw-232}" y1="{mt+42}" x2="{ml+pw-196}" y2="{mt+42}" '
-             f'stroke="{IDENTITY}" stroke-width="4" stroke-dasharray="9 6"/>')
-    s.append(_txt(ml + pw - 188, mt + 48, "RI ↓", 21, "start", IDENTITY, "700"))
+    # the re-trained curve runs right through this corner, so the legend needs
+    # its own ground rather than sitting straight on the plot
+    s.append(f'<rect x="{ml+pw-300:.1f}" y="{mt+2}" width="252" height="90" rx="8" '
+             f'fill="#ffffff" stroke="{GRID}" stroke-width="1.4" opacity="0.97"/>')
+    for k, (col, lab, dash) in enumerate([
+            (GATE, "AR ↑  re-trained", "3 7"),
+            (ACTION, "AR ↑  pre-trained", ""),
+            (IDENTITY, "RI ↓  pre-trained", "9 6")]):
+        ly = mt + 22 + k * 26
+        s.append(f'<line x1="{ml+pw-288}" y1="{ly}" x2="{ml+pw-252}" y2="{ly}" '
+                 f'stroke="{col}" stroke-width="4"'
+                 + (f' stroke-dasharray="{dash}"' if dash else "") + "/>")
+        s.append(_txt(ml + pw - 244, ly + 6, lab, 19, "start", col, "700"))
+
     s.append("</svg>")
     return "".join(s)
 

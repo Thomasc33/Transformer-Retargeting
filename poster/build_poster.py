@@ -290,7 +290,7 @@ def qualitative_panel(n_frames: int = 4) -> str:
 N_FRAMES = {"140x100": 7, "180x90": 8, "a0": 4, "36x48": 4}
 
 CHART_H = {
-    "140x100": {"scatter": 458, "ablation": 425, "beta": 428, "quad": 418},
+    "140x100": {"scatter": 458, "ablation": 400, "beta": 412, "quad": 418},
     "180x90":  {"scatter": 780, "ablation": 640, "beta": 560, "quad": 470},
     "a0":      {"scatter": 760, "ablation": 620, "beta": 560, "quad": 470},
     "36x48":   {"scatter": 740, "ablation": 600, "beta": 546, "quad": 470},
@@ -498,11 +498,13 @@ def sections(tsne_action: str, tsne_ident: str, n_frames: int = 4,
       <section class="tint">
         <h2 class="g">One knob at test time</h2>
         <figure>{beta}</figure>
-        <figcaption>Pre-trained recognisers score every &beta;, so the operating point
-          moves <i>without retraining</i>. Below <b>&beta; = 0.2</b> enough source
-          structure survives that they still read the action; between 0.20 and 0.25 it
-          collapses, 76.8 &rarr; 38.8%. Deployments pick &beta; from their own risk
-          budget.</figcaption>
+        <figcaption>&beta; moves the operating point <i>after</i> training. A
+          <b>pre-trained</b> recogniser reads the action while enough source structure
+          survives, then falls off a cliff between &beta; = 0.20 and 0.25,
+          76.8 &rarr; 38.8%. A <b>re-trained</b> one holds about 85% almost the whole
+          way, so the action itself is still there: the cliff is a compatibility
+          limit, not a loss of information. Deployments pick &beta; from their own
+          risk budget.</figcaption>
       </section>"""
 
     S["losses"] = """
