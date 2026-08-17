@@ -290,7 +290,7 @@ def qualitative_panel(n_frames: int = 4) -> str:
 N_FRAMES = {"140x100": 7, "180x90": 8, "a0": 4, "36x48": 4}
 
 CHART_H = {
-    "140x100": {"scatter": 458, "ablation": 400, "beta": 412, "quad": 418},
+    "140x100": {"scatter": 476, "ablation": 432, "beta": 444, "quad": 418},
     "180x90":  {"scatter": 780, "ablation": 640, "beta": 560, "quad": 470},
     "a0":      {"scatter": 760, "ablation": 620, "beta": 560, "quad": 470},
     "36x48":   {"scatter": 740, "ablation": 600, "beta": 546, "quad": 470},
@@ -321,9 +321,9 @@ def sections(tsne_action: str, tsne_ident: str, n_frames: int = 4,
            re-identifies the actor in raw NTU skeletons
            <span class="hl">75.4% of the time</span> across 40 identities,
            30&times; chance.</p>
-        <p>Yet skeletons are exactly what we want to share for health monitoring
-           and elder care. Blurring or adding noise destroys the action along with
-           the identity.</p>
+        <p>Yet skeletons are exactly the modality we want to share for health
+           monitoring, elder care and behaviour analysis. Blurring or adding noise
+           destroys the action along with the identity.</p>
       </section>"""
 
     S["idea"] = """
@@ -640,24 +640,17 @@ svg.bg{ position:absolute; inset:0; width:100%; height:100%; z-index:0; }
   display:flex; align-items:center;
 }
 .qr img, .qr svg{ display:block; width:__QRW__mm; height:__QRW__mm; }
+/* One plain line above the authors. Pills read as decoration, not
+   information: the board is at ECCV and is obviously a poster. */
 .venue{
-  display:flex; gap:4mm; align-items:center; margin-bottom:3mm;
-  font-size:15pt; letter-spacing:.08em; text-transform:uppercase; font-weight:700;
+  font-size:15pt; letter-spacing:.1em; text-transform:uppercase; font-weight:700;
+  color:var(--gold); margin-bottom:2.5mm;
 }
-.pill{
-  background:rgba(255,255,255,.17); border:1.6px solid rgba(255,255,255,.42);
-  padding:1.2mm 4mm; border-radius:99px; font-size:13.5pt; letter-spacing:.06em;
-}
-.pill.gold{ background:var(--gold); border-color:var(--gold); color:var(--ink); }
 h1{
   font-size:61pt; line-height:1.04; font-weight:800; letter-spacing:-.022em;
   margin-bottom:4mm;
 }
 h1 .lead{ color:#8fd8bb; }
-.tagline{
-  font-size:21.5pt; font-weight:400; color:#c7e8da; line-height:1.28;
-  margin-bottom:4mm;
-}
 .authors{ font-size:20.5pt; font-weight:600; letter-spacing:.005em; }
 .authors sup{ font-size:13.5pt; color:#8fd8bb; font-weight:700; }
 .affil{ font-size:14.5pt; color:#a7d8c4; margin-top:2mm; }
@@ -789,8 +782,8 @@ tr.ours td:last-child{ border-radius:0 3px 3px 0; padding-right:2mm; }
 tr.ref td{ color:var(--muted); }
 
 /* ---------- qualitative ---------- */
-.qual{ display:flex; flex-direction:column; gap:4mm; }
-.qblock{ border:1.5px solid var(--line); border-radius:3mm; padding:3mm 3mm 1mm; background:#fff; }
+.qual{ display:flex; flex-direction:column; gap:11mm; }
+.qblock{ border:1.5px solid var(--line); border-radius:3mm; padding:4mm 3mm 2mm; background:#fff; }
 .qtitle{ font-size:19pt; font-weight:800; margin-bottom:1mm; }
 .qtitle span{ font-weight:500; color:var(--ink); font-size:17pt; margin-left:2mm; }
 
@@ -887,12 +880,11 @@ html,body{{ width:{PW + 2*m:g}mm; height:{PH + 2*m:g}mm; overflow:hidden; }}
         # Appended after scale_css because the landscape scale is 1.0 anyway.
         css += """
 .poster.land header{ padding:7mm 9mm 6.5mm; gap:5mm; }
-.poster.land .venue{ font-size:17pt; margin-bottom:3mm; }
+.poster.land .venue{ font-size:18pt; margin-bottom:3mm; }
 /* the title has the whole board width here, so it sets on two lines with room
    to spare; sized to fill them rather than to fit a column */
 .poster.land h1{ font-size:82pt; margin-bottom:0; }
-.poster.land .tagline{ font-size:25pt; margin-bottom:2.5mm; }
-.poster.land .hbottom{ gap:9mm; padding-top:1mm; }
+.poster.land .hbottom{ gap:9mm; padding-top:5mm; }
 .poster.land .authors{ font-size:24pt; }
 .poster.land .authors sup{ font-size:15.5pt; }
 .poster.land .affil{ font-size:17pt; margin-top:2mm; }
@@ -974,17 +966,13 @@ html,body{{ width:{PW + 2*m:g}mm; height:{PH + 2*m:g}mm; overflow:hidden; }}
   <header>
 {header_bg}
     <div class="hmain">
-      <div class="venue">
-        <span class="pill gold">ECCV 2026</span>
-        <span class="pill">Poster</span>
-        <span style="font-weight:500;letter-spacing:.04em">Malmö, Sweden · 8–12 September 2026</span>
-      </div>
       <h1><span class="lead">DisentangledTMR:</span> Privacy-Preserving Skeleton
           Motion Retargeting via Factorized Transformers</h1>
     </div>
     <div class="hbottom">
       <div class="hwho">
-        <div class="tagline">Keep <b>what</b> the body is doing. Replace <b>who</b> is doing it.</div>
+        <div class="venue">ECCV 2026 &nbsp;·&nbsp; Malmö, Sweden
+             &nbsp;·&nbsp; 8–12 September 2026</div>
         <div class="authors">
           Thomas Carr<sup>1,2</sup> &nbsp; Depeng Xu<sup>1</sup> &nbsp;
           Shuhan Yuan<sup>3</sup> &nbsp; Aidong Lu<sup>1</sup>
